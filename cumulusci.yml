@@ -1,0 +1,28 @@
+minimum_cumulusci_version: '3.78.0'
+project:
+    name: Docs-Unlocked
+    package:
+        name: Docs-Unlocked
+        api_version: '64.0'
+    git:
+        default_branch: 'main'
+        prefix_feature: 'feature/'
+        prefix_beta: 'beta/'
+        prefix_release: 'release/'
+    source_format: sfdx
+
+tasks:
+    robot:
+        options:
+            suites: robot/Docs-Unlocked/tests
+            options:
+                outputdir: robot/Docs-Unlocked/results
+
+    robot_testdoc:
+        options:
+            path: robot/Docs-Unlocked/tests
+            output: robot/Docs-Unlocked/doc/Docs-Unlocked_tests.html
+
+    run_tests:
+        options:
+            required_org_code_coverage_percent: 75
