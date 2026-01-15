@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+}
+
+.prose {
+  @apply text-gray-700;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  @apply text-gray-900 font-bold;
+}
+
+.prose h1 {
+  @apply text-4xl sm:text-5xl mb-4;
+}
+
+.prose h2 {
+  @apply text-3xl mb-6 mt-12;
+}
+
+.prose h3 {
+  @apply text-2xl mb-4 mt-8;
+}
+
+.prose p {
+  @apply mb-4 leading-relaxed;
+}
+
+.prose code {
+  @apply px-2 py-1 bg-gray-100 rounded text-sm font-medium text-gray-900;
+}
+
+.prose pre {
+  @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-6;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0 text-inherit text-sm font-mono;
+}
+
+.prose ul {
+  @apply mb-4 list-disc list-inside;
+}
+
+.prose li {
+  @apply mb-2;
+}
+
+.prose a {
+  @apply text-blue-600 hover:text-blue-700 font-medium;
+}
