@@ -292,16 +292,28 @@ const safeError = (message: string, error?: any) => {
   console.error(`[DocsUnlocked] ${message}${errorStr ? ' ' + errorStr : ''}`);
 };
 
-// Auto-initialize function - looks for container and renders immediately
-const initDocsApp = (containerId: string = 'docs-app-root') => {
+// Auto-initialize function - accepts container element or ID string
+const initDocsApp = (containerOrId: HTMLElement | string = 'docs-app-root') => {
+  let container: HTMLElement | null = null;
+  
   try {
-    safeLog('Initializing Docs Unlocked, containerId:', containerId);
-    
-    const container = document.getElementById(containerId);
-    if (!container) {
-      const msg = `Container with id "${containerId}" not found`;
-      safeError(msg);
-      throw new Error(msg);
+    // Handle both element and ID string
+    if (typeof containerOrId === 'string') {
+      safeLog('Initializing Docs Unlocked, containerId:', containerOrId);
+      container = document.getElementById(containerOrId);
+      if (!container) {
+        const msg = `Container with id "${containerOrId}" not found`;
+        safeError(msg);
+        throw new Error(msg);
+      }
+    } else {
+      safeLog('Initializing Docs Unlocked, container element provided');
+      container = containerOrId;
+      if (!container) {
+        const msg = 'Container element is null or undefined';
+        safeError(msg);
+        throw new Error(msg);
+      }
     }
     
     // Check if React is available
@@ -328,9 +340,14 @@ const initDocsApp = (containerId: string = 'docs-app-root') => {
     const errorStack = error instanceof Error ? error.stack : '';
     safeError('Error initializing Docs Unlocked:', error);
     
-    const container = document.getElementById(containerId);
-    if (container) {
-      container.innerHTML = `
+    // Try to find container if we have an ID, otherwise use the container we already have
+    let errorContainer: HTMLElement | null = container;
+    if (!errorContainer && typeof containerOrId === 'string') {
+      errorContainer = document.getElementById(containerOrId);
+    }
+    
+    if (errorContainer) {
+      errorContainer.innerHTML = `
         <div style="padding: 2rem; text-align: center; font-family: Arial, sans-serif;">
           <h2 style="color: #c23934;">Initialization Error</h2>
           <p style="color: #333; margin-bottom: 0.5rem;"><strong>${errorMsg}</strong></p>

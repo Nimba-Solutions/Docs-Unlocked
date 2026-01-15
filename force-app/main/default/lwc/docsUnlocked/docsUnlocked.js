@@ -29,17 +29,33 @@ export default class DocsUnlocked extends LightningElement {
             // The script will auto-initialize when it loads
             await loadScript(this, DOCS_UNLOCKED);
             
-            console.log('[DocsUnlocked LWC] Script loaded - auto-initialization should occur automatically');
+            console.log('[DocsUnlocked LWC] Script loaded, calling initDocsApp...');
             
-            // Give it time to initialize
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Give script time to fully execute
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Explicitly call initDocsApp - pass the container element directly, not ID
+            // This avoids shadow DOM issues where document.getElementById won't work
+            if (window.initDocsApp && typeof window.initDocsApp === 'function') {
+                console.log('[DocsUnlocked LWC] Calling window.initDocsApp with container element...');
+                // Pass container element directly instead of ID
+                window.initDocsApp(container);
+            } else if (window.DocsUnlocked && window.DocsUnlocked.initDocsApp) {
+                console.log('[DocsUnlocked LWC] Calling window.DocsUnlocked.initDocsApp with container element...');
+                window.DocsUnlocked.initDocsApp(container);
+            } else {
+                throw new Error('initDocsApp function not found on window or window.DocsUnlocked');
+            }
+            
+            // Give React time to render
+            await new Promise(resolve => setTimeout(resolve, 200));
             
             // Check if React app was initialized (container should have content)
-            if (container.children.length === 0) {
-                console.warn('[DocsUnlocked LWC] Container still empty after script load - check console for errors');
-                // Don't throw - let the script handle errors
+            const childCount = container.children ? container.children.length : 0;
+            if (childCount === 0) {
+                console.warn('[DocsUnlocked LWC] Container still empty after initDocsApp call - check console for errors');
             } else {
-                console.log('[DocsUnlocked LWC] App appears to have initialized (container has children)');
+                console.log('[DocsUnlocked LWC] App initialized successfully (container has ' + childCount + ' children)');
             }
         } catch (error) {
             // Serialize error for Salesforce console (can't log objects directly)
@@ -47,10 +63,10 @@ export default class DocsUnlocked extends LightningElement {
             const errorStack = error?.stack || '';
             const errorName = error?.name || 'Error';
             
-            // Safe console logging for Salesforce
-            console.error(`[DocsUnlocked LWC] Error loading: ${errorName} - ${errorMessage}`);
+            // Safe console logging for Salesforce - stringify everything, no template literals with objects
+            console.error('[DocsUnlocked LWC] Error loading: ' + errorName + ' - ' + errorMessage);
             if (errorStack) {
-                console.error(`[DocsUnlocked LWC] Stack: ${errorStack.substring(0, 500)}`);
+                console.error('[DocsUnlocked LWC] Stack: ' + errorStack.substring(0, 500));
             }
             
             this.showError(errorMessage, errorStack);
