@@ -1,18 +1,70 @@
 # Introduction
 
-Welcome to Docs Unlocked! This is a lightweight documentation template built with TypeScript and Tailwind CSS.
+Welcome to **Docs Unlocked**! This is a powerful documentation system built with React, TypeScript, and Tailwind CSS, designed specifically for Salesforce Lightning Web Components.
 
 ## What's Inside
 
-- Simple and fast documentation site
-- Markdown support
-- Dark mode support
-- Mobile-friendly design
-- Zero framework dependencies
+Docs Unlocked provides:
+
+- ⚡ **Fast and lightweight** - Optimized bundle size for Salesforce
+- 📝 **Markdown support** - Full GitHub Flavored Markdown (GFM) support
+- 🎨 **Beautiful UI** - Modern, responsive design with Tailwind CSS
+- 🔒 **Salesforce-ready** - Built to run seamlessly in Salesforce orgs
+- 📱 **Mobile-friendly** - Responsive design that works on all devices
+
+## Key Features
+
+### Markdown Rendering
+
+Docs Unlocked uses `marked.js` with the same configuration as the popular [Markdown-Unlocked](https://github.com/Nimba-Solutions/Markdown-Unlocked) package:
+
+- **GitHub Flavored Markdown** - Tables, task lists, strikethrough, and more
+- **Automatic line breaks** - Better readability
+- **Code syntax highlighting** - Powered by highlight.js
+- **Safe HTML rendering** - Sanitized with DOMPurify
+
+### Architecture
+
+```
+┌─────────────────┐
+│   Salesforce    │
+│      LWC        │
+└────────┬────────┘
+         │
+         │ Loads bundle
+         ▼
+┌─────────────────┐
+│  React Bundle   │
+│  (StaticResource)│
+└────────┬────────┘
+         │
+         │ Renders
+         ▼
+┌─────────────────┐
+│  Documentation   │
+│     Content      │
+└─────────────────┘
+```
 
 ## Quick Start
 
-1. Clone this repository
-2. Install dependencies: `npm install`
-3. Start the dev server: `npm run dev`
-4. Add your markdown files to `public/content`
+1. **Deploy to Salesforce**
+   ```bash
+   cci task run deploy --path force-app --org dev
+   ```
+
+2. **Add your content** - Upload markdown files as StaticResources
+
+3. **Configure navigation** - Update the navigation JSON file
+
+4. **Enjoy!** - Your documentation is ready
+
+## Next Steps
+
+- Read the [Installation Guide](./installation.md) for detailed setup instructions
+- Check out [Basic Usage](../core-concepts/basic-usage.md) to learn how to add content
+- Explore [Configuration](../core-concepts/configuration.md) for customization options
+
+---
+
+> 💡 **Tip**: All markdown files should be uploaded as StaticResources in Salesforce. The naming convention converts paths like `/getting-started/introduction` to `getting_started_introduction`.

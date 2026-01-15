@@ -1,16 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Menu, X, Search, Github } from 'lucide-react';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import './index.css';
 
-// Content Renderer - renders HTML content (markdown rendering handled by Markdown-Unlocked LWC)
+// Configure marked.js with same options as Markdown-Unlocked
+marked.use({
+  gfm: true,      // GitHub Flavored Markdown
+  breaks: true    // Automatic line breaks
+});
+
+// Content Renderer - renders markdown content using marked.js (same config as Markdown-Unlocked)
 const ContentRenderer = ({ content }: { content: string }) => {
-  // If content is HTML, render it directly
-  // Otherwise, render as plain text (markdown should be pre-rendered by Markdown-Unlocked)
+  // Parse markdown to HTML and sanitize it
+  const html = useMemo(() => {
+    if (!content) return '';
+    try {
+      // marked.parse() returns a string (synchronous) in the version we're using
+      const rawHtml = marked.parse(content) as string;
+      return DOMPurify.sanitize(rawHtml);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error(`[DocsUnlocked] Error rendering markdown: ${errorMsg}`);
+      return `<p>Error rendering markdown: ${DOMPurify.sanitize(errorMsg)}</p>`;
+    }
+  }, [content]);
+
   return (
     <div 
       className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-4xl prose-h1:sm:text-5xl prose-h1:mb-4 prose-h2:text-3xl prose-h2:mb-4 prose-h2:mt-8 prose-h3:text-2xl prose-h3:mb-3 prose-h3:mt-6 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-strong:font-semibold prose-code:text-sm prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-gray-800 prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-ul:list-disc prose-ul:pl-6 prose-ul:my-4 prose-li:text-gray-700 prose-li:mb-2"
-      dangerouslySetInnerHTML={{ __html: content }}
+      dangerouslySetInnerHTML={{ __html: html }}
     />
   );
 };
@@ -118,11 +138,18 @@ const DocsApp = () => {
   useEffect(() => {
     const loadNavigation = async () => {
       try {
-        // Try to load from StaticResource first, fallback to CDN
-        const response = await fetch('/resource/navigation_json');
+        // Load navigation from ZIP StaticResource
+        // ZIP StaticResources can be accessed via /resource/ResourceName/path/to/file
+        const response = await fetch('/resource/docsContent/content/navigation.json');
         if (!response.ok) {
-          // Fallback: try CDN or use default
-          throw new Error('StaticResource not found');
+          // Fallback: try old single-file StaticResource
+          const fallbackResponse = await fetch('/resource/navigation_json');
+          if (!fallbackResponse.ok) {
+            throw new Error('StaticResource not found');
+          }
+          const fallbackData = await fallbackResponse.json();
+          setNavigation(fallbackData);
+          return;
         }
         const data = await response.json();
         setNavigation(data);
@@ -153,21 +180,24 @@ const DocsApp = () => {
       
       setContentLoading(true);
       try {
-        // Convert path to StaticResource name (e.g., /getting-started/introduction -> getting_started_introduction)
-        // Remove leading slash and replace slashes with underscores
-        const resourceName = currentPath.replace(/^\//, '').replace(/\//g, '_');
-        
-        // Try StaticResource first (Salesforce format: /resource/StaticResourceName)
-        let response = await fetch(`/resource/${resourceName}`);
+        // Load from ZIP StaticResource
+        // Path format: /resource/docsContent/content/getting-started/introduction.md
+        const contentPath = `${currentPath}.md`;
+        let response = await fetch(`/resource/docsContent/content${contentPath}`);
         
         if (!response.ok) {
-          // Fallback: try with _md suffix
-          response = await fetch(`/resource/${resourceName}_md`);
+          // Fallback: try old single-file StaticResource naming convention
+          const resourceName = currentPath.replace(/^\//, '').replace(/\//g, '_');
+          response = await fetch(`/resource/${resourceName}`);
+          
+          if (!response.ok) {
+            // Try with _md suffix
+            response = await fetch(`/resource/${resourceName}_md`);
+          }
         }
         
         if (!response.ok) {
           // Fallback: try CDN (for future use)
-          // CDN base URL can be configured via window.DOCS_CDN_BASE_URL
           const cdnBase = (window as any).DOCS_CDN_BASE_URL;
           if (cdnBase) {
             const cdnUrl = `${cdnBase}${currentPath}.md`;
@@ -184,7 +214,7 @@ const DocsApp = () => {
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         console.error(`[DocsUnlocked] Failed to load content for path "${currentPath}": ${errorMsg}`);
-        setContent(`# Content Not Found\n\nUnable to load content for path: \`${currentPath}\`\n\n**StaticResource naming:**\n- Path: \`${currentPath}\`\n- Expected StaticResource name: \`${currentPath.replace(/^\//, '').replace(/\//g, '_')}\` or \`${currentPath.replace(/^\//, '').replace(/\//g, '_')}_md\`\n\nPlease ensure the StaticResource is uploaded with the correct name.`);
+        setContent(`# Content Not Found\n\nUnable to load content for path: \`${currentPath}\`\n\n**Expected location:**\n- ZIP StaticResource: \`/resource/docsContent/content${currentPath}.md\`\n- Or single StaticResource: \`/resource/${currentPath.replace(/^\//, '').replace(/\//g, '_')}\`\n\nPlease ensure the \`docsContent\` ZIP StaticResource is deployed with all content files.`);
       } finally {
         setContentLoading(false);
       }
