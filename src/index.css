@@ -5,3 +5,28 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* Code block styling improvements */
+.prose pre {
+  background-color: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+  color: #111827 !important;
+}
+
+.prose pre code {
+  background-color: transparent !important;
+  color: inherit !important;
+  padding: 0 !important;
+}
+
+/* Highlight.js code block styling */
+.prose pre code.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0;
+  background: transparent;
+}
+
+.prose pre code.hljs * {
+  color: inherit;
+}

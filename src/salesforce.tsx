@@ -29,7 +29,7 @@ const ContentRenderer = ({ content }: { content: string }) => {
 
   return (
     <div 
-      className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-4xl prose-h1:sm:text-5xl prose-h1:mb-4 prose-h2:text-3xl prose-h2:mb-4 prose-h2:mt-8 prose-h3:text-2xl prose-h3:mb-3 prose-h3:mt-6 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-strong:font-semibold prose-code:text-sm prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-gray-800 prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-ul:list-disc prose-ul:pl-6 prose-ul:my-4 prose-li:text-gray-700 prose-li:mb-2"
+      className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-4xl prose-h1:sm:text-5xl prose-h1:mb-4 prose-h2:text-3xl prose-h2:mb-4 prose-h2:mt-8 prose-h3:text-2xl prose-h3:mb-3 prose-h3:mt-6 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-strong:font-semibold prose-code:text-sm prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-gray-800 prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-pre:text-gray-900 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-pre:shadow-sm prose-ul:list-disc prose-ul:pl-6 prose-ul:my-4 prose-li:text-gray-700 prose-li:mb-2"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
@@ -86,16 +86,18 @@ const Sidebar = ({
     <>
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
           onClick={onClose}
         />
       )}
       <aside className={`
-        fixed top-16 left-0 bottom-0 w-72 bg-white border-r border-gray-200 
+        fixed left-0 w-72 bg-white border-r border-gray-200 
         transform transition-transform duration-300 ease-in-out z-40
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0
-      `}>
+        lg:absolute lg:left-0 lg:top-16 lg:w-72 lg:transform-none lg:translate-x-0
+      `} style={{ 
+        overflowY: 'auto'
+      }}>
         <div className="h-full overflow-y-auto p-6">
           <div className="mb-6">
             <div className="relative">
@@ -246,8 +248,8 @@ const DocsApp = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-50">
+    <div className="bg-gray-50 relative">
+      <header className="sticky top-0 h-16 bg-white border-b border-gray-200 z-50">
         <div className="h-full px-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
@@ -276,7 +278,7 @@ const DocsApp = () => {
         currentPath={currentPath}
         onNavigate={handleNavigate}
       />
-      <main className="pt-16 lg:pl-72">
+      <main className="lg:pl-72">
         <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {contentLoading ? (
             <div className="flex items-center justify-center py-12">
