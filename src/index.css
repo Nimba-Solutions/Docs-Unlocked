@@ -6,17 +6,26 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Code block styling improvements */
+/* Code block styling - dark theme */
 .prose pre {
-  background-color: #f9fafb !important;
-  border: 1px solid #e5e7eb !important;
-  color: #111827 !important;
+  background-color: #111827 !important;
+  border: 1px solid #374151 !important;
+  color: #f3f4f6 !important;
 }
 
 .prose pre code {
   background-color: transparent !important;
   color: inherit !important;
   padding: 0 !important;
+}
+
+/* Code block wrapper for copy button */
+.code-block-wrapper {
+  position: relative;
+}
+
+.code-block-wrapper:hover .copy-code-btn {
+  opacity: 1 !important;
 }
 
 /* Highlight.js code block styling */

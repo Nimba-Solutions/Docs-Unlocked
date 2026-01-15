@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
-import { Menu, X, Search, Github } from 'lucide-react';
+import { Menu, X, Search, Github, ChevronRight, ChevronLeft } from 'lucide-react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import './index.css';
@@ -11,15 +11,42 @@ marked.use({
   breaks: true    // Automatic line breaks
 });
 
+// Helper to wrap code blocks with copy button (post-processing)
+const wrapCodeBlocks = (html: string): string => {
+  // Match <pre><code> blocks
+  return html.replace(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g, (match, codeContent) => {
+    // Escape HTML entities for data attribute
+    const escapedCode = codeContent
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    
+    return `<div class="relative group code-block-wrapper">
+      <div class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        <button class="copy-code-btn px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded" data-code="${escapedCode}">
+          Copy
+        </button>
+      </div>
+      ${match}
+    </div>`;
+  });
+};
+
 // Content Renderer - renders markdown content using marked.js (same config as Markdown-Unlocked)
 const ContentRenderer = ({ content }: { content: string }) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+
   // Parse markdown to HTML and sanitize it
   const html = useMemo(() => {
     if (!content) return '';
     try {
       // marked.parse() returns a string (synchronous) in the version we're using
       const rawHtml = marked.parse(content) as string;
-      return DOMPurify.sanitize(rawHtml);
+      // Wrap code blocks with copy button before sanitizing
+      const wrappedHtml = wrapCodeBlocks(rawHtml);
+      return DOMPurify.sanitize(wrappedHtml);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error(`[DocsUnlocked] Error rendering markdown: ${errorMsg}`);
@@ -27,9 +54,60 @@ const ContentRenderer = ({ content }: { content: string }) => {
     }
   }, [content]);
 
+  // Attach copy button handlers after render
+  useEffect(() => {
+    if (!contentRef.current) return;
+
+    const copyButtons = contentRef.current.querySelectorAll('.copy-code-btn');
+    const cleanupFunctions: Array<() => void> = [];
+
+    copyButtons.forEach((button) => {
+      const handleClick = async (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const code = (button as HTMLElement).getAttribute('data-code');
+        if (!code) return;
+
+        try {
+          // Decode HTML entities - create a temporary element to decode properly
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = code;
+          const decodedCode = tempDiv.textContent || tempDiv.innerText || code;
+
+          await navigator.clipboard.writeText(decodedCode);
+          
+          // Update button text temporarily
+          const originalText = button.textContent;
+          (button as HTMLElement).textContent = 'Copied!';
+          (button as HTMLElement).classList.remove('bg-gray-700', 'hover:bg-gray-600');
+          (button as HTMLElement).classList.add('bg-green-600');
+          setTimeout(() => {
+            if (button.textContent === 'Copied!') {
+              (button as HTMLElement).textContent = originalText;
+              (button as HTMLElement).classList.remove('bg-green-600');
+              (button as HTMLElement).classList.add('bg-gray-700', 'hover:bg-gray-600');
+            }
+          }, 2000);
+        } catch (err) {
+          console.error('[DocsUnlocked] Failed to copy code:', err);
+        }
+      };
+
+      button.addEventListener('click', handleClick);
+      cleanupFunctions.push(() => {
+        button.removeEventListener('click', handleClick);
+      });
+    });
+
+    return () => {
+      cleanupFunctions.forEach(cleanup => cleanup());
+    };
+  }, [html]);
+
   return (
     <div 
-      className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-4xl prose-h1:sm:text-5xl prose-h1:mb-4 prose-h2:text-3xl prose-h2:mb-4 prose-h2:mt-8 prose-h3:text-2xl prose-h3:mb-3 prose-h3:mt-6 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-strong:font-semibold prose-code:text-sm prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-gray-800 prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-pre:text-gray-900 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-pre:shadow-sm prose-ul:list-disc prose-ul:pl-6 prose-ul:my-4 prose-li:text-gray-700 prose-li:mb-2"
+      ref={contentRef}
+      className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-4xl prose-h1:sm:text-5xl prose-h1:mb-4 prose-h2:text-3xl prose-h2:mb-4 prose-h2:mt-8 prose-h3:text-2xl prose-h3:mb-3 prose-h3:mt-6 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-strong:font-semibold prose-code:text-sm prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-gray-800 prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-700 prose-pre:text-gray-100 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-pre:shadow-lg prose-ul:list-disc prose-ul:pl-6 prose-ul:my-4 prose-li:text-gray-700 prose-li:mb-2"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
@@ -124,6 +202,80 @@ const Sidebar = ({
         </div>
       </aside>
     </>
+  );
+};
+
+// Helper to flatten navigation and get prev/next pages
+const flattenNavigation = (nav: any[]): Array<{ title: string; path: string }> => {
+  const result: Array<{ title: string; path: string }> = [];
+  nav.forEach((section) => {
+    if (section.children) {
+      section.children.forEach((child: any) => {
+        result.push({ title: child.title, path: child.path });
+      });
+    }
+  });
+  return result;
+};
+
+// Navigation Links Component (Prev/Next)
+const NavigationLinks = ({ 
+  navigation, 
+  currentPath, 
+  onNavigate 
+}: { 
+  navigation: any[]; 
+  currentPath: string; 
+  onNavigate: (path: string) => void;
+}) => {
+  const flatNav = useMemo(() => flattenNavigation(navigation), [navigation]);
+  const currentIndex = flatNav.findIndex(item => item.path === currentPath);
+  const prevPage = currentIndex > 0 ? flatNav[currentIndex - 1] : null;
+  const nextPage = currentIndex < flatNav.length - 1 ? flatNav[currentIndex + 1] : null;
+
+  if (!prevPage && !nextPage) return null;
+
+  return (
+    <div className="flex items-center justify-between pt-8 mt-8 border-t border-gray-200">
+      <div className="text-sm">
+        {prevPage ? (
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate(prevPage.path);
+            }}
+            className="text-gray-600 hover:text-gray-900 flex items-center gap-2 group"
+          >
+            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span>
+              <span className="text-gray-500">Previous:</span> {prevPage.title}
+            </span>
+          </a>
+        ) : (
+          <div className="text-gray-400">← Previous</div>
+        )}
+      </div>
+      <div className="text-sm">
+        {nextPage ? (
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate(nextPage.path);
+            }}
+            className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2 group"
+          >
+            <span>
+              <span className="text-gray-500">Next:</span> {nextPage.title}
+            </span>
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </a>
+        ) : (
+          <div className="text-gray-400">Next →</div>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -285,7 +437,14 @@ const DocsApp = () => {
               <div className="text-gray-600">Loading content...</div>
             </div>
           ) : (
-            <ContentRenderer content={content} />
+            <>
+              <ContentRenderer content={content} />
+              <NavigationLinks 
+                navigation={navigation}
+                currentPath={currentPath}
+                onNavigate={handleNavigate}
+              />
+            </>
           )}
         </article>
       </main>
