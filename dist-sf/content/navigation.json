@@ -1,0 +1,30 @@
+[
+    {
+        "title": "Getting Started",
+        "path": "/getting-started",
+        "children": [
+            {
+                "title": "Introduction",
+                "path": "/getting-started/introduction"
+            },
+            {
+                "title": "Installation",
+                "path": "/getting-started/installation"
+            }
+        ]
+    },
+    {
+        "title": "Core Concepts",
+        "path": "/core-concepts",
+        "children": [
+            {
+                "title": "Basic Usage",
+                "path": "/core-concepts/basic-usage"
+            },
+            {
+                "title": "Configuration",
+                "path": "/core-concepts/configuration"
+            }
+        ]
+    }
+]

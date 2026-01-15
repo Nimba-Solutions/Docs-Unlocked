@@ -209,7 +209,7 @@ const TableOfContents = ({ activeSection }: { activeSection: string }) => {
 };
 
 // Code Block Component
-const CodeBlock = ({ children, language = 'javascript' }: { children: React.ReactNode; language?: string }) => {
+const CodeBlock = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="relative group">
       <div className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -402,7 +402,7 @@ npx tailwindcss init`}
             <p className="text-gray-700 mb-4">
               Add Tailwind directives to your CSS file:
             </p>
-            <CodeBlock language="css">
+            <CodeBlock>
 {`@tailwind base;
 @tailwind components;
 @tailwind utilities;`}
@@ -412,7 +412,7 @@ npx tailwindcss init`}
               <p className="text-gray-700 mb-4">
                 Start using utility classes in your HTML:
               </p>
-              <CodeBlock language="html">
+              <CodeBlock>
 {`<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
   Click me
 </button>`}
@@ -573,9 +573,11 @@ module.exports = {
   ],
 }`}
             </CodeBlock>
-            <Alert type="info" className="mt-6">
-              <strong>Tip:</strong> Use the <code className="px-1 bg-blue-100 rounded">extend</code> key to add to the default theme without overriding existing values.
-            </Alert>
+            <div className="mt-6">
+              <Alert type="info">
+                <strong>Tip:</strong> Use the <code className="px-1 bg-blue-100 rounded">extend</code> key to add to the default theme without overriding existing values.
+              </Alert>
+            </div>
           </section>
 
           {/* Components */}

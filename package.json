@@ -6,9 +6,11 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build",
+        "build:sf": "tsc && vite build --mode salesforce && node scripts/inline-css.js && node scripts/copy-to-staticresource.js",
         "preview": "vite preview"
     },
     "dependencies": {
+        "@tailwindcss/typography": "^0.5.19",
         "highlight.js": "^11.11.1",
         "lucide-react": "^0.363.0",
         "react": "^18.2.0",
