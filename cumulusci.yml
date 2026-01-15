@@ -1,15 +1,17 @@
-minimum_cumulusci_version: '3.78.0'
+minimum_cumulusci_version: "3.78.0"
 project:
     name: Docs-Unlocked
     package:
         name: Docs-Unlocked
-        api_version: '64.0'
+        api_version: "64.0"
     git:
-        default_branch: 'main'
-        prefix_feature: 'feature/'
-        prefix_beta: 'beta/'
-        prefix_release: 'release/'
+        default_branch: "main"
+        prefix_feature: "feature/"
+        prefix_beta: "beta/"
+        prefix_release: "release/"
     source_format: sfdx
+    dependencies:
+        - github: https://github.com/Nimba-Solutions/Markdown-Unlocked
 
 tasks:
     robot:

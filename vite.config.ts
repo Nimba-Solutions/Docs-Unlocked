@@ -8,6 +8,11 @@ export default defineConfig(({ command, mode }) => {
     if (isSalesforceBuild) {
         return {
             plugins: [react()],
+            define: {
+                // Polyfill process.env for browser
+                'process.env': JSON.stringify({ NODE_ENV: 'production' }),
+                'process': JSON.stringify({ env: { NODE_ENV: 'production' } }),
+            },
             build: {
                 lib: {
                     entry: resolve(__dirname, 'src/salesforce.tsx'),

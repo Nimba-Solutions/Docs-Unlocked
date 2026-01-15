@@ -1,52 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Menu, X, Search, Github } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
-import rehypeRaw from 'rehype-raw';
-import 'highlight.js/styles/github-dark.css';
 import './index.css';
 
-// Markdown Renderer Component
-const MarkdownRenderer = ({ content }: { content: string }) => {
+// Content Renderer - renders HTML content (markdown rendering handled by Markdown-Unlocked LWC)
+const ContentRenderer = ({ content }: { content: string }) => {
+  // If content is HTML, render it directly
+  // Otherwise, render as plain text (markdown should be pre-rendered by Markdown-Unlocked)
   return (
-    <div className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-4xl prose-h1:sm:text-5xl prose-h1:mb-4 prose-h2:text-3xl prose-h2:mb-4 prose-h2:mt-8 prose-h3:text-2xl prose-h3:mb-3 prose-h3:mt-6 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-strong:font-semibold prose-code:text-sm prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-gray-800 prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-ul:list-disc prose-ul:pl-6 prose-ul:my-4 prose-li:text-gray-700 prose-li:mb-2">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw, rehypeHighlight]}
-        components={{
-          code: ({ node, inline, className, children, ...props }: any) => {
-            const match = /language-(\w+)/.exec(className || '');
-            return !inline && match ? (
-              <div className="relative group my-4">
-                <div className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                  <button
-                    className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded"
-                    onClick={() => {
-                      navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
-                    }}
-                  >
-                    Copy
-                  </button>
-                </div>
-                <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                </pre>
-              </div>
-            ) : (
-              <code className="px-1.5 py-0.5 bg-gray-100 text-gray-800 rounded text-sm font-mono" {...props}>
-                {children}
-              </code>
-            );
-          },
-        }}
-      >
-        {content}
-      </ReactMarkdown>
-    </div>
+    <div 
+      className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-4xl prose-h1:sm:text-5xl prose-h1:mb-4 prose-h2:text-3xl prose-h2:mb-4 prose-h2:mt-8 prose-h3:text-2xl prose-h3:mb-3 prose-h3:mt-6 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-strong:font-semibold prose-code:text-sm prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-gray-800 prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-ul:list-disc prose-ul:pl-6 prose-ul:my-4 prose-li:text-gray-700 prose-li:mb-2"
+      dangerouslySetInnerHTML={{ __html: content }}
+    />
   );
 };
 
@@ -288,7 +253,7 @@ const DocsApp = () => {
               <div className="text-gray-600">Loading content...</div>
             </div>
           ) : (
-            <MarkdownRenderer content={content} />
+            <ContentRenderer content={content} />
           )}
         </article>
       </main>
@@ -327,7 +292,7 @@ const safeError = (message: string, error?: any) => {
   console.error(`[DocsUnlocked] ${message}${errorStr ? ' ' + errorStr : ''}`);
 };
 
-// Export initialization function for LWC - attach to window explicitly
+// Auto-initialize function - looks for container and renders immediately
 const initDocsApp = (containerId: string = 'docs-app-root') => {
   try {
     safeLog('Initializing Docs Unlocked, containerId:', containerId);
@@ -380,60 +345,22 @@ const initDocsApp = (containerId: string = 'docs-app-root') => {
   }
 };
 
-// Immediately attach to window - this must execute synchronously
-// Use multiple methods to ensure it works in Salesforce's sandbox
-// Execute immediately and also after a microtask to ensure it's available
-(function attachToWindow() {
-  try {
-    const attach = () => {
-      // Method 1: Direct window assignment
-      if (typeof window !== 'undefined') {
-        (window as any).initDocsApp = initDocsApp;
-        // Ensure DocsUnlocked exists and attach to it
-        if (!(window as any).DocsUnlocked) {
-          (window as any).DocsUnlocked = {};
-        }
-        (window as any).DocsUnlocked.initDocsApp = initDocsApp;
-      }
-      
-      // Method 2: Try globalThis
-      if (typeof globalThis !== 'undefined') {
-        (globalThis as any).initDocsApp = initDocsApp;
-        if (!(globalThis as any).DocsUnlocked) {
-          (globalThis as any).DocsUnlocked = {};
-        }
-        (globalThis as any).DocsUnlocked.initDocsApp = initDocsApp;
-      }
-      
-      // Method 3: Try self (for web workers, but might work in sandbox)
-      if (typeof self !== 'undefined') {
-        (self as any).initDocsApp = initDocsApp;
-        if (!(self as any).DocsUnlocked) {
-          (self as any).DocsUnlocked = {};
-        }
-        (self as any).DocsUnlocked.initDocsApp = initDocsApp;
-      }
-      
-      // Method 4: Try global (Node.js style, unlikely but safe)
-      if (typeof global !== 'undefined') {
-        (global as any).initDocsApp = initDocsApp;
-      }
-    };
-    
-    // Attach immediately
-    attach();
-    
-    // Also attach after a microtask to ensure it's available even if IIFE hasn't finished
-    Promise.resolve().then(() => {
-      attach();
-      safeLog('initDocsApp attached to window/global scope (delayed)');
-    });
-    
-    safeLog('initDocsApp attached to window/global scope');
-  } catch (e) {
-    safeError('Failed to attach initDocsApp to window:', e);
+// NO AUTO-INIT - Let LWC call initDocsApp explicitly
+// This avoids timing issues and makes errors easier to debug
+
+// Also attach to window for manual initialization (backup)
+// But auto-init should handle it automatically
+try {
+  if (typeof window !== 'undefined') {
+    (window as any).initDocsApp = initDocsApp;
+    if (!(window as any).DocsUnlocked) {
+      (window as any).DocsUnlocked = {};
+    }
+    (window as any).DocsUnlocked.initDocsApp = initDocsApp;
   }
-})();
+} catch (e) {
+  // Ignore - auto-init will handle it
+}
 
 // Also export as a property that can be accessed
 export { initDocsApp };

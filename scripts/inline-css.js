@@ -36,8 +36,40 @@ if (fs.existsSync(cssFile)) {
 })();
 `;
     
-    // Insert CSS injection at the beginning of the IIFE
-    jsContent = cssInjection + jsContent;
+    // Add process polyfill BEFORE the bundle
+    const processPolyfill = `
+// Polyfill process for browser environment
+if (typeof process === 'undefined') {
+    window.process = { env: { NODE_ENV: 'production' } };
+}
+`;
+    
+    // Wrap entire bundle in try-catch to catch any initialization errors
+    jsContent = `
+(function() {
+    try {
+        ${processPolyfill}
+        ${cssInjection}
+        ${jsContent}
+    } catch (e) {
+        var errorMsg = e instanceof Error ? e.message : (typeof e === 'string' ? e : JSON.stringify(e));
+        console.error('[DocsUnlocked] Bundle initialization error:', errorMsg);
+        if (e instanceof Error && e.stack) {
+            console.error('[DocsUnlocked] Stack:', e.stack.substring(0, 500));
+        }
+        // Create fallback initDocsApp
+        if (typeof window !== 'undefined') {
+            window.initDocsApp = function(containerId) {
+                var container = document.getElementById(containerId || 'docs-app-root');
+                if (container) {
+                    container.innerHTML = '<div style="padding: 2rem; text-align: center; font-family: Arial, sans-serif;"><h2 style="color: #c23934;">Bundle Load Error</h2><p style="color: #333;"><strong>' + errorMsg + '</strong></p></div>';
+                }
+            };
+        }
+        throw e; // Re-throw so Salesforce can see it
+    }
+})();
+`;
     
     // Write the updated JS file
     fs.writeFileSync(jsFile, jsContent, 'utf8');
