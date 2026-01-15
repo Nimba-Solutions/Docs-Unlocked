@@ -94,7 +94,7 @@ const Sidebar = ({
         fixed left-0 w-72 bg-white border-r border-gray-200 
         transform transition-transform duration-300 ease-in-out z-40
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:absolute lg:left-0 lg:top-16 lg:w-72 lg:transform-none lg:translate-x-0
+        lg:absolute lg:left-0 lg:top-16 lg:bottom-0 lg:w-72 lg:transform-none lg:translate-x-0
       `} style={{ 
         overflowY: 'auto'
       }}>
