@@ -4,7 +4,7 @@ import { resolve } from 'path'
 
 export default defineConfig(({ command, mode }) => {
     const isSalesforceBuild = mode === 'salesforce';
-    
+
     if (isSalesforceBuild) {
         return {
             plugins: [react()],
@@ -19,6 +19,12 @@ export default defineConfig(({ command, mode }) => {
                     output: {
                         inlineDynamicImports: true,
                         assetFileNames: 'docs-unlocked.css',
+                        // Ensure the IIFE attaches to window
+                        format: 'iife',
+                        name: 'DocsUnlocked',
+                        extend: true,
+                        // Force the namespace to be created properly
+                        globals: {},
                     },
                 },
                 outDir: 'dist-sf',
@@ -28,7 +34,7 @@ export default defineConfig(({ command, mode }) => {
             },
         };
     }
-    
+
     return {
         plugins: [react()],
     };

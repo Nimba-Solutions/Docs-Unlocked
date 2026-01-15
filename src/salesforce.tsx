@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Menu, X, Search, Github } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -162,7 +162,8 @@ const DocsApp = () => {
         const data = await response.json();
         setNavigation(data);
       } catch (error) {
-        console.error('Failed to load navigation:', error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error(`[DocsUnlocked] Failed to load navigation: ${errorMsg}`);
         // Default navigation structure
         setNavigation([
           {
@@ -216,7 +217,8 @@ const DocsApp = () => {
         const text = await response.text();
         setContent(text);
       } catch (error) {
-        console.error('Failed to load content:', error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error(`[DocsUnlocked] Failed to load content for path "${currentPath}": ${errorMsg}`);
         setContent(`# Content Not Found\n\nUnable to load content for path: \`${currentPath}\`\n\n**StaticResource naming:**\n- Path: \`${currentPath}\`\n- Expected StaticResource name: \`${currentPath.replace(/^\//, '').replace(/\//g, '_')}\` or \`${currentPath.replace(/^\//, '').replace(/\//g, '_')}_md\`\n\nPlease ensure the StaticResource is uploaded with the correct name.`);
       } finally {
         setContentLoading(false);
@@ -294,21 +296,144 @@ const DocsApp = () => {
   );
 };
 
-// Export initialization function for LWC
-(window as any).initDocsApp = (containerId: string = 'docs-app-root') => {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    console.error(`Container with id "${containerId}" not found`);
-    return;
+// Helper to safely serialize objects for console logging in Salesforce
+const safeStringify = (obj: any): string => {
+  try {
+    if (obj === null || obj === undefined) return String(obj);
+    if (typeof obj === 'string') return obj;
+    if (typeof obj === 'number' || typeof obj === 'boolean') return String(obj);
+    if (obj instanceof Error) {
+      return `Error: ${obj.message}${obj.stack ? '\n' + obj.stack : ''}`;
+    }
+    return JSON.stringify(obj, (_key, value) => {
+      if (value instanceof Error) {
+        return { name: value.name, message: value.message, stack: value.stack };
+      }
+      return value;
+    }, 2);
+  } catch (e) {
+    return String(obj);
   }
-  
-  const root = ReactDOM.createRoot(container);
-  root.render(<DocsApp />);
-  
-  return root;
 };
 
-// Auto-initialize if container exists
-if (document.getElementById('docs-app-root')) {
-  (window as any).initDocsApp('docs-app-root');
-}
+// Helper for safe console logging
+const safeLog = (message: string, ...args: any[]) => {
+  const serialized = args.map(arg => safeStringify(arg)).join(' ');
+  console.log(`[DocsUnlocked] ${message}${serialized ? ' ' + serialized : ''}`);
+};
+
+const safeError = (message: string, error?: any) => {
+  const errorStr = error ? safeStringify(error) : '';
+  console.error(`[DocsUnlocked] ${message}${errorStr ? ' ' + errorStr : ''}`);
+};
+
+// Export initialization function for LWC - attach to window explicitly
+const initDocsApp = (containerId: string = 'docs-app-root') => {
+  try {
+    safeLog('Initializing Docs Unlocked, containerId:', containerId);
+    
+    const container = document.getElementById(containerId);
+    if (!container) {
+      const msg = `Container with id "${containerId}" not found`;
+      safeError(msg);
+      throw new Error(msg);
+    }
+    
+    // Check if React is available
+    if (typeof React === 'undefined') {
+      const msg = 'React is not available. Check if the bundle loaded correctly.';
+      safeError(msg);
+      throw new Error(msg);
+    }
+    
+    if (typeof ReactDOM === 'undefined') {
+      const msg = 'ReactDOM is not available. Check if the bundle loaded correctly.';
+      safeError(msg);
+      throw new Error(msg);
+    }
+    
+    safeLog('React and ReactDOM available, creating root');
+    const root = ReactDOM.createRoot(container);
+    root.render(<DocsApp />);
+    
+    safeLog('Docs Unlocked initialized successfully');
+    return root;
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : safeStringify(error);
+    const errorStack = error instanceof Error ? error.stack : '';
+    safeError('Error initializing Docs Unlocked:', error);
+    
+    const container = document.getElementById(containerId);
+    if (container) {
+      container.innerHTML = `
+        <div style="padding: 2rem; text-align: center; font-family: Arial, sans-serif;">
+          <h2 style="color: #c23934;">Initialization Error</h2>
+          <p style="color: #333; margin-bottom: 0.5rem;"><strong>${errorMsg}</strong></p>
+          ${errorStack ? `<pre style="text-align: left; background: #f4f4f4; padding: 1rem; border-radius: 4px; font-size: 0.75rem; overflow-x: auto; max-width: 100%; max-height: 300px; overflow-y: auto;">${errorStack.substring(0, 1000)}</pre>` : ''}
+          <p style="margin-top: 1rem; font-size: 0.875rem; color: #666;">
+            Check browser console for details.
+          </p>
+        </div>
+      `;
+    }
+    throw error;
+  }
+};
+
+// Immediately attach to window - this must execute synchronously
+// Use multiple methods to ensure it works in Salesforce's sandbox
+// Execute immediately and also after a microtask to ensure it's available
+(function attachToWindow() {
+  try {
+    const attach = () => {
+      // Method 1: Direct window assignment
+      if (typeof window !== 'undefined') {
+        (window as any).initDocsApp = initDocsApp;
+        // Ensure DocsUnlocked exists and attach to it
+        if (!(window as any).DocsUnlocked) {
+          (window as any).DocsUnlocked = {};
+        }
+        (window as any).DocsUnlocked.initDocsApp = initDocsApp;
+      }
+      
+      // Method 2: Try globalThis
+      if (typeof globalThis !== 'undefined') {
+        (globalThis as any).initDocsApp = initDocsApp;
+        if (!(globalThis as any).DocsUnlocked) {
+          (globalThis as any).DocsUnlocked = {};
+        }
+        (globalThis as any).DocsUnlocked.initDocsApp = initDocsApp;
+      }
+      
+      // Method 3: Try self (for web workers, but might work in sandbox)
+      if (typeof self !== 'undefined') {
+        (self as any).initDocsApp = initDocsApp;
+        if (!(self as any).DocsUnlocked) {
+          (self as any).DocsUnlocked = {};
+        }
+        (self as any).DocsUnlocked.initDocsApp = initDocsApp;
+      }
+      
+      // Method 4: Try global (Node.js style, unlikely but safe)
+      if (typeof global !== 'undefined') {
+        (global as any).initDocsApp = initDocsApp;
+      }
+    };
+    
+    // Attach immediately
+    attach();
+    
+    // Also attach after a microtask to ensure it's available even if IIFE hasn't finished
+    Promise.resolve().then(() => {
+      attach();
+      safeLog('initDocsApp attached to window/global scope (delayed)');
+    });
+    
+    safeLog('initDocsApp attached to window/global scope');
+  } catch (e) {
+    safeError('Failed to attach initDocsApp to window:', e);
+  }
+})();
+
+// Also export as a property that can be accessed
+export { initDocsApp };

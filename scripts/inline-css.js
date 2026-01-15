@@ -50,4 +50,96 @@ if (fs.existsSync(cssFile)) {
     console.log('⚠ CSS file not found, skipping inline step');
 }
 
+// Ensure initDocsApp is attached to window after IIFE execution
+// This works around Salesforce sandbox issues where the IIFE namespace might not expose the function
+const ensureWindowAttachment = `
+// Post-IIFE attachment for Salesforce sandbox compatibility
+(function() {
+    try {
+        var attempts = 0;
+        var maxAttempts = 100; // 1 second at 10ms intervals
+        
+        var checkAndAttach = function() {
+            attempts++;
+            
+            // Method 1: Check if window.DocsUnlocked.initDocsApp exists
+            if (typeof window !== 'undefined' && window.DocsUnlocked) {
+                var docsUnlocked = window.DocsUnlocked;
+                
+                // Check if initDocsApp exists on the namespace
+                if (docsUnlocked.initDocsApp && typeof docsUnlocked.initDocsApp === 'function') {
+                    window.initDocsApp = docsUnlocked.initDocsApp;
+                    console.log('[DocsUnlocked Post-IIFE] Found and attached initDocsApp from window.DocsUnlocked');
+                    return true;
+                }
+                
+                // Try to access it via Object.getOwnPropertyNames (for non-enumerable properties)
+                try {
+                    var props = Object.getOwnPropertyNames(docsUnlocked);
+                    for (var i = 0; i < props.length; i++) {
+                        if (props[i] === 'initDocsApp' && typeof docsUnlocked[props[i]] === 'function') {
+                            window.initDocsApp = docsUnlocked[props[i]];
+                            console.log('[DocsUnlocked Post-IIFE] Found initDocsApp via getOwnPropertyNames');
+                            return true;
+                        }
+                    }
+                } catch (e) {
+                    // Ignore
+                }
+            }
+            
+            // Method 2: Try to access via the IIFE's return value
+            // The IIFE might have stored it differently
+            if (typeof window !== 'undefined') {
+                // Check all possible locations
+                var possibleLocations = [
+                    window.DocsUnlocked,
+                    window.DocsUnlocked && window.DocsUnlocked.default,
+                    window.DocsUnlocked && window.DocsUnlocked.exports,
+                ];
+                
+                for (var i = 0; i < possibleLocations.length; i++) {
+                    var loc = possibleLocations[i];
+                    if (loc && loc.initDocsApp && typeof loc.initDocsApp === 'function') {
+                        window.initDocsApp = loc.initDocsApp;
+                        window.DocsUnlocked = window.DocsUnlocked || {};
+                        window.DocsUnlocked.initDocsApp = loc.initDocsApp;
+                        console.log('[DocsUnlocked Post-IIFE] Found initDocsApp in alternative location');
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        };
+        
+        // Try immediately
+        if (checkAndAttach()) {
+            return;
+        }
+        
+        // Poll until found or timeout
+        var checkInterval = setInterval(function() {
+            if (checkAndAttach() || attempts >= maxAttempts) {
+                clearInterval(checkInterval);
+                if (attempts >= maxAttempts) {
+                    console.warn('[DocsUnlocked Post-IIFE] Could not find initDocsApp after ' + maxAttempts + ' attempts');
+                }
+            }
+        }, 10);
+        
+    } catch (e) {
+        console.error('[DocsUnlocked Post-IIFE] Failed to attach initDocsApp:', e);
+    }
+})();
+`;
+
+// Append the attachment code
+jsContent = fs.readFileSync(jsFile, 'utf8');
+if (!jsContent.includes('Post-IIFE attachment')) {
+    jsContent += ensureWindowAttachment;
+    fs.writeFileSync(jsFile, jsContent, 'utf8');
+    console.log('✓ Post-IIFE window attachment added');
+}
+
 console.log('✓ Bundle ready for Salesforce StaticResource');
