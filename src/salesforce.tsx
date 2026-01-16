@@ -1341,14 +1341,23 @@ const DocsApp = () => {
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash) {
-      // Normalize hash path (remove numeric prefixes) to match manifest displayPath
-      const normalizedHash = normalizeDisplayPath(hash);
-      console.log(`[DocsUnlocked] Setting initial path from hash: ${hash} -> ${normalizedHash}`);
-      setCurrentPath(normalizedHash);
+      // Check if hash is a page path (starts with /) or exists in discoveredFiles
+      // If not, it's likely an anchor ID - don't try to load it as content
+      if (hash.startsWith('/') || discoveredFiles.has(hash) || discoveredFiles.has(normalizeDisplayPath(hash))) {
+        // Normalize hash path (remove numeric prefixes) to match manifest displayPath
+        const normalizedHash = normalizeDisplayPath(hash);
+        console.log(`[DocsUnlocked] Setting initial path from hash: ${hash} -> ${normalizedHash}`);
+        setCurrentPath(normalizedHash);
+      } else {
+        // It's an anchor ID - wait for content to load, then scroll to it
+        console.log(`[DocsUnlocked] Hash appears to be an anchor ID: ${hash}`);
+        // Don't set currentPath - let it use the default or current page
+        // The anchor scrolling will be handled after content loads
+      }
     } else {
       console.log(`[DocsUnlocked] No hash found, using default path: ${currentPath}`);
     }
-  }, []);
+  }, [discoveredFiles]);
 
   if (loading) {
     return (
@@ -1449,9 +1458,23 @@ const DocsApp = () => {
                       const contentContainer = articleRef.current?.querySelector('.prose');
                       const element = contentContainer?.querySelector(`#${item.id}`) || document.getElementById(item.id);
                       if (element) {
+                        // Remove any existing TOC highlight
+                        const existingHighlight = contentContainer?.querySelector('.toc-highlight');
+                        if (existingHighlight) {
+                          existingHighlight.classList.remove('toc-highlight', 'bg-yellow-200', 'px-1', 'rounded', 'font-semibold');
+                        }
+                        
+                        // Add highlight class to the header
+                        element.classList.add('toc-highlight', 'bg-yellow-200', 'px-1', 'rounded', 'font-semibold');
+                        
                         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         // Update URL hash
                         window.history.pushState(null, '', `#${item.id}`);
+                        
+                        // Remove highlight after 5 seconds (same as search)
+                        setTimeout(() => {
+                          element.classList.remove('toc-highlight', 'bg-yellow-200', 'px-1', 'rounded', 'font-semibold');
+                        }, 5000);
                       }
                     }, 150);
                   }}
