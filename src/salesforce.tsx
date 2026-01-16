@@ -433,7 +433,8 @@ const Sidebar = ({
   navigation,
   currentPath,
   onNavigate,
-  displayHeader
+  displayHeader,
+  discoveredFiles
 }: { 
   isOpen: boolean; 
   onClose: () => void; 
@@ -441,6 +442,7 @@ const Sidebar = ({
   currentPath: string;
   onNavigate: (path: string, searchQuery?: string) => void;
   displayHeader: boolean;
+  discoveredFiles: Map<string, { title: string; path: string; displayPath: string; order: number }>;
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Array<{ title: string; path: string; snippet: string; searchQuery?: string }>>([]);
@@ -487,36 +489,27 @@ const Sidebar = ({
       // Get content resource name
       const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
       
-      // Flatten navigation to get all paths
-      const allPaths: Array<{ title: string; path: string }> = [];
-      navigation.forEach(section => {
-        if (section.children) {
-          section.children.forEach((child: any) => {
-            const collectPaths = (item: any) => {
-              allPaths.push({ title: item.title, path: item.path });
-              if (item.children) {
-                item.children.forEach(collectPaths);
-              }
-            };
-            collectPaths(child);
-          });
-        }
-      });
+      // Get all files from discoveredFiles (which has the actual StaticResource paths)
+      const allFiles = Array.from(discoveredFiles.values());
 
       // Search through each content file
-      for (const page of allPaths) {
+      for (const file of allFiles) {
         if (cancelled) break;
         
         try {
-          const contentPath = `${page.path}.md`;
-          const response = await fetch(`/resource/${contentResourceName}/content${contentPath}`);
+          // Use the actual StaticResource path (with prefixes)
+          const contentPath = file.path.startsWith('/') ? `${file.path}.md` : `/${file.path}.md`;
+          const url = `/resource/${contentResourceName}/content${contentPath}?t=${Date.now()}`;
+          const response = await fetch(url, { cache: 'no-store' });
           
           if (response.ok) {
             const content = await response.text();
+            if (content.length < 100) continue; // Skip invalid responses
+            
             const lowerContent = content.toLowerCase();
             
             // Check if content matches
-            if (lowerContent.includes(query) || page.title.toLowerCase().includes(query)) {
+            if (lowerContent.includes(query) || file.title.toLowerCase().includes(query)) {
               // Find snippet around first match
               const index = lowerContent.indexOf(query);
               const start = Math.max(0, index - 100);
@@ -530,9 +523,9 @@ const Sidebar = ({
               }
               
               results.push({
-                title: page.title,
-                path: page.path,
-                snippet: snippet || page.title,
+                title: file.title || file.displayPath.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || file.displayPath,
+                path: file.displayPath,
+                snippet: snippet || file.title,
                 searchQuery: query // Store the search query for highlighting
               });
             }
@@ -540,7 +533,7 @@ const Sidebar = ({
         } catch (error) {
           // Skip files that fail to load
           if (!cancelled) {
-            console.warn(`[DocsUnlocked] Failed to search content for ${page.path}:`, error);
+            console.warn(`[DocsUnlocked] Failed to search content for ${file.displayPath}:`, error);
           }
         }
       }
@@ -558,7 +551,7 @@ const Sidebar = ({
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [searchQuery, navigation]);
+  }, [searchQuery, discoveredFiles]);
 
   const renderNavItems = (items: any[], level = 0, filteredItems?: any[]) => {
     const itemsToRender = filteredItems || items;
@@ -684,14 +677,12 @@ const Sidebar = ({
 const SearchModal = ({ 
   isOpen, 
   onClose, 
-  navigation,
-  currentPath,
+  discoveredFiles,
   onNavigate
 }: { 
   isOpen: boolean; 
   onClose: () => void; 
-  navigation: any[];
-  currentPath: string;
+  discoveredFiles: Map<string, { title: string; path: string; displayPath: string; order: number }>;
   onNavigate: (path: string, searchQuery?: string) => void;
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -723,35 +714,26 @@ const SearchModal = ({
       
       const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
       
-      // Flatten navigation to get all paths
-      const allPaths: Array<{ title: string; path: string }> = [];
-      navigation.forEach(section => {
-        if (section.children) {
-          section.children.forEach((child: any) => {
-            const collectPaths = (item: any) => {
-              allPaths.push({ title: item.title, path: item.path });
-              if (item.children) {
-                item.children.forEach(collectPaths);
-              }
-            };
-            collectPaths(child);
-          });
-        }
-      });
+      // Get all files from discoveredFiles (which has the actual StaticResource paths)
+      const allFiles = Array.from(discoveredFiles.values());
 
       // Search through each content file
-      for (const page of allPaths) {
+      for (const file of allFiles) {
         if (cancelled) break;
         
         try {
-          const contentPath = `${page.path}.md`;
-          const response = await fetch(`/resource/${contentResourceName}/content${contentPath}`);
+          // Use the actual StaticResource path (with prefixes)
+          const contentPath = file.path.startsWith('/') ? `${file.path}.md` : `/${file.path}.md`;
+          const url = `/resource/${contentResourceName}/content${contentPath}?t=${Date.now()}`;
+          const response = await fetch(url, { cache: 'no-store' });
           
           if (response.ok) {
             const content = await response.text();
+            if (content.length < 100) continue; // Skip invalid responses
+            
             const lowerContent = content.toLowerCase();
             
-            if (lowerContent.includes(query) || page.title.toLowerCase().includes(query)) {
+            if (lowerContent.includes(query) || file.title.toLowerCase().includes(query)) {
               const index = lowerContent.indexOf(query);
               const start = Math.max(0, index - 100);
               const end = Math.min(content.length, index + query.length + 100);
@@ -763,16 +745,16 @@ const SearchModal = ({
               }
               
               results.push({
-                title: page.title,
-                path: page.path,
-                snippet: snippet || page.title,
+                title: file.title || file.displayPath.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || file.displayPath,
+                path: file.displayPath,
+                snippet: snippet || file.title,
                 searchQuery: query // Store the search query for highlighting
               });
             }
           }
         } catch (error) {
           if (!cancelled) {
-            console.warn(`[DocsUnlocked] Failed to search content for ${page.path}:`, error);
+            console.warn(`[DocsUnlocked] Failed to search content for ${file.displayPath}:`, error);
           }
         }
       }
@@ -789,7 +771,7 @@ const SearchModal = ({
       cancelled = true;
       clearTimeout(timeoutId);
     };
-  }, [searchQuery, navigation]);
+  }, [searchQuery, discoveredFiles]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -869,10 +851,6 @@ const SearchModal = ({
                       ${idx === 0
                         ? 'border-blue-300 bg-blue-50'
                         : 'border-transparent hover:border-gray-200 hover:bg-gray-50'
-                      }
-                      ${currentPath === result.path
-                        ? 'bg-blue-50 border-blue-300' 
-                        : ''
                       }
                     `}
                   >
@@ -1124,6 +1102,13 @@ const DocsApp = () => {
         
         setDiscoveredFiles(filesMap);
         setNavigation(nav);
+        
+        // Set default path if no hash is present
+        if (!window.location.hash && nav.length > 0 && nav[0].children.length > 0) {
+          const firstPath = nav[0].children[0].path;
+          console.log(`[DocsUnlocked] No hash found, setting default path: ${firstPath}`);
+          setCurrentPath(firstPath);
+        }
       } catch (error) {
         console.error(`[DocsUnlocked] Failed to load manifest:`, error);
       } finally {
@@ -1313,6 +1298,7 @@ const DocsApp = () => {
         currentPath={currentPath}
         onNavigate={handleNavigate}
         displayHeader={displayHeader}
+        discoveredFiles={discoveredFiles}
       />
       <main className="lg:pl-72">
         <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-24">
@@ -1344,8 +1330,7 @@ const DocsApp = () => {
       <SearchModal
         isOpen={searchModalOpen}
         onClose={() => setSearchModalOpen(false)}
-        navigation={navigation}
-        currentPath={currentPath}
+        discoveredFiles={discoveredFiles}
         onNavigate={handleNavigate}
       />
     </div>
