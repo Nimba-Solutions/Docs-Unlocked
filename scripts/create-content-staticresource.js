@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 import { createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import archiver from 'archiver';
+import yaml from 'js-yaml';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,6 +19,63 @@ const contentDir = path.join(__dirname, '../public/content');
 const mediaDir = path.join(__dirname, '../public/media');
 const targetZip = path.join(__dirname, '../force-app/main/default/staticresources/docsContent.zip');
 const targetDir = path.dirname(targetZip);
+
+async function generateManifest() {
+  const manifest = {};
+  
+  // Helper to extract numeric prefix and clean name
+  function parseSegment(segment) {
+    const match = segment.match(/^(\d+)[.-](.+)$/);
+    return match ? match[2] : segment;
+  }
+  
+  // Build simple structure: section name -> array of files
+  const entries = fs.readdirSync(contentDir, { withFileTypes: true });
+  
+  entries.forEach(entry => {
+    if (entry.isDirectory()) {
+      const sectionName = parseSegment(entry.name);
+      const sectionPath = path.join(contentDir, entry.name);
+      const files = fs.readdirSync(sectionPath, { withFileTypes: true });
+      
+      manifest[sectionName] = files
+        .filter(f => f.isFile() && f.name.endsWith('.md'))
+        .map(file => {
+          const filePath = path.join(sectionPath, file.name);
+          const fileName = parseSegment(file.name.replace(/\.md$/, ''));
+          
+          // Extract title from markdown
+          let title = '';
+          try {
+            const content = fs.readFileSync(filePath, 'utf-8');
+            const h1Match = content.match(/^#\s+(.+)$/m);
+            title = h1Match ? h1Match[1].trim() : fileName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          } catch {
+            title = fileName.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          }
+          
+          return {
+            title,
+            file: path.join(entry.name, file.name).replace(/\\/g, '/'),
+            path: `/${sectionName}/${fileName}`
+          };
+        })
+        .sort((a, b) => {
+          // Sort by numeric prefix in filename (extract number from filename like "01.introduction.md")
+          const aFileName = a.file.split('/').pop() || '';
+          const bFileName = b.file.split('/').pop() || '';
+          const aMatch = aFileName.match(/^(\d+)[.-]/);
+          const bMatch = bFileName.match(/^(\d+)[.-]/);
+          return (aMatch ? parseInt(aMatch[1]) : 999) - (bMatch ? parseInt(bMatch[1]) : 999);
+        });
+    }
+  });
+  
+  const totalFiles = Object.values(manifest).reduce((sum, files) => sum + files.length, 0);
+  console.log(`✓ Generated manifest with ${Object.keys(manifest).length} sections, ${totalFiles} files`);
+  
+  return manifest;
+}
 
 async function createContentZip() {
   // Ensure target directory exists
@@ -34,6 +92,9 @@ async function createContentZip() {
   console.log('📦 Creating content ZIP StaticResource...');
   console.log('   Source:', path.join(__dirname, '../public'));
   console.log('   Target:', targetZip);
+
+  // Generate manifest first
+  const manifest = await generateManifest();
 
   return new Promise((resolve, reject) => {
     const output = createWriteStream(targetZip);
@@ -53,39 +114,14 @@ async function createContentZip() {
 
     archive.pipe(output);
 
-    // Add content directory, converting dots to underscores in paths for Salesforce compatibility
-    // Local files use dots (01.getting-started), but ZIP uses underscores (01_getting-started)
-    // BUT preserve file extensions (.md, .jpg, etc.)
-    function addDirectoryWithUnderscores(dir, zipPrefix) {
-      const files = fs.readdirSync(dir, { withFileTypes: true });
-      files.forEach(file => {
-        const localPath = path.join(dir, file.name);
-        let zipName = file.name;
-        
-        if (file.isDirectory()) {
-          // Convert dots to underscores in directory names
-          zipName = zipName.replace(/\./g, '_');
-        } else {
-          // For files: convert dots to underscores BUT preserve the file extension
-          const ext = path.extname(file.name);
-          const nameWithoutExt = path.basename(file.name, ext);
-          zipName = nameWithoutExt.replace(/\./g, '_') + ext;
-        }
-        
-        const zipPath = zipPrefix ? `${zipPrefix}/${zipName}` : zipName;
-        
-        if (file.isDirectory()) {
-          addDirectoryWithUnderscores(localPath, zipPath);
-        } else {
-          archive.file(localPath, { name: zipPath });
-        }
-      });
-    }
+    // Add manifest.yaml first
+    archive.append(yaml.dump(manifest, { indent: 2, lineWidth: -1 }), { name: 'content/manifest.yaml' });
+    console.log('   ✓ Added manifest.yaml');
+
+    // Add content directory, preserving directory structure (including dots)
+    archive.directory(contentDir, 'content', false);
     
-    // Add content directory
-    addDirectoryWithUnderscores(contentDir, 'content');
-    
-    // Add media directory if it exists (media files don't need conversion)
+    // Add media directory if it exists
     if (fs.existsSync(mediaDir)) {
       archive.directory(mediaDir, 'media', false);
       console.log('   ✓ Including media directory');

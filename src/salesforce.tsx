@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { Menu, X, Search, Github, ChevronRight, ChevronLeft } from 'lucide-react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import yaml from 'js-yaml';
 import './index.css';
 
 // NavCard Component
@@ -115,7 +116,13 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery }: { content: str
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Parse NavCards from markdown before rendering
-  const navCards = useMemo(() => parseNavCards(content), [content]);
+  const navCards = useMemo(() => {
+    const cards = parseNavCards(content);
+    if (cards.length > 0) {
+      console.log(`[DocsUnlocked] Parsed ${cards.length} navcards:`, cards);
+    }
+    return cards;
+  }, [content]);
 
   // Parse markdown to HTML and sanitize it
   const html = useMemo(() => {
@@ -282,6 +289,7 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery }: { content: str
     if (!contentRef.current) return;
 
     const placeholders = contentRef.current.querySelectorAll('.navcard-placeholder');
+    console.log(`[DocsUnlocked] Found ${placeholders.length} navcard placeholders in DOM`);
     const cleanupFunctions: Array<() => void> = [];
 
     placeholders.forEach((placeholder) => {
@@ -976,7 +984,7 @@ const DocsApp = () => {
   const [navigation, setNavigation] = useState<any[]>([]);
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [currentPath, setCurrentPath] = useState('/getting-started/introduction');
+  const [currentPath, setCurrentPath] = useState('');
   const [contentLoading, setContentLoading] = useState(false);
   const articleRef = useRef<HTMLElement>(null);
   
@@ -1002,143 +1010,25 @@ const DocsApp = () => {
   // Runtime discovery: Build navigation by trying to fetch files dynamically
   const [discoveredFiles, setDiscoveredFiles] = useState<Map<string, { title: string; path: string; displayPath: string; order: number }>>(new Map());
   
-  // Strip numerical prefix from a path segment (e.g., "01.getting-started" or "01-getting-started" -> "getting-started")
-  const stripNumericPrefix = (segment: string): { clean: string; order: number } => {
-    // Support both dots and dashes: 01.getting-started or 01-getting-started
-    const match = segment.match(/^(\d+)[.-](.+)$/);
-    if (match) {
-      return { clean: match[2], order: parseInt(match[1], 10) };
-    }
-    return { clean: segment, order: 999999 }; // No prefix = sort last
-  };
-  
   // Extract title from markdown content
   const extractTitle = (content: string): string => {
     const h1Match = content.match(/^#\s+(.+)$/m);
     return h1Match ? h1Match[1].trim() : '';
   };
   
-  // Extract internal links from markdown to discover more files
-  const extractInternalLinks = (content: string): string[] => {
-    const links: string[] = [];
-    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-    let match;
-    while ((match = linkRegex.exec(content)) !== null) {
-      const href = match[2];
-      if (href.startsWith('/') && !href.startsWith('//')) {
-        const normalizedPath = href.replace(/\.md$/, '');
-        if (normalizedPath && !links.includes(normalizedPath)) {
-          links.push(normalizedPath);
-        }
-      }
-    }
-    return links;
+  // Normalize a path by removing numeric prefixes (e.g., "02.core-concepts/02.configuration" -> "/core-concepts/configuration")
+  const normalizeDisplayPath = (path: string): string => {
+    if (!path) return '';
+    // Ensure it starts with /
+    const normalized = path.startsWith('/') ? path : '/' + path;
+    // Split and remove numeric prefixes from each segment
+    const parts = normalized.split('/').filter(p => p).map(part => {
+      const match = part.match(/^\d+[.-](.+)$/);
+      return match ? match[1] : part;
+    });
+    return '/' + parts.join('/');
   };
   
-  // Try to fetch a file by path and discover it
-  // Tries both the display path and paths with numeric prefixes
-  const discoverFile = async (displayPath: string): Promise<{ title: string; path: string; displayPath: string; order: number } | null> => {
-    // Skip if already discovered (by display path)
-    const existing = Array.from(discoveredFiles.values()).find(f => f.displayPath === displayPath);
-    if (existing) {
-      return existing;
-    }
-    
-    const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
-    
-    // Convert display path (with dots) to StaticResource path (with underscores)
-    // Local files use dots (01.getting-started), but ZIP uses underscores (01_getting-started)
-    const convertPathForStaticResource = (path: string): string => {
-      return path.split('/').map(segment => {
-        // Convert dots to underscores but preserve file extensions
-        if (segment.includes('.')) {
-          const ext = segment.match(/\.[^.]+$/)?.[0] || '';
-          const nameWithoutExt = ext ? segment.slice(0, -ext.length) : segment;
-          return nameWithoutExt.replace(/\./g, '_') + ext;
-        }
-        return segment;
-      }).join('/');
-    };
-    
-    // Try paths with numeric prefixes (01., 02., etc.) and without
-    const pathParts = displayPath.split('/').filter(p => p);
-    const possiblePaths: string[] = [displayPath]; // Start with display path
-    
-    // Generate possible paths with numeric prefixes for each segment
-    if (pathParts.length > 0) {
-      // Try common prefixes: 01., 02., 03., etc. (using dots for display)
-      for (let i = 1; i <= 99; i++) {
-        const prefix = i.toString().padStart(2, '0');
-        const prefixedParts = pathParts.map((part, idx) => {
-          if (idx === 0) return `${prefix}.${part}`; // Only prefix first segment (section) with dot
-          return part;
-        });
-        possiblePaths.push('/' + prefixedParts.join('/'));
-        
-        // Also try prefixing all segments
-        const allPrefixed = pathParts.map(part => `${prefix}.${part}`);
-        possiblePaths.push('/' + allPrefixed.join('/'));
-      }
-    }
-    
-    // Try each possible path - try both dots and underscores
-    for (const tryPath of possiblePaths) {
-      try {
-        // Try with dots first (Salesforce supports them)
-        let contentPath = `${tryPath}.md`;
-        let url = `/resource/${contentResourceName}/content${contentPath}`;
-        let response = await fetch(url);
-        
-        // If dots don't work, try underscores
-        if (!response.ok) {
-          const staticResourcePath = convertPathForStaticResource(tryPath);
-          contentPath = `${staticResourcePath}.md`;
-          url = `/resource/${contentResourceName}/content${contentPath}`;
-          response = await fetch(url);
-        }
-        
-        // Fallback: try old single-file StaticResource naming
-        if (!response.ok) {
-          const resourceName = tryPath.replace(/^\//, '').replace(/\//g, '_');
-          response = await fetch(`/resource/${resourceName}`);
-          if (!response.ok) {
-            response = await fetch(`/resource/${resourceName}_md`);
-          }
-        }
-        
-        if (response.ok) {
-          const content = await response.text();
-          const title = extractTitle(content) || displayPath.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || displayPath;
-          
-          // Calculate order from actual path
-          const actualParts = tryPath.split('/').filter(p => p);
-          const sectionOrder = actualParts.length > 0 ? stripNumericPrefix(actualParts[0]).order : 999999;
-          const pageOrder = actualParts.length > 1 ? stripNumericPrefix(actualParts[1]).order : 999999;
-          const order = sectionOrder * 1000 + pageOrder; // Section order is primary
-          
-          const fileInfo = { title, path: tryPath, displayPath, order };
-          setDiscoveredFiles(prev => new Map(prev).set(tryPath, fileInfo));
-          
-          console.log(`[DocsUnlocked] Discovered file: ${displayPath} -> ${tryPath} (fetched from: ${url})`);
-          
-          // Discover linked files (async, don't await)
-          const links = extractInternalLinks(content);
-          links.forEach(linkPath => {
-            const existingLink = Array.from(discoveredFiles.values()).find(f => f.displayPath === linkPath);
-            if (!existingLink) {
-              discoverFile(linkPath).catch(() => {});
-            }
-          });
-          
-          return fileInfo;
-        }
-      } catch (error) {
-        // Continue trying other paths
-      }
-    }
-    
-    return null;
-  };
   
   // Build navigation structure from discovered files
   const buildNavigationFromDiscovered = (files: Map<string, { title: string; path: string; displayPath: string; order: number }>) => {
@@ -1171,53 +1061,77 @@ const DocsApp = () => {
           .sort((a, b) => a.order - b.order)
           .map(child => ({
             title: child.title,
-            path: child.path // Keep actual path for fetching
+            path: child.displayPath // Use displayPath for navigation (without prefixes)
           }))
       }))
       .sort((a, b) => a.order - b.order);
   };
   
-  // Discover files at runtime by trying common paths
+  // Load navigation from manifest.json
   useEffect(() => {
-    const discoverNavigation = async () => {
+    const loadNavigation = async () => {
       try {
         const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
+        const manifestUrl = `/resource/${contentResourceName}/content/manifest.yaml`;
         
-        // Seed paths - try common documentation patterns
-        const seedPaths = [
-          '/getting-started/introduction',
-          '/getting-started/contributing',
-          '/core-concepts/basic-usage',
-          '/core-concepts/configuration',
-        ];
+        console.log(`[DocsUnlocked] Loading manifest from: ${manifestUrl}`);
+        const response = await fetch(manifestUrl);
         
-        // Try to discover seed files
-        await Promise.allSettled(seedPaths.map(path => discoverFile(path)));
-        
-        // Also try to discover from URL hash
-        const hashPath = window.location.hash.replace('#', '');
-        if (hashPath) {
-          await discoverFile(hashPath);
+        if (!response.ok) {
+          throw new Error(`Failed to load manifest: ${response.status} ${response.statusText}`);
         }
         
-        // Fallback: try old navigation.json for backwards compatibility
-        if (discoveredFiles.size === 0) {
-          const fallbackResponse = await fetch(`/resource/${contentResourceName}/content/navigation.json`);
-          if (fallbackResponse.ok) {
-            const fallbackData = await fallbackResponse.json();
-            setNavigation(fallbackData);
-            setLoading(false);
-            return;
-          }
-        }
+        const yamlText = await response.text();
+        const manifest = yaml.load(yamlText) as any;
+        console.log(`[DocsUnlocked] === SECTIONS IN STATIC RESOURCE (from manifest) ===`);
+        
+        const filesMap = new Map<string, { title: string; path: string; displayPath: string; order: number }>();
+        const nav: Array<{ title: string; path: string; order: number; children: Array<{ title: string; path: string }> }> = [];
+        
+        let sectionOrder = 1;
+        Object.entries(manifest).forEach(([sectionName, files]: [string, any]) => {
+          const sectionTitle = sectionName.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+          console.log(`[DocsUnlocked]   ${sectionTitle} (${files.length} files)`);
+          
+          const navChildren: Array<{ title: string; path: string }> = [];
+          
+          files.forEach((file: any, index: number) => {
+            console.log(`[DocsUnlocked]     ${file.path} -> StaticResource: ${file.file}`);
+            filesMap.set(file.path, {
+              title: file.title,
+              path: file.file.replace(/\.md$/, ''),
+              displayPath: file.path,
+              order: sectionOrder * 1000 + index
+            });
+            
+            navChildren.push({
+              title: file.title,
+              path: file.path
+            });
+          });
+          
+          nav.push({
+            title: sectionTitle,
+            path: `/${sectionName}`,
+            order: sectionOrder,
+            children: navChildren
+          });
+          
+          sectionOrder++;
+        });
+        
+        console.log(`[DocsUnlocked] === END MANIFEST SECTIONS ===`);
+        
+        setDiscoveredFiles(filesMap);
+        setNavigation(nav);
       } catch (error) {
-        console.error(`[DocsUnlocked] Failed to discover navigation:`, error);
+        console.error(`[DocsUnlocked] Failed to load manifest:`, error);
       } finally {
         setLoading(false);
       }
     };
     
-    discoverNavigation();
+    loadNavigation();
   }, []);
   
   // Update navigation when discovered files change
@@ -1231,135 +1145,74 @@ const DocsApp = () => {
   // Load markdown content
   useEffect(() => {
     const loadContent = async () => {
-      if (!currentPath) return;
+      if (!currentPath || discoveredFiles.size === 0) return;
       
       setContentLoading(true);
       try {
         // Get content resource name from window (set by LWC) or use default
         const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
         
-        // currentPath might be a display path - try to find the actual file
-        // First check if we already know the actual path from discovered files
-        let actualPath = currentPath;
-        const existingFile = Array.from(discoveredFiles.values()).find(f => f.displayPath === currentPath);
-        if (existingFile) {
-          actualPath = existingFile.path;
-        }
-        
-        // Try paths with numeric prefixes if needed
-        const pathParts = currentPath.split('/').filter(p => p);
-        const possiblePaths: string[] = [actualPath, currentPath];
-        
-        // Generate possible paths with numeric prefixes (using dots, not dashes)
-        if (pathParts.length > 0) {
-          for (let i = 1; i <= 99; i++) {
-            const prefix = i.toString().padStart(2, '0');
-            const prefixedParts = pathParts.map((part, idx) => {
-              if (idx === 0) return `${prefix}.${part}`; // Use dot separator
-              return part;
-            });
-            possiblePaths.push('/' + prefixedParts.join('/'));
-            
-            const allPrefixed = pathParts.map(part => `${prefix}.${part}`); // Use dot separator
-            possiblePaths.push('/' + allPrefixed.join('/'));
-          }
-        }
-        
-        let response: Response | null = null;
+        // Use the actual path from discovered files - we already know it!
+        const existingFile = discoveredFiles.get(currentPath);
+        let response: Response;
+        let text = '';
         let foundPath = '';
         
-        // Convert display path (with dots) to StaticResource path (with underscores)
-        const convertPathForStaticResource = (path: string): string => {
-          return path.split('/').map(segment => {
-            // Convert dots to underscores but preserve file extensions
-            if (segment.includes('.')) {
-              const ext = segment.match(/\.[^.]+$/)?.[0] || '';
-              const nameWithoutExt = ext ? segment.slice(0, -ext.length) : segment;
-              return nameWithoutExt.replace(/\./g, '_') + ext;
-            }
-            return segment;
-          }).join('/');
-        };
-        
-        // Try each possible path - try both dots and underscores
-        let lastError: string = '';
-        for (const tryPath of possiblePaths) {
-          // Try with dots first (Salesforce supports them)
-          let contentPath = `${tryPath}.md`;
-          let url = `/resource/${contentResourceName}/content${contentPath}`;
-          response = await fetch(url);
-          
-          // If dots don't work, try underscores
-          if (!response.ok) {
-            const staticResourcePath = convertPathForStaticResource(tryPath);
-            contentPath = `${staticResourcePath}.md`;
-            url = `/resource/${contentResourceName}/content${contentPath}`;
-            response = await fetch(url);
-          }
-          
-          if (!response.ok) {
-            lastError = `Failed to fetch ${url}: ${response.status} ${response.statusText}`;
-            const resourceName = tryPath.replace(/^\//, '').replace(/\//g, '_');
-            response = await fetch(`/resource/${resourceName}`);
-            if (!response.ok) {
-              response = await fetch(`/resource/${resourceName}_md`);
-            }
-          }
-          
-          if (response.ok) {
-            foundPath = tryPath;
-            console.log(`[DocsUnlocked] Found content at: ${tryPath} (fetched from: ${url})`);
-            break;
-          }
+        if (!existingFile) {
+          console.error(`[DocsUnlocked] File not found in manifest for displayPath: ${currentPath}`);
+          console.error(`[DocsUnlocked] Available files:`, Array.from(discoveredFiles.keys()));
+          throw new Error(`File not found in manifest: ${currentPath}`);
         }
         
-        if (!response || !response.ok) {
-          // Fallback: try CDN (for future use)
-          const cdnBase = (window as any).DOCS_CDN_BASE_URL;
-          if (cdnBase) {
-            const cdnUrl = `${cdnBase}${currentPath}.md`;
-            response = await fetch(cdnUrl);
-            if (response.ok) {
-              foundPath = currentPath;
-            }
+        // Use the path from manifest (should have prefixes like "02.core-concepts/01.basic-usage")
+        const contentPath = existingFile.path.startsWith('/') ? `${existingFile.path}.md` : `/${existingFile.path}.md`;
+        const url = `/resource/${contentResourceName}/content${contentPath}`;
+        console.log(`[DocsUnlocked] Loading content from manifest:`);
+        console.log(`[DocsUnlocked]   Display path: ${currentPath}`);
+        console.log(`[DocsUnlocked]   StaticResource path: ${existingFile.path}`);
+        console.log(`[DocsUnlocked]   Full URL: ${url}`);
+        
+        // Add cache-busting query parameter to force fresh fetch
+        const cacheBustUrl = `${url}?t=${Date.now()}`;
+        response = await fetch(cacheBustUrl, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
           }
-        }
-        
-        if (!response || !response.ok) {
-          console.error(`[DocsUnlocked] Failed to load content for "${currentPath}". Last error: ${lastError}`);
-          console.error(`[DocsUnlocked] Tried ${possiblePaths.length} paths, starting with: ${possiblePaths.slice(0, 5).join(', ')}`);
-          throw new Error(`Content not found: ${lastError}`);
-        }
-        
-        const text = await response.text();
-        setContent(text);
-        
-        // Discover this file for navigation
-        const title = extractTitle(text) || currentPath.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || currentPath;
-        const displayPath = currentPath; // currentPath is the display path
-        const actualParts = foundPath.split('/').filter(p => p);
-        const sectionOrder = actualParts.length > 0 ? stripNumericPrefix(actualParts[0]).order : 999999;
-        const pageOrder = actualParts.length > 1 ? stripNumericPrefix(actualParts[1]).order : 999999;
-        const order = sectionOrder * 1000 + pageOrder;
-        
-        setDiscoveredFiles(prev => {
-          const newMap = new Map(prev);
-          // Check if we already have this file (by display path)
-          const existing = Array.from(newMap.values()).find(f => f.displayPath === displayPath);
-          if (!existing) {
-            newMap.set(foundPath, { title, path: foundPath, displayPath, order });
-            
-            // Discover linked files
-            const links = extractInternalLinks(text);
-            links.forEach(linkPath => {
-              const existingLink = Array.from(newMap.values()).find(f => f.displayPath === linkPath);
-              if (!existingLink) {
-                discoverFile(linkPath).catch(() => {});
-              }
-            });
-          }
-          return newMap;
         });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[DocsUnlocked] HTTP ${response.status} error from ${url}:`, errorText.substring(0, 200));
+          throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+        }
+        
+        text = await response.text();
+        console.log(`[DocsUnlocked] Raw response length: ${text.length} chars`);
+        console.log(`[DocsUnlocked] Response preview (first 200 chars):`, text.substring(0, 200));
+        
+        if (text.length < 100) {
+          console.error(`[DocsUnlocked] Content too short (${text.length} chars) from ${url}. Full response:`, text);
+          throw new Error(`Content too short from ${url} (${text.length} chars)`);
+        }
+        foundPath = existingFile.path;
+        
+        // Update title if we haven't loaded it yet
+        if (!existingFile.title) {
+          const title = extractTitle(text) || currentPath.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || currentPath;
+          setDiscoveredFiles(prev => {
+            const newMap = new Map(prev);
+            // Update by displayPath (the key we use)
+            const file = newMap.get(currentPath);
+            if (file) {
+              newMap.set(currentPath, { ...file, title });
+            }
+            return newMap;
+          });
+        }
+        
+        console.log(`[DocsUnlocked] Content loaded: ${currentPath} -> ${foundPath}, length: ${text.length} chars`);
+        setContent(text);
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
@@ -1371,7 +1224,7 @@ const DocsApp = () => {
     };
     
     loadContent();
-  }, [currentPath]);
+  }, [currentPath, discoveredFiles]);
 
   const [highlightQuery, setHighlightQuery] = useState<string>('');
 
@@ -1410,7 +1263,12 @@ const DocsApp = () => {
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash) {
-      setCurrentPath(hash);
+      // Normalize hash path (remove numeric prefixes) to match manifest displayPath
+      const normalizedHash = normalizeDisplayPath(hash);
+      console.log(`[DocsUnlocked] Setting initial path from hash: ${hash} -> ${normalizedHash}`);
+      setCurrentPath(normalizedHash);
+    } else {
+      console.log(`[DocsUnlocked] No hash found, using default path: ${currentPath}`);
     }
   }, []);
 

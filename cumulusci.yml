@@ -10,8 +10,6 @@ project:
         prefix_beta: "beta/"
         prefix_release: "release/"
     source_format: sfdx
-    dependencies:
-        - github: https://github.com/Nimba-Solutions/Markdown-Unlocked
 
 tasks:
     robot:

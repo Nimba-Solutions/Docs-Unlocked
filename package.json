@@ -13,6 +13,7 @@
         "@tailwindcss/typography": "^0.5.19",
         "dompurify": "^3.3.1",
         "highlight.js": "^11.11.1",
+        "js-yaml": "^4.1.1",
         "lucide-react": "^0.363.0",
         "marked": "^17.0.1",
         "react": "^18.2.0",
@@ -21,6 +22,7 @@
     },
     "devDependencies": {
         "@types/dompurify": "^3.0.5",
+        "@types/js-yaml": "^4.0.9",
         "@types/react": "^18.2.64",
         "@types/react-dom": "^18.2.21",
         "@vitejs/plugin-react": "^4.2.1",
