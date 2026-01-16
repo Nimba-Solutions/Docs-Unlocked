@@ -1442,16 +1442,23 @@ const DocsApp = () => {
 
   return (
     <div className="bg-gray-50" style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'relative' }}>
+      {/* Mobile menu button - always visible on mobile/tablet */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="lg:hidden absolute z-50 p-3 bg-white border border-gray-200 rounded-lg shadow-lg hover:bg-gray-50"
+        style={{ 
+          top: displayHeader ? '76px' : '16px', 
+          left: '16px' 
+        }}
+        aria-label="Toggle sidebar"
+      >
+        {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+      </button>
+      
       {displayHeader && (
         <header className="absolute left-0 right-0 h-16 bg-white border-b border-gray-200 z-50" style={{ top: '60px' }}>
           <div className="h-full px-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
-              >
-                {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />
                 <span className="text-xl font-bold text-gray-900">{headerLabel}</span>
