@@ -112,7 +112,13 @@ const wrapCodeBlocks = (html: string): string => {
 };
 
 // Content Renderer - renders markdown content using marked.js (same config as Markdown-Unlocked)
-const ContentRenderer = ({ content, onNavigate, highlightQuery }: { content: string; onNavigate?: (path: string) => void; highlightQuery?: string }) => {
+interface TOCItem {
+  id: string;
+  text: string;
+  level: number;
+}
+
+const ContentRenderer = ({ content, onNavigate, highlightQuery, onTOCChange }: { content: string; onNavigate?: (path: string) => void; highlightQuery?: string; onTOCChange?: (toc: TOCItem[]) => void }) => {
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Parse NavCards from markdown before rendering
@@ -241,9 +247,34 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery }: { content: str
       
       // Wrap code blocks with copy button before sanitizing
       const wrappedHtml = wrapCodeBlocks(htmlWithMedia);
-      return DOMPurify.sanitize(wrappedHtml, {
+      
+      // Add IDs to headers and extract TOC
+      const toc: TOCItem[] = [];
+      const htmlWithIds = wrappedHtml.replace(/<h([1-4])([^>]*)>([^<]+)<\/h[1-4]>/gi, (_match, level, attrs, text) => {
+        // Generate ID from text (lowercase, replace spaces with hyphens, remove special chars)
+        const id = text.toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim();
+        
+        toc.push({
+          id,
+          text: text.trim(),
+          level: parseInt(level)
+        });
+        
+        return `<h${level}${attrs} id="${id}">${text}</h${level}>`;
+      });
+      
+      // Notify parent of TOC changes
+      if (onTOCChange) {
+        onTOCChange(toc);
+      }
+      
+      return DOMPurify.sanitize(htmlWithIds, {
         ADD_TAGS: ['video', 'source'],
-        ADD_ATTR: ['controls', 'aria-label']
+        ADD_ATTR: ['controls', 'aria-label', 'id']
       });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -452,7 +483,8 @@ const Sidebar = ({
   currentPath,
   onNavigate,
   displayHeader,
-  discoveredFiles
+  discoveredFiles,
+  tableOfContents
 }: { 
   isOpen: boolean; 
   onClose: () => void; 
@@ -461,6 +493,7 @@ const Sidebar = ({
   onNavigate: (path: string, searchQuery?: string) => void;
   displayHeader: boolean;
   discoveredFiles: Map<string, { title: string; path: string; displayPath: string; order: number }>;
+  tableOfContents: TOCItem[];
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Array<{ title: string; path: string; snippet: string; searchQuery?: string }>>([]);
@@ -683,6 +716,35 @@ const Sidebar = ({
                   </ul>
                 </div>
               ))}
+              
+              {tableOfContents.length > 0 && (
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    On This Page
+                  </h3>
+                  <nav className="space-y-1">
+                    {tableOfContents.map((item, idx) => (
+                      <a
+                        key={idx}
+                        href={`#${item.id}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const element = document.getElementById(item.id);
+                          if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            // Update URL hash without scrolling
+                            window.history.pushState(null, '', `#${item.id}`);
+                          }
+                        }}
+                        className="block text-sm text-gray-600 hover:text-gray-900 py-1 transition-colors"
+                        style={{ paddingLeft: `${(item.level - 1) * 12}px` }}
+                      >
+                        {item.text}
+                      </a>
+                    ))}
+                  </nav>
+                </div>
+              )}
             </nav>
           )}
         </div>
@@ -982,6 +1044,7 @@ const DocsApp = () => {
   const [loading, setLoading] = useState(true);
   const [currentPath, setCurrentPath] = useState('');
   const [contentLoading, setContentLoading] = useState(false);
+  const [tableOfContents, setTableOfContents] = useState<TOCItem[]>([]);
   const articleRef = useRef<HTMLElement>(null);
   
   // Get configuration from window (set by LWC)
@@ -1317,6 +1380,7 @@ const DocsApp = () => {
         onNavigate={handleNavigate}
         displayHeader={displayHeader}
         discoveredFiles={discoveredFiles}
+        tableOfContents={tableOfContents}
       />
       <main className="lg:pl-72">
         <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-24">
@@ -1331,7 +1395,7 @@ const DocsApp = () => {
                 currentPath={currentPath}
                 onNavigate={handleNavigate}
               />
-              <ContentRenderer content={content} onNavigate={handleNavigate} highlightQuery={highlightQuery} />
+              <ContentRenderer content={content} onNavigate={handleNavigate} highlightQuery={highlightQuery} onTOCChange={setTableOfContents} />
             </>
           )}
         </article>
