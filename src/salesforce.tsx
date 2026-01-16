@@ -166,8 +166,14 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery }: { content: str
         }
         
         // Check if path starts with /media/ - if so, use media folder, otherwise use content folder
-        const folder = normalizedPath.startsWith('/media/') ? 'media' : 'content';
-        const staticResourceUrl = `/resource/${contentResourceName}/${folder}${normalizedPath}`;
+        let staticResourceUrl: string;
+        if (normalizedPath.startsWith('/media/')) {
+          // Strip /media/ prefix since we're already in the media folder
+          const mediaPath = normalizedPath.replace(/^\/media\//, '');
+          staticResourceUrl = `/resource/${contentResourceName}/media/${mediaPath}`;
+        } else {
+          staticResourceUrl = `/resource/${contentResourceName}/content${normalizedPath}`;
+        }
         return `<img${before} src="${staticResourceUrl}"${after}>`;
       });
       
@@ -197,8 +203,14 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery }: { content: str
         const altText = altMatch ? altMatch[1] : '';
         
         // Check if path starts with /media/ - if so, use media folder, otherwise use content folder
-        const folder = normalizedPath.startsWith('/media/') ? 'media' : 'content';
-        const staticResourceUrl = `/resource/${contentResourceName}/${folder}${normalizedPath}`;
+        let staticResourceUrl: string;
+        if (normalizedPath.startsWith('/media/')) {
+          // Strip /media/ prefix since we're already in the media folder
+          const mediaPath = normalizedPath.replace(/^\/media\//, '');
+          staticResourceUrl = `/resource/${contentResourceName}/media/${mediaPath}`;
+        } else {
+          staticResourceUrl = `/resource/${contentResourceName}/content${normalizedPath}`;
+        }
         return `<video controls class="w-full rounded-lg my-4"${altText ? ` aria-label="${altText}"` : ''}><source src="${staticResourceUrl}" type="video/${normalizedPath.split('.').pop()}">Your browser does not support the video tag.</video>`;
       });
       
@@ -216,8 +228,14 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery }: { content: str
         }
         
         // Check if path starts with /media/ - if so, use media folder, otherwise use content folder
-        const folder = normalizedPath.startsWith('/media/') ? 'media' : 'content';
-        const staticResourceUrl = `/resource/${contentResourceName}/${folder}${normalizedPath}`;
+        let staticResourceUrl: string;
+        if (normalizedPath.startsWith('/media/')) {
+          // Strip /media/ prefix since we're already in the media folder
+          const mediaPath = normalizedPath.replace(/^\/media\//, '');
+          staticResourceUrl = `/resource/${contentResourceName}/media/${mediaPath}`;
+        } else {
+          staticResourceUrl = `/resource/${contentResourceName}/content${normalizedPath}`;
+        }
         return `<video${before} src="${staticResourceUrl}"${after}>`;
       });
       
