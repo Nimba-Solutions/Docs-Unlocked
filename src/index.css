@@ -52,15 +52,16 @@ html {
   }
 }
 
-/* Ensure docs container takes full height */
+/* Ensure docs container takes full height and doesn't scroll */
 #docs-app-root {
-  min-height: 100vh;
+  height: 100vh;
   width: 100%;
+  overflow: hidden;
 }
 
-/* Ensure content is not cut off */
+/* Ensure content container doesn't scroll */
 .docs-container {
-  min-height: 100vh;
+  height: 100vh;
   width: 100%;
-  overflow: visible;
+  overflow: hidden;
 }
