@@ -287,6 +287,7 @@ const DocsApp = () => {
   const [loading, setLoading] = useState(true);
   const [currentPath, setCurrentPath] = useState('/getting-started/introduction');
   const [contentLoading, setContentLoading] = useState(false);
+  const articleRef = useRef<HTMLElement>(null);
 
   // Load navigation
   useEffect(() => {
@@ -383,6 +384,29 @@ const DocsApp = () => {
     window.location.hash = path;
   };
 
+  // Scroll to top when path changes
+  useEffect(() => {
+    // Wait for content to load before scrolling
+    if (contentLoading) return;
+    
+    // Find the scrollable container (could be window or a parent element)
+    const scrollContainer = articleRef.current?.closest('[data-scroll-container]') || 
+                           articleRef.current?.parentElement?.parentElement || 
+                           window;
+    
+    if (articleRef.current) {
+      // Try to scroll the article into view
+      articleRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      
+      // Also scroll window to top as fallback (for Salesforce's nested structure)
+      if (scrollContainer === window) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (scrollContainer instanceof HTMLElement) {
+        scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  }, [currentPath, contentLoading]);
+
   // Handle initial hash
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
@@ -431,7 +455,7 @@ const DocsApp = () => {
         onNavigate={handleNavigate}
       />
       <main className="lg:pl-72">
-        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {contentLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-gray-600">Loading content...</div>
