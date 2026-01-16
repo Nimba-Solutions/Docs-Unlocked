@@ -1081,13 +1081,21 @@ const DocsApp = () => {
       }
     }
     
-    // Try each possible path
+    // Try each possible path - try both dots and underscores
     for (const tryPath of possiblePaths) {
       try {
-        // Convert dots to underscores for StaticResource access
-        const staticResourcePath = convertPathForStaticResource(tryPath);
-        const contentPath = `${staticResourcePath}.md`;
-        let response = await fetch(`/resource/${contentResourceName}/content${contentPath}`);
+        // Try with dots first (Salesforce supports them)
+        let contentPath = `${tryPath}.md`;
+        let url = `/resource/${contentResourceName}/content${contentPath}`;
+        let response = await fetch(url);
+        
+        // If dots don't work, try underscores
+        if (!response.ok) {
+          const staticResourcePath = convertPathForStaticResource(tryPath);
+          contentPath = `${staticResourcePath}.md`;
+          url = `/resource/${contentResourceName}/content${contentPath}`;
+          response = await fetch(url);
+        }
         
         // Fallback: try old single-file StaticResource naming
         if (!response.ok) {
@@ -1110,6 +1118,8 @@ const DocsApp = () => {
           
           const fileInfo = { title, path: tryPath, displayPath, order };
           setDiscoveredFiles(prev => new Map(prev).set(tryPath, fileInfo));
+          
+          console.log(`[DocsUnlocked] Discovered file: ${displayPath} -> ${tryPath} (fetched from: ${url})`);
           
           // Discover linked files (async, don't await)
           const links = extractInternalLinks(content);
@@ -1258,12 +1268,34 @@ const DocsApp = () => {
         let response: Response | null = null;
         let foundPath = '';
         
-        // Try each possible path
+        // Convert display path (with dots) to StaticResource path (with underscores)
+        const convertPathForStaticResource = (path: string): string => {
+          return path.split('/').map(segment => {
+            // Convert dots to underscores but preserve file extensions
+            if (segment.includes('.')) {
+              const ext = segment.match(/\.[^.]+$/)?.[0] || '';
+              const nameWithoutExt = ext ? segment.slice(0, -ext.length) : segment;
+              return nameWithoutExt.replace(/\./g, '_') + ext;
+            }
+            return segment;
+          }).join('/');
+        };
+        
+        // Try each possible path - try both dots and underscores
         let lastError: string = '';
         for (const tryPath of possiblePaths) {
-          const contentPath = `${tryPath}.md`;
-          const url = `/resource/${contentResourceName}/content${contentPath}`;
+          // Try with dots first (Salesforce supports them)
+          let contentPath = `${tryPath}.md`;
+          let url = `/resource/${contentResourceName}/content${contentPath}`;
           response = await fetch(url);
+          
+          // If dots don't work, try underscores
+          if (!response.ok) {
+            const staticResourcePath = convertPathForStaticResource(tryPath);
+            contentPath = `${staticResourcePath}.md`;
+            url = `/resource/${contentResourceName}/content${contentPath}`;
+            response = await fetch(url);
+          }
           
           if (!response.ok) {
             lastError = `Failed to fetch ${url}: ${response.status} ${response.statusText}`;
@@ -1276,7 +1308,7 @@ const DocsApp = () => {
           
           if (response.ok) {
             foundPath = tryPath;
-            console.log(`[DocsUnlocked] Found content at: ${tryPath}`);
+            console.log(`[DocsUnlocked] Found content at: ${tryPath} (fetched from: ${url})`);
             break;
           }
         }
