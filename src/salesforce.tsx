@@ -265,8 +265,126 @@ const Sidebar = ({
   onNavigate: (path: string) => void;
   displayHeader: boolean;
 }) => {
-  const renderNavItems = (items: any[], level = 0) => {
-    return items.map((item) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Array<{ title: string; path: string; snippet: string }>>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Helper to check if an item matches the search query
+  const matchesSearch = (item: any, query: string): boolean => {
+    if (!query.trim()) return true;
+    const lowerQuery = query.toLowerCase();
+    return item.title.toLowerCase().includes(lowerQuery) ||
+           (item.path && item.path.toLowerCase().includes(lowerQuery));
+  };
+
+  // Helper to filter items recursively
+  const filterItems = (items: any[], query: string): any[] => {
+    if (!query.trim()) return items;
+    return items.filter(item => {
+      const matches = matchesSearch(item, query);
+      const hasMatchingChildren = item.children && filterItems(item.children, query).length > 0;
+      return matches || hasMatchingChildren;
+    }).map(item => ({
+      ...item,
+      children: item.children ? filterItems(item.children, query) : undefined
+    }));
+  };
+
+  // Search through all content files - searches immediately as you type
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    
+    // Clear previous timeout
+    let cancelled = false;
+    
+    const searchAllContent = async () => {
+      const query = searchQuery.toLowerCase();
+      const results: Array<{ title: string; path: string; snippet: string }> = [];
+      
+      // Get content resource name
+      const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
+      
+      // Flatten navigation to get all paths
+      const allPaths: Array<{ title: string; path: string }> = [];
+      navigation.forEach(section => {
+        if (section.children) {
+          section.children.forEach((child: any) => {
+            const collectPaths = (item: any) => {
+              allPaths.push({ title: item.title, path: item.path });
+              if (item.children) {
+                item.children.forEach(collectPaths);
+              }
+            };
+            collectPaths(child);
+          });
+        }
+      });
+
+      // Search through each content file
+      for (const page of allPaths) {
+        if (cancelled) break;
+        
+        try {
+          const contentPath = `${page.path}.md`;
+          const response = await fetch(`/resource/${contentResourceName}/content${contentPath}`);
+          
+          if (response.ok) {
+            const content = await response.text();
+            const lowerContent = content.toLowerCase();
+            
+            // Check if content matches
+            if (lowerContent.includes(query) || page.title.toLowerCase().includes(query)) {
+              // Find snippet around first match
+              const index = lowerContent.indexOf(query);
+              const start = Math.max(0, index - 100);
+              const end = Math.min(content.length, index + query.length + 100);
+              let snippet = content.substring(start, end);
+              
+              // Clean up snippet (remove markdown headers, code blocks, etc.)
+              snippet = snippet.replace(/^#+\s+/gm, '').replace(/```[\s\S]*?```/g, '').trim();
+              if (snippet.length > 200) {
+                snippet = snippet.substring(0, 200) + '...';
+              }
+              
+              results.push({
+                title: page.title,
+                path: page.path,
+                snippet: snippet || page.title
+              });
+            }
+          }
+        } catch (error) {
+          // Skip files that fail to load
+          if (!cancelled) {
+            console.warn(`[DocsUnlocked] Failed to search content for ${page.path}:`, error);
+          }
+        }
+      }
+      
+      if (!cancelled) {
+        setSearchResults(results);
+        setIsSearching(false);
+      }
+    };
+
+    // Debounce search - reduced to 100ms for faster response
+    const timeoutId = setTimeout(searchAllContent, 100);
+    
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [searchQuery, navigation]);
+
+  const renderNavItems = (items: any[], level = 0, filteredItems?: any[]) => {
+    const itemsToRender = filteredItems || items;
+    return itemsToRender.map((item) => {
       const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/');
       return (
         <div key={item.path}>
@@ -321,22 +439,63 @@ const Sidebar = ({
               <input
                 type="text"
                 placeholder="Search documentation..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
-          <nav className="space-y-8">
-            {navigation.map((section, idx) => (
-              <div key={idx}>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                  {section.title}
-                </h3>
-                <ul className="space-y-1">
-                  {section.children && renderNavItems(section.children)}
-                </ul>
-              </div>
-            ))}
-          </nav>
+          {searchQuery.trim() ? (
+            <div className="space-y-4">
+              {isSearching ? (
+                <div className="text-sm text-gray-500 text-center py-4">Searching...</div>
+              ) : searchResults.length > 0 ? (
+                <>
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    Search Results ({searchResults.length})
+                  </div>
+                  <div className="space-y-2">
+                    {searchResults.map((result) => (
+                      <a
+                        key={result.path}
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onNavigate(result.path);
+                          onClose();
+                        }}
+                        className={`
+                          block p-3 text-sm rounded-lg transition-colors cursor-pointer border border-gray-200 hover:border-blue-300 hover:bg-blue-50
+                          ${currentPath === result.path
+                            ? 'bg-blue-50 text-blue-700 border-blue-300' 
+                            : 'text-gray-700 hover:text-gray-900'
+                          }
+                        `}
+                      >
+                        <div className="font-medium mb-1">{result.title}</div>
+                        <div className="text-xs text-gray-500 line-clamp-2">{result.snippet}</div>
+                      </a>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="text-sm text-gray-500 text-center py-4">No results found</div>
+              )}
+            </div>
+          ) : (
+            <nav className="space-y-8">
+              {navigation.map((section, idx) => (
+                <div key={idx}>
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    {section.title}
+                  </h3>
+                  <ul className="space-y-1">
+                    {renderNavItems(section.children || [])}
+                  </ul>
+                </div>
+              ))}
+            </nav>
+          )}
         </div>
       </aside>
     </>
