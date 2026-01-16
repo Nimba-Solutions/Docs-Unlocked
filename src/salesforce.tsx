@@ -424,6 +424,11 @@ const DocsApp = () => {
   const [currentPath, setCurrentPath] = useState('/getting-started/introduction');
   const [contentLoading, setContentLoading] = useState(false);
   const articleRef = useRef<HTMLElement>(null);
+  
+  // Get configuration from window (set by LWC)
+  const displayHeader = (window as any).DOCS_DISPLAY_HEADER !== false; // Default to true
+  const headerLabel = (window as any).DOCS_HEADER_LABEL || 'Documentation';
+  const displayFooter = (window as any).DOCS_DISPLAY_FOOTER !== false; // Default to true
 
   // Load navigation
   useEffect(() => {
@@ -569,28 +574,30 @@ const DocsApp = () => {
 
   return (
     <div className="bg-gray-50 relative">
-      <header className="sticky top-0 h-16 bg-white border-b border-gray-200 z-50">
-        <div className="h-full px-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
-            >
-              {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+      {displayHeader && (
+        <header className="sticky top-0 h-16 bg-white border-b border-gray-200 z-50">
+          <div className="h-full px-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
+              >
+                {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />
+                <span className="text-xl font-bold text-gray-900">{headerLabel}</span>
+              </div>
+            </div>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />
-              <span className="text-xl font-bold text-gray-900">Documentation</span>
+              <button className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+                <Github className="w-4 h-4" />
+                <span>GitHub</span>
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
-              <Github className="w-4 h-4" />
-              <span>GitHub</span>
-            </button>
-          </div>
-        </div>
-      </header>
+        </header>
+      )}
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
@@ -616,6 +623,15 @@ const DocsApp = () => {
           )}
         </article>
       </main>
+      {displayFooter && (
+        <footer className="border-t border-gray-200 bg-white py-6 mt-12">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center text-sm text-gray-600">
+              <p>Documentation powered by Docs Unlocked</p>
+            </div>
+          </div>
+        </footer>
+      )}
     </div>
   );
 };

@@ -4,6 +4,9 @@ import DOCS_UNLOCKED from '@salesforce/resourceUrl/docsUnlocked';
 
 export default class DocsUnlocked extends LightningElement {
     @api contentResourceName = 'docsContent'; // Default to docsContent for backward compatibility
+    @api displayHeader = false; // LWC requires boolean defaults to false, but we'll treat undefined/null as true
+    @api headerLabel = 'Documentation'; // Default header label
+    @api displayFooter = false; // LWC requires boolean defaults to false, but we'll treat undefined/null as true
 
     renderedCallback() {
         // Wait for DOM to be ready
@@ -25,11 +28,18 @@ export default class DocsUnlocked extends LightningElement {
             // The script will auto-initialize when it loads and looks for this ID
             container.id = 'docs-app-root';
             
-            // Set the content resource name as a data attribute so React app can read it
+            // Set configuration as data attributes so React app can read them
             container.setAttribute('data-content-resource', this.contentResourceName);
+            container.setAttribute('data-display-header', this.displayHeader);
+            container.setAttribute('data-header-label', this.headerLabel || 'Documentation');
+            container.setAttribute('data-display-footer', this.displayFooter);
             
-            // Also set it on window for React app to access
+            // Also set on window for React app to access
+            // Boolean properties default to true via meta.xml, but LWC requires JS default to false
             window.DOCS_CONTENT_RESOURCE_NAME = this.contentResourceName;
+            window.DOCS_DISPLAY_HEADER = this.displayHeader === true;
+            window.DOCS_HEADER_LABEL = this.headerLabel || 'Documentation';
+            window.DOCS_DISPLAY_FOOTER = this.displayFooter === true;
             
             console.log('[DocsUnlocked LWC] Container ID set, content resource: ' + this.contentResourceName + ', loading script bundle...');
             
