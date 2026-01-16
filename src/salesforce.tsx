@@ -1313,13 +1313,47 @@ const DocsApp = () => {
     window.location.hash = path;
   };
 
-  // Scroll to top when path changes
+  // Scroll to top when path changes, or scroll to anchor if hash is present
   useEffect(() => {
     // Wait for content to load before scrolling
     if (contentLoading) return;
     
     // Small delay to ensure DOM has updated
     const timeoutId = setTimeout(() => {
+      const hash = window.location.hash.replace('#', '');
+      
+      // Check if hash contains :: separator (page path::anchor)
+      const parts = hash.split('::');
+      let anchorId: string | null = null;
+      if (parts.length === 2) {
+        anchorId = parts[1];
+      } else if (hash && !hash.startsWith('/') && !discoveredFiles.has(hash) && !discoveredFiles.has(normalizeDisplayPath(hash))) {
+        // It's an anchor ID only (not a page path)
+        anchorId = hash;
+      }
+      
+      // If we have an anchor ID, scroll to it
+      if (anchorId) {
+        const contentContainer = articleRef.current?.querySelector('.prose');
+        const anchorElement = contentContainer?.querySelector(`#${anchorId}`) || document.getElementById(anchorId);
+        if (anchorElement) {
+          // Remove any existing highlight
+          const existingHighlight = contentContainer?.querySelector('.toc-highlight');
+          if (existingHighlight) {
+            existingHighlight.classList.remove('toc-highlight', 'bg-yellow-200', 'px-1', 'rounded', 'font-semibold');
+          }
+          // Add highlight
+          anchorElement.classList.add('toc-highlight', 'bg-yellow-200', 'px-1', 'rounded', 'font-semibold');
+          anchorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Remove highlight after 5 seconds
+          setTimeout(() => {
+            anchorElement.classList.remove('toc-highlight', 'bg-yellow-200', 'px-1', 'rounded', 'font-semibold');
+          }, 5000);
+          return;
+        }
+      }
+      
+      // Otherwise, scroll to top
       // Find the scrollable container (could be window or a parent element)
       const scrollContainer = articleRef.current?.closest('[data-scroll-container]') || 
                              articleRef.current?.closest('main') ||
@@ -1332,27 +1366,42 @@ const DocsApp = () => {
       } else if (scrollContainer instanceof HTMLElement) {
         scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
       }
-    }, 50);
+    }, 150);
     
     return () => clearTimeout(timeoutId);
-  }, [currentPath, contentLoading]);
+  }, [currentPath, contentLoading, discoveredFiles]);
 
   // Handle initial hash
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash) {
-      // Check if hash is a page path (starts with /) or exists in discoveredFiles
-      // If not, it's likely an anchor ID - don't try to load it as content
-      if (hash.startsWith('/') || discoveredFiles.has(hash) || discoveredFiles.has(normalizeDisplayPath(hash))) {
-        // Normalize hash path (remove numeric prefixes) to match manifest displayPath
-        const normalizedHash = normalizeDisplayPath(hash);
-        console.log(`[DocsUnlocked] Setting initial path from hash: ${hash} -> ${normalizedHash}`);
-        setCurrentPath(normalizedHash);
+      // Check if hash contains :: separator (page path::anchor)
+      const parts = hash.split('::');
+      if (parts.length === 2) {
+        const [pagePath, anchorId] = parts;
+        // Normalize and set page path
+        const normalizedPath = normalizeDisplayPath(pagePath);
+        console.log(`[DocsUnlocked] Setting initial path from hash: ${pagePath} -> ${normalizedPath}, anchor: ${anchorId}`);
+        setCurrentPath(normalizedPath);
+        // Anchor scrolling will be handled after content loads
       } else {
-        // It's an anchor ID - wait for content to load, then scroll to it
-        console.log(`[DocsUnlocked] Hash appears to be an anchor ID: ${hash}`);
-        // Don't set currentPath - let it use the default or current page
-        // The anchor scrolling will be handled after content loads
+        // Check if hash is a page path (starts with /) or exists in discoveredFiles
+        if (hash.startsWith('/') || discoveredFiles.has(hash) || discoveredFiles.has(normalizeDisplayPath(hash))) {
+          // Normalize hash path (remove numeric prefixes) to match manifest displayPath
+          const normalizedHash = normalizeDisplayPath(hash);
+          console.log(`[DocsUnlocked] Setting initial path from hash: ${hash} -> ${normalizedHash}`);
+          setCurrentPath(normalizedHash);
+        } else {
+          // It's an anchor ID only - load default page first, then scroll to anchor
+          console.log(`[DocsUnlocked] Hash appears to be an anchor ID only: ${hash}`);
+          // Set default path if navigation is available, otherwise let it use current/default
+          if (navigation.length > 0 && navigation[0].children.length > 0) {
+            const firstPath = navigation[0].children[0].path;
+            console.log(`[DocsUnlocked] Loading default page for anchor-only hash: ${firstPath}`);
+            setCurrentPath(firstPath);
+          }
+          // Anchor scrolling will be handled after content loads
+        }
       }
     } else {
       console.log(`[DocsUnlocked] No hash found, using default path: ${currentPath}`);
@@ -1468,8 +1517,9 @@ const DocsApp = () => {
                         element.classList.add('toc-highlight', 'bg-yellow-200', 'px-1', 'rounded', 'font-semibold');
                         
                         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        // Update URL hash
-                        window.history.pushState(null, '', `#${item.id}`);
+                        // Update URL hash with both page path and anchor (using :: as separator)
+                        const hashWithAnchor = currentPath ? `${currentPath}::${item.id}` : item.id;
+                        window.history.pushState(null, '', `#${hashWithAnchor}`);
                         
                         // Remove highlight after 5 seconds (same as search)
                         setTimeout(() => {
