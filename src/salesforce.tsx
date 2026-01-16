@@ -190,13 +190,30 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery, onTOCChange }: {
       // Convert image tags with video extensions to video tags
       // Note: Videos must be hosted externally (Salesforce Files or public URLs) due to 5MB StaticResource limit
       htmlWithMedia = htmlWithMedia.replace(/<img([^>]*)\ssrc=["']([^"']+)["']([^>]*)>/gi, (match, before, src, after) => {
-        if (!videoExtensions.test(src)) {
-          return match; // Not a video, return as-is
-        }
-        
         // Extract alt text from the img tag
         const altMatch = before.match(/alt=["']([^"']*)["']/i) || after.match(/alt=["']([^"']*)["']/i);
         const altText = altMatch ? altMatch[1] : '';
+        
+        // Check for YouTube URLs
+        const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        const youtubeMatch = src.match(youtubeRegex);
+        if (youtubeMatch) {
+          const videoId = youtubeMatch[1];
+          return `<div class="my-4"><iframe class="w-full rounded-lg" style="aspect-ratio: 16/9; height: auto;" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen${altText ? ` title="${altText}"` : ''}></iframe></div>`;
+        }
+        
+        // Check for Vimeo URLs
+        const vimeoRegex = /vimeo\.com\/(\d+)/;
+        const vimeoMatch = src.match(vimeoRegex);
+        if (vimeoMatch) {
+          const videoId = vimeoMatch[1];
+          return `<div class="my-4"><iframe class="w-full rounded-lg" style="aspect-ratio: 16/9; height: auto;" src="https://player.vimeo.com/video/${videoId}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen${altText ? ` title="${altText}"` : ''}></iframe></div>`;
+        }
+        
+        // Check if it's a video file extension
+        if (!videoExtensions.test(src)) {
+          return match; // Not a video, return as-is
+        }
         
         // If already absolute URL (http/https), use it directly
         if (src.startsWith('http://') || src.startsWith('https://')) {
