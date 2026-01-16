@@ -696,19 +696,19 @@ const Sidebar = ({
     <>
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          className="absolute inset-0 bg-black/50 z-30 lg:hidden"
           onClick={onClose}
         />
       )}
       <aside className={`
-        fixed left-0 w-72 bg-white border-r border-gray-200 
+        absolute left-0 w-72 bg-white border-r border-gray-200 
         transform transition-transform duration-300 ease-in-out z-40
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:fixed lg:left-0 lg:w-72 lg:transform-none lg:translate-x-0
+        lg:absolute lg:left-0 lg:w-72 lg:transform-none lg:translate-x-0
       `} style={{
         top: displayHeader ? '124px' : '60px',
         bottom: 0,
-        height: displayHeader ? 'calc(100vh - 124px)' : 'calc(100vh - 60px)'
+        height: displayHeader ? 'calc(100% - 124px)' : 'calc(100% - 60px)'
       }}>
         <div className="h-full overflow-y-auto p-6">
           <div className="mb-6">
@@ -906,11 +906,11 @@ const SearchModal = ({
   return (
     <>
       <div 
-        className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 z-50 backdrop-blur-sm"
         onClick={onClose}
       />
       <div 
-        className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] px-4"
+        className="absolute inset-0 z-50 flex items-start justify-center pt-[20%] px-4"
         onClick={onClose}
       >
         <div 
@@ -1441,9 +1441,9 @@ const DocsApp = () => {
   }
 
   return (
-    <div className="bg-gray-50 relative" style={{ height: '100vh', overflow: 'hidden' }}>
+    <div className="bg-gray-50" style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'relative' }}>
       {displayHeader && (
-        <header className="fixed left-0 right-0 h-16 bg-white border-b border-gray-200 z-50" style={{ top: '60px' }}>
+        <header className="absolute left-0 right-0 h-16 bg-white border-b border-gray-200 z-50" style={{ top: '60px' }}>
           <div className="h-full px-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
@@ -1475,12 +1475,12 @@ const DocsApp = () => {
         displayHeader={displayHeader}
         discoveredFiles={discoveredFiles}
       />
-      <main className="lg:pl-72 lg:pr-80 lg:fixed lg:left-72 lg:right-80 lg:overflow-y-auto" style={{
+      <main className="lg:pl-72 lg:pr-80 lg:absolute lg:left-72 lg:right-80 lg:overflow-y-auto" style={{
         top: displayHeader ? '124px' : '60px',
         bottom: 0,
-        height: displayHeader ? 'calc(100vh - 124px)' : 'calc(100vh - 60px)'
+        height: displayHeader ? 'calc(100% - 124px)' : 'calc(100% - 60px)'
       }}>
-        <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-4 md:px-6 lg:px-8 py-8">
           {contentLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-gray-600">Loading content...</div>
@@ -1506,7 +1506,7 @@ const DocsApp = () => {
       </main>
       {displayFooter && (
         <footer className="border-t border-gray-200 bg-white py-6 mt-12">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-4 md:px-6 lg:px-8">
             <div className="text-center text-sm text-gray-600">
               <p>Documentation powered by Docs Unlocked</p>
             </div>
@@ -1516,10 +1516,10 @@ const DocsApp = () => {
       
       {/* Right Sidebar - Table of Contents */}
       {tableOfContents.length > 0 && (
-        <aside className="hidden lg:block lg:fixed lg:right-0 w-80 bg-white border-l border-gray-200 z-30" style={{
+        <aside className="hidden lg:block lg:absolute lg:right-0 w-80 bg-white border-l border-gray-200 z-30" style={{
           top: displayHeader ? '124px' : '60px',
           bottom: 0,
-          height: displayHeader ? 'calc(100vh - 124px)' : 'calc(100vh - 60px)'
+          height: displayHeader ? 'calc(100% - 124px)' : 'calc(100% - 60px)'
         }}>
           <div className="h-full overflow-y-auto p-6">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">

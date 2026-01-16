@@ -54,14 +54,16 @@ html {
 
 /* Ensure docs container takes full height and doesn't scroll */
 #docs-app-root {
-  height: 100vh;
+  height: 100%;
   width: 100%;
   overflow: hidden;
+  position: relative;
 }
 
 /* Ensure content container doesn't scroll */
 .docs-container {
-  height: 100vh;
+  height: 100%;
   width: 100%;
   overflow: hidden;
+  position: relative;
 }
