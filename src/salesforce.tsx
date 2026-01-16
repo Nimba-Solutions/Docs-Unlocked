@@ -1538,10 +1538,12 @@ const DocsApp = () => {
                         element = document.getElementById(item.id);
                       }
                       if (!element) {
-                        // Try finding by text content as last resort
+                        // Try finding by text content as last resort (for numbered headers)
                         const headers = contentContainer.querySelectorAll('h1, h2, h3, h4');
                         for (const header of Array.from(headers)) {
-                          if (header.textContent?.trim() === item.text) {
+                          const headerText = header.textContent?.trim();
+                          // Match exact text or text without leading number/period
+                          if (headerText === item.text || headerText?.replace(/^\d+\.\s*/, '') === item.text.replace(/^\d+\.\s*/, '')) {
                             element = header;
                             break;
                           }
@@ -1549,6 +1551,7 @@ const DocsApp = () => {
                       }
                       
                       if (element) {
+                        console.log(`[DocsUnlocked] TOC link: Found element for "${item.id}" (level ${item.level})`);
                         // Remove any existing TOC highlight
                         const existingHighlight = contentContainer.querySelector('.toc-highlight');
                         if (existingHighlight) {
