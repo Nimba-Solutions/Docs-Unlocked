@@ -704,10 +704,8 @@ const Sidebar = ({
         fixed left-0 w-72 bg-white border-r border-gray-200 
         transform transition-transform duration-300 ease-in-out z-40
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:absolute lg:left-0 ${displayHeader ? 'lg:top-16' : 'lg:top-0'} lg:bottom-0 lg:w-72 lg:transform-none lg:translate-x-0
-      `} style={{ 
-        overflowY: 'auto'
-      }}>
+        lg:fixed lg:left-0 ${displayHeader ? 'lg:top-16' : 'lg:top-0'} lg:bottom-0 lg:w-72 lg:transform-none lg:translate-x-0
+      `}>
         <div className="h-full overflow-y-auto p-6">
           <div className="mb-6">
             <div className="relative">
@@ -1473,7 +1471,7 @@ const DocsApp = () => {
         displayHeader={displayHeader}
         discoveredFiles={discoveredFiles}
       />
-      <main className="lg:pl-72 lg:pr-80">
+      <main className={`lg:pl-72 lg:pr-80 lg:fixed lg:left-72 lg:right-80 lg:overflow-y-auto ${displayHeader ? 'lg:top-16' : 'lg:top-0'} lg:bottom-0`}>
         <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-24">
           {contentLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -1510,7 +1508,7 @@ const DocsApp = () => {
       
       {/* Right Sidebar - Table of Contents */}
       {tableOfContents.length > 0 && (
-        <aside className={`hidden lg:block lg:absolute lg:right-0 w-80 bg-white border-l border-gray-200 z-30 ${displayHeader ? 'lg:top-16' : 'lg:top-0'} lg:bottom-0`}>
+        <aside className={`hidden lg:block lg:fixed lg:right-0 w-80 bg-white border-l border-gray-200 z-30 ${displayHeader ? 'lg:top-16' : 'lg:top-0'} lg:bottom-0`}>
           <div className="h-full overflow-y-auto p-6">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
               On This Page
