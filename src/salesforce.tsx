@@ -188,36 +188,36 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery, onTOCChange }: {
       const videoExtensions = /\.(mp4|webm|ogg|mov|avi|wmv|flv|mkv)$/i;
       
       // Convert image tags with video extensions to video tags
+      // Note: Videos must be hosted externally (Salesforce Files or public URLs) due to 5MB StaticResource limit
       htmlWithMedia = htmlWithMedia.replace(/<img([^>]*)\ssrc=["']([^"']+)["']([^>]*)>/gi, (match, before, src, after) => {
         if (!videoExtensions.test(src)) {
           return match; // Not a video, return as-is
-        }
-        
-        // Skip if already absolute URL
-        if (src.startsWith('http://') || src.startsWith('https://')) {
-          return match;
-        }
-        
-        // Normalize path
-        let normalizedPath = src.replace(/^\.\//, '').replace(/^\.\.\//, '');
-        if (!normalizedPath.startsWith('/')) {
-          normalizedPath = '/' + normalizedPath;
         }
         
         // Extract alt text from the img tag
         const altMatch = before.match(/alt=["']([^"']*)["']/i) || after.match(/alt=["']([^"']*)["']/i);
         const altText = altMatch ? altMatch[1] : '';
         
-        // Check if path starts with /media/ - if so, use media folder, otherwise use content folder
-        let staticResourceUrl: string;
-        if (normalizedPath.startsWith('/media/')) {
-          // Strip /media/ prefix since we're already in the media folder
-          const mediaPath = normalizedPath.replace(/^\/media\//, '');
-          staticResourceUrl = `/resource/${contentResourceName}/media/${mediaPath}`;
-        } else {
-          staticResourceUrl = `/resource/${contentResourceName}/content${normalizedPath}`;
+        // If already absolute URL (http/https), use it directly
+        if (src.startsWith('http://') || src.startsWith('https://')) {
+          const extension = src.split('.').pop()?.toLowerCase() || 'mp4';
+          const mimeTypes: Record<string, string> = {
+            'mp4': 'video/mp4',
+            'webm': 'video/webm',
+            'ogg': 'video/ogg',
+            'mov': 'video/quicktime',
+            'avi': 'video/x-msvideo',
+            'wmv': 'video/x-ms-wmv',
+            'flv': 'video/x-flv',
+            'mkv': 'video/x-matroska'
+          };
+          const mimeType = mimeTypes[extension] || 'video/mp4';
+          return `<video controls class="w-full rounded-lg my-4"${altText ? ` aria-label="${altText}"` : ''}><source src="${src}" type="${mimeType}">Your browser does not support the video tag.</video>`;
         }
-        return `<video controls class="w-full rounded-lg my-4"${altText ? ` aria-label="${altText}"` : ''}><source src="${staticResourceUrl}" type="video/${normalizedPath.split('.').pop()}">Your browser does not support the video tag.</video>`;
+        
+        // For relative paths, show a warning message instead of trying to load from StaticResource
+        // (StaticResources have a 5MB limit, so videos should be hosted externally)
+        return `<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 my-4"><p class="text-sm text-yellow-800"><strong>Video not supported in StaticResources:</strong> Videos must be hosted externally (Salesforce Files or public URLs) due to Salesforce's 5MB StaticResource size limit. Use an absolute URL like <code>https://your-domain.com/video.mp4</code> or a Salesforce Files URL.</p></div>`;
       });
       
       // Also support explicit video syntax: ![video](path.mp4) or <video src="path.mp4"></video>
@@ -250,7 +250,13 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery, onTOCChange }: {
       
       // Add IDs to headers and extract TOC
       const toc: TOCItem[] = [];
-      const htmlWithIds = wrappedHtml.replace(/<h([1-4])([^>]*)>([^<]+)<\/h[1-4]>/gi, (_match, level, attrs, text) => {
+      // Use a more robust regex that handles headers with nested HTML
+      const htmlWithIds = wrappedHtml.replace(/<h([1-4])([^>]*)>([\s\S]*?)<\/h[1-4]>/gi, (_match, level, attrs, content) => {
+        // Extract text content from HTML (remove HTML tags using regex)
+        const text = content.replace(/<[^>]*>/g, '').trim();
+        
+        if (!text) return _match; // Skip empty headers
+        
         // Generate ID from text (lowercase, replace spaces with hyphens, remove special chars)
         const id = text.toLowerCase()
           .replace(/[^\w\s-]/g, '')
@@ -258,13 +264,24 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery, onTOCChange }: {
           .replace(/-+/g, '-')
           .trim();
         
-        toc.push({
-          id,
-          text: text.trim(),
-          level: parseInt(level)
-        });
+        if (id) {
+          toc.push({
+            id,
+            text: text,
+            level: parseInt(level)
+          });
+          
+          // Check if ID already exists in attrs
+          const hasId = attrs.includes('id=');
+          if (hasId) {
+            // Replace existing ID
+            return `<h${level}${attrs.replace(/id=["'][^"']*["']/i, `id="${id}"`)}>${content}</h${level}>`;
+          } else {
+            return `<h${level}${attrs} id="${id}">${content}</h${level}>`;
+          }
+        }
         
-        return `<h${level}${attrs} id="${id}">${text}</h${level}>`;
+        return _match; // Return unchanged if no valid ID
       });
       
       // Notify parent of TOC changes
@@ -483,8 +500,7 @@ const Sidebar = ({
   currentPath,
   onNavigate,
   displayHeader,
-  discoveredFiles,
-  tableOfContents
+  discoveredFiles
 }: { 
   isOpen: boolean; 
   onClose: () => void; 
@@ -493,7 +509,6 @@ const Sidebar = ({
   onNavigate: (path: string, searchQuery?: string) => void;
   displayHeader: boolean;
   discoveredFiles: Map<string, { title: string; path: string; displayPath: string; order: number }>;
-  tableOfContents: TOCItem[];
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Array<{ title: string; path: string; snippet: string; searchQuery?: string }>>([]);
@@ -666,6 +681,9 @@ const Sidebar = ({
                 className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+            <p className="mt-2 text-xs text-gray-500">
+              <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-700 bg-gray-100 border border-gray-300 rounded">Ctrl+K</kbd> or <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-700 bg-gray-100 border border-gray-300 rounded">Cmd+K</kbd> to open search modal
+            </p>
           </div>
           {searchQuery.trim() ? (
             <div className="space-y-4">
@@ -716,35 +734,6 @@ const Sidebar = ({
                   </ul>
                 </div>
               ))}
-              
-              {tableOfContents.length > 0 && (
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                    On This Page
-                  </h3>
-                  <nav className="space-y-1">
-                    {tableOfContents.map((item, idx) => (
-                      <a
-                        key={idx}
-                        href={`#${item.id}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          const element = document.getElementById(item.id);
-                          if (element) {
-                            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            // Update URL hash without scrolling
-                            window.history.pushState(null, '', `#${item.id}`);
-                          }
-                        }}
-                        className="block text-sm text-gray-600 hover:text-gray-900 py-1 transition-colors"
-                        style={{ paddingLeft: `${(item.level - 1) * 12}px` }}
-                      >
-                        {item.text}
-                      </a>
-                    ))}
-                  </nav>
-                </div>
-              )}
             </nav>
           )}
         </div>
@@ -978,11 +967,13 @@ const flattenNavigation = (nav: any[]): Array<{ title: string; path: string }> =
 const NavigationLinks = ({ 
   navigation, 
   currentPath, 
-  onNavigate 
+  onNavigate,
+  position = 'top'
 }: { 
   navigation: any[]; 
   currentPath: string; 
   onNavigate: (path: string) => void;
+  position?: 'top' | 'bottom';
 }) => {
   const flatNav = useMemo(() => flattenNavigation(navigation), [navigation]);
   const currentIndex = flatNav.findIndex(item => item.path === currentPath);
@@ -991,8 +982,12 @@ const NavigationLinks = ({
 
   if (!prevPage && !nextPage) return null;
 
+  const borderClass = position === 'top' 
+    ? 'pb-8 mb-8 border-b border-gray-200' 
+    : 'pt-8 mt-8 border-t border-gray-200';
+
   return (
-    <div className="flex items-center justify-between pb-8 mb-8 border-b border-gray-200">
+    <div className={`flex items-center justify-between ${borderClass}`}>
       <div className="text-sm">
         {prevPage ? (
           <a
@@ -1380,9 +1375,8 @@ const DocsApp = () => {
         onNavigate={handleNavigate}
         displayHeader={displayHeader}
         discoveredFiles={discoveredFiles}
-        tableOfContents={tableOfContents}
       />
-      <main className="lg:pl-72">
+      <main className="lg:pl-72 lg:pr-80">
         <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-24">
           {contentLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -1394,8 +1388,15 @@ const DocsApp = () => {
                 navigation={navigation}
                 currentPath={currentPath}
                 onNavigate={handleNavigate}
+                position="top"
               />
               <ContentRenderer content={content} onNavigate={handleNavigate} highlightQuery={highlightQuery} onTOCChange={setTableOfContents} />
+              <NavigationLinks 
+                navigation={navigation}
+                currentPath={currentPath}
+                onNavigate={handleNavigate}
+                position="bottom"
+              />
             </>
           )}
         </article>
@@ -1409,6 +1410,45 @@ const DocsApp = () => {
           </div>
         </footer>
       )}
+      
+      {/* Right Sidebar - Table of Contents */}
+      {tableOfContents.length > 0 && (
+        <aside className={`hidden lg:block lg:absolute lg:right-0 w-80 bg-white border-l border-gray-200 z-30 ${displayHeader ? 'lg:top-16' : 'lg:top-0'} lg:bottom-0`}>
+          <div className="h-full overflow-y-auto p-6">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+              On This Page
+            </h3>
+            <nav className="space-y-1">
+              {tableOfContents.map((item, idx) => (
+                <a
+                  key={idx}
+                  href={`#${item.id}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    
+                    // Use the same approach as search - query within content container with delay
+                    setTimeout(() => {
+                      // Find the content container (where headers are rendered) - it's the .prose div
+                      const contentContainer = articleRef.current?.querySelector('.prose');
+                      const element = contentContainer?.querySelector(`#${item.id}`) || document.getElementById(item.id);
+                      if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Update URL hash
+                        window.history.pushState(null, '', `#${item.id}`);
+                      }
+                    }, 150);
+                  }}
+                  className="block text-sm text-gray-600 hover:text-gray-900 py-1 transition-colors"
+                  style={{ paddingLeft: `${(item.level - 1) * 12}px` }}
+                >
+                  {item.text}
+                </a>
+              ))}
+            </nav>
+          </div>
+        </aside>
+      )}
+      
       <SearchModal
         isOpen={searchModalOpen}
         onClose={() => setSearchModalOpen(false)}
