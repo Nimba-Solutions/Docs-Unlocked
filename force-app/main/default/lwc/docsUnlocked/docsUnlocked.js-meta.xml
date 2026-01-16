@@ -10,4 +10,9 @@
         <target>lightningCommunity__Page</target>
         <target>lightningCommunity__Default</target>
     </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__AppPage,lightning__RecordPage,lightning__HomePage">
+            <property name="contentResourceName" type="String" label="Content Static Resource Name" description="Name of the ZIP StaticResource containing the documentation content (default: docsContent)" default="docsContent" />
+        </targetConfig>
+    </targetConfigs>
 </LightningComponentBundle>

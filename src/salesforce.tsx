@@ -429,9 +429,12 @@ const DocsApp = () => {
   useEffect(() => {
     const loadNavigation = async () => {
       try {
+        // Get content resource name from window (set by LWC) or use default
+        const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
+        
         // Load navigation from ZIP StaticResource
         // ZIP StaticResources can be accessed via /resource/ResourceName/path/to/file
-        const response = await fetch('/resource/docsContent/content/navigation.json');
+        const response = await fetch(`/resource/${contentResourceName}/content/navigation.json`);
         if (!response.ok) {
           // Fallback: try old single-file StaticResource
           const fallbackResponse = await fetch('/resource/navigation_json');
@@ -471,10 +474,13 @@ const DocsApp = () => {
       
       setContentLoading(true);
       try {
+        // Get content resource name from window (set by LWC) or use default
+        const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
+        
         // Load from ZIP StaticResource
-        // Path format: /resource/docsContent/content/getting-started/introduction.md
+        // Path format: /resource/{contentResourceName}/content/getting-started/introduction.md
         const contentPath = `${currentPath}.md`;
-        let response = await fetch(`/resource/docsContent/content${contentPath}`);
+        let response = await fetch(`/resource/${contentResourceName}/content${contentPath}`);
         
         if (!response.ok) {
           // Fallback: try old single-file StaticResource naming convention
@@ -504,8 +510,9 @@ const DocsApp = () => {
         setContent(text);
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
+        const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
         console.error(`[DocsUnlocked] Failed to load content for path "${currentPath}": ${errorMsg}`);
-        setContent(`# Content Not Found\n\nUnable to load content for path: \`${currentPath}\`\n\n**Expected location:**\n- ZIP StaticResource: \`/resource/docsContent/content${currentPath}.md\`\n- Or single StaticResource: \`/resource/${currentPath.replace(/^\//, '').replace(/\//g, '_')}\`\n\nPlease ensure the \`docsContent\` ZIP StaticResource is deployed with all content files.`);
+        setContent(`# Content Not Found\n\nUnable to load content for path: \`${currentPath}\`\n\n**Expected location:**\n- ZIP StaticResource: \`/resource/${contentResourceName}/content${currentPath}.md\`\n- Or single StaticResource: \`/resource/${currentPath.replace(/^\//, '').replace(/\//g, '_')}\`\n\nPlease ensure the \`${contentResourceName}\` ZIP StaticResource is deployed with all content files.`);
       } finally {
         setContentLoading(false);
       }
@@ -525,22 +532,23 @@ const DocsApp = () => {
     // Wait for content to load before scrolling
     if (contentLoading) return;
     
-    // Find the scrollable container (could be window or a parent element)
-    const scrollContainer = articleRef.current?.closest('[data-scroll-container]') || 
-                           articleRef.current?.parentElement?.parentElement || 
-                           window;
-    
-    if (articleRef.current) {
-      // Try to scroll the article into view
-      articleRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Small delay to ensure DOM has updated
+    const timeoutId = setTimeout(() => {
+      // Find the scrollable container (could be window or a parent element)
+      const scrollContainer = articleRef.current?.closest('[data-scroll-container]') || 
+                             articleRef.current?.closest('main') ||
+                             articleRef.current?.parentElement?.parentElement || 
+                             window;
       
-      // Also scroll window to top as fallback (for Salesforce's nested structure)
+      // Scroll to absolute top
       if (scrollContainer === window) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (scrollContainer instanceof HTMLElement) {
         scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
       }
-    }
+    }, 50);
+    
+    return () => clearTimeout(timeoutId);
   }, [currentPath, contentLoading]);
 
   // Handle initial hash

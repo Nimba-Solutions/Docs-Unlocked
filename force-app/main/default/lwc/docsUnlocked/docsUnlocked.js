@@ -1,8 +1,10 @@
-import { LightningElement } from 'lwc';
+import { LightningElement, api } from 'lwc';
 import { loadScript } from 'lightning/platformResourceLoader';
 import DOCS_UNLOCKED from '@salesforce/resourceUrl/docsUnlocked';
 
 export default class DocsUnlocked extends LightningElement {
+    @api contentResourceName = 'docsContent'; // Default to docsContent for backward compatibility
+
     renderedCallback() {
         // Wait for DOM to be ready
         if (!this._initialized) {
@@ -23,7 +25,13 @@ export default class DocsUnlocked extends LightningElement {
             // The script will auto-initialize when it loads and looks for this ID
             container.id = 'docs-app-root';
             
-            console.log('[DocsUnlocked LWC] Container ID set, loading script bundle...');
+            // Set the content resource name as a data attribute so React app can read it
+            container.setAttribute('data-content-resource', this.contentResourceName);
+            
+            // Also set it on window for React app to access
+            window.DOCS_CONTENT_RESOURCE_NAME = this.contentResourceName;
+            
+            console.log('[DocsUnlocked LWC] Container ID set, content resource: ' + this.contentResourceName + ', loading script bundle...');
             
             // Load the main JS bundle (CSS is inlined in the JS)
             // The script will auto-initialize when it loads
