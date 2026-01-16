@@ -706,9 +706,9 @@ const Sidebar = ({
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:fixed lg:left-0 lg:w-72 lg:transform-none lg:translate-x-0
       `} style={{
-        top: displayHeader ? '116px' : '60px',
+        top: displayHeader ? '124px' : '60px',
         bottom: 0,
-        height: displayHeader ? 'calc(100vh - 116px)' : 'calc(100vh - 60px)'
+        height: displayHeader ? 'calc(100vh - 124px)' : 'calc(100vh - 60px)'
       }}>
         <div className="h-full overflow-y-auto p-6">
           <div className="mb-6">
@@ -1476,9 +1476,9 @@ const DocsApp = () => {
         discoveredFiles={discoveredFiles}
       />
       <main className="lg:pl-72 lg:pr-80 lg:fixed lg:left-72 lg:right-80 lg:overflow-y-auto" style={{
-        top: displayHeader ? '116px' : '60px',
+        top: displayHeader ? '124px' : '60px',
         bottom: 0,
-        height: displayHeader ? 'calc(100vh - 116px)' : 'calc(100vh - 60px)'
+        height: displayHeader ? 'calc(100vh - 124px)' : 'calc(100vh - 60px)'
       }}>
         <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {contentLoading ? (
@@ -1517,9 +1517,9 @@ const DocsApp = () => {
       {/* Right Sidebar - Table of Contents */}
       {tableOfContents.length > 0 && (
         <aside className="hidden lg:block lg:fixed lg:right-0 w-80 bg-white border-l border-gray-200 z-30" style={{
-          top: displayHeader ? '116px' : '60px',
+          top: displayHeader ? '124px' : '60px',
           bottom: 0,
-          height: displayHeader ? 'calc(100vh - 116px)' : 'calc(100vh - 60px)'
+          height: displayHeader ? 'calc(100vh - 124px)' : 'calc(100vh - 60px)'
         }}>
           <div className="h-full overflow-y-auto p-6">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
