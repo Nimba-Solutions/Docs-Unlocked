@@ -1480,7 +1480,7 @@ const DocsApp = () => {
         bottom: 0,
         height: displayHeader ? 'calc(100% - 124px)' : '100%'
       }}>
-        <article ref={articleRef} className="max-w-4xl mx-auto px-0 sm:px-0 md:px-0 lg:px-8 py-0 sm:py-0 md:py-0 lg:py-8">
+        <article ref={articleRef} className="max-w-4xl mx-auto px-0 py-0">
           {contentLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-gray-600">Loading content...</div>
