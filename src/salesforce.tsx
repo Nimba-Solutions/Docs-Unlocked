@@ -502,6 +502,225 @@ const Sidebar = ({
   );
 };
 
+// Search Modal Component
+const SearchModal = ({ 
+  isOpen, 
+  onClose, 
+  navigation,
+  currentPath,
+  onNavigate
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  navigation: any[];
+  currentPath: string;
+  onNavigate: (path: string) => void;
+}) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Array<{ title: string; path: string; snippet: string }>>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus input when modal opens
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  // Search through all content files
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    let cancelled = false;
+    
+    const searchAllContent = async () => {
+      const query = searchQuery.toLowerCase();
+      const results: Array<{ title: string; path: string; snippet: string }> = [];
+      
+      const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
+      
+      // Flatten navigation to get all paths
+      const allPaths: Array<{ title: string; path: string }> = [];
+      navigation.forEach(section => {
+        if (section.children) {
+          section.children.forEach((child: any) => {
+            const collectPaths = (item: any) => {
+              allPaths.push({ title: item.title, path: item.path });
+              if (item.children) {
+                item.children.forEach(collectPaths);
+              }
+            };
+            collectPaths(child);
+          });
+        }
+      });
+
+      // Search through each content file
+      for (const page of allPaths) {
+        if (cancelled) break;
+        
+        try {
+          const contentPath = `${page.path}.md`;
+          const response = await fetch(`/resource/${contentResourceName}/content${contentPath}`);
+          
+          if (response.ok) {
+            const content = await response.text();
+            const lowerContent = content.toLowerCase();
+            
+            if (lowerContent.includes(query) || page.title.toLowerCase().includes(query)) {
+              const index = lowerContent.indexOf(query);
+              const start = Math.max(0, index - 100);
+              const end = Math.min(content.length, index + query.length + 100);
+              let snippet = content.substring(start, end);
+              
+              snippet = snippet.replace(/^#+\s+/gm, '').replace(/```[\s\S]*?```/g, '').trim();
+              if (snippet.length > 200) {
+                snippet = snippet.substring(0, 200) + '...';
+              }
+              
+              results.push({
+                title: page.title,
+                path: page.path,
+                snippet: snippet || page.title
+              });
+            }
+          }
+        } catch (error) {
+          if (!cancelled) {
+            console.warn(`[DocsUnlocked] Failed to search content for ${page.path}:`, error);
+          }
+        }
+      }
+      
+      if (!cancelled) {
+        setSearchResults(results);
+        setIsSearching(false);
+      }
+    };
+
+    const timeoutId = setTimeout(searchAllContent, 100);
+    
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [searchQuery, navigation]);
+
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+      if (e.key === 'Enter' && searchResults.length > 0 && !isSearching) {
+        onNavigate(searchResults[0].path);
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen, searchResults, isSearching, onNavigate, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <div 
+        className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] px-4">
+        <div 
+          className="w-full max-w-2xl bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden transform transition-all duration-200"
+          style={{ animation: 'fadeIn 0.2s ease-out' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="border-b border-gray-200 p-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Search documentation..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                <kbd className="hidden sm:inline-flex items-center px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-100 border border-gray-300 rounded">Esc</kbd>
+              </div>
+            </div>
+          </div>
+          <div className="max-h-[60vh] overflow-y-auto p-4">
+            {isSearching ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-gray-500">Searching...</div>
+              </div>
+            ) : searchQuery.trim() && searchResults.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="text-gray-400 mb-2">No results found</div>
+                <div className="text-sm text-gray-500">Try a different search term</div>
+              </div>
+            ) : searchQuery.trim() && searchResults.length > 0 ? (
+              <div className="space-y-2">
+                {searchResults.map((result, idx) => (
+                  <a
+                    key={result.path}
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onNavigate(result.path);
+                      onClose();
+                      setSearchQuery('');
+                    }}
+                    className={`
+                      block p-4 rounded-lg transition-all cursor-pointer border-2
+                      ${idx === 0
+                        ? 'border-blue-300 bg-blue-50'
+                        : 'border-transparent hover:border-gray-200 hover:bg-gray-50'
+                      }
+                      ${currentPath === result.path
+                        ? 'bg-blue-50 border-blue-300' 
+                        : ''
+                      }
+                    `}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-900 mb-1">{result.title}</div>
+                        <div className="text-sm text-gray-600 line-clamp-2">{result.snippet}</div>
+                        <div className="text-xs text-gray-400 mt-1 font-mono">{result.path}</div>
+                      </div>
+                      {idx === 0 && (
+                        <kbd className="hidden sm:inline-flex items-center px-2 py-1 text-xs font-semibold text-gray-500 bg-white border border-gray-300 rounded">Enter</kbd>
+                      )}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Search className="w-12 h-12 text-gray-300 mb-4" />
+                <div className="text-gray-500 mb-2">Start typing to search</div>
+                <div className="text-sm text-gray-400">Search across all documentation content</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
 // Helper to flatten navigation and get prev/next pages
 const flattenNavigation = (nav: any[]): Array<{ title: string; path: string }> => {
   const result: Array<{ title: string; path: string }> = [];
@@ -579,6 +798,7 @@ const NavigationLinks = ({
 // Main App Component
 const DocsApp = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [navigation, setNavigation] = useState<any[]>([]);
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -590,6 +810,20 @@ const DocsApp = () => {
   const displayHeader = (window as any).DOCS_DISPLAY_HEADER !== false; // Default to true
   const headerLabel = (window as any).DOCS_HEADER_LABEL || 'Documentation';
   const displayFooter = (window as any).DOCS_DISPLAY_FOOTER !== false; // Default to true
+
+  // Keyboard shortcut handler for Ctrl+K / Cmd+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check for Ctrl+K (Windows/Linux) or Cmd+K (Mac)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchModalOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Load navigation
   useEffect(() => {
@@ -794,6 +1028,13 @@ const DocsApp = () => {
           </div>
         </footer>
       )}
+      <SearchModal
+        isOpen={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+        navigation={navigation}
+        currentPath={currentPath}
+        onNavigate={handleNavigate}
+      />
     </div>
   );
 };
