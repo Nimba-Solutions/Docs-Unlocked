@@ -143,8 +143,8 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery, onTOCChange }: {
 
       // Process GitHub-style callouts before parsing
       // Format: > [!NOTE] ... or > [!IMPORTANT] ... etc.
-      // This regex matches blockquotes that start with [!TYPE] and captures everything until the next blockquote or end
-      processedContent = processedContent.replace(/^>\s*\[!([A-Z]+)\]\s*\n([\s\S]*?)(?=^>|$)/gm, (_match, type, content) => {
+      // Match blockquotes that start with [!TYPE] and continue until next non-blockquote line
+      processedContent = processedContent.replace(/^>\s*\[!([A-Z]+)\]\s*\n((?:>.*\n?)*)/gm, (_match, type, content) => {
         const calloutTypes: Record<string, { bg: string; border: string; icon: string; title: string }> = {
           'NOTE': { bg: 'bg-blue-50', border: 'border-blue-200', icon: '💡', title: 'Note' },
           'TIP': { bg: 'bg-green-50', border: 'border-green-200', icon: '💡', title: 'Tip' },
@@ -153,7 +153,8 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery, onTOCChange }: {
           'CAUTION': { bg: 'bg-red-50', border: 'border-red-300', icon: '⚠️', title: 'Caution' }
         };
         const callout = calloutTypes[type] || calloutTypes['NOTE'];
-        const cleanContent = content.trim();
+        // Remove > prefix from each line and trim
+        const cleanContent = content.replace(/^>\s?/gm, '').trim();
         return `\n<div class="callout ${callout.bg} ${callout.border} border-l-4 rounded-lg p-4 my-4">\n<div class="flex items-start gap-2">\n<span class="text-lg">${callout.icon}</span>\n<div class="flex-1">\n<p class="font-semibold text-gray-900 mb-1">${callout.title}</p>\n<div class="text-gray-700">${cleanContent}</div>\n</div>\n</div>\n</div>\n`;
       });
 
