@@ -1505,10 +1505,31 @@ const DocsApp = () => {
                     setTimeout(() => {
                       // Find the content container (where headers are rendered) - it's the .prose div
                       const contentContainer = articleRef.current?.querySelector('.prose');
-                      const element = contentContainer?.querySelector(`#${item.id}`) || document.getElementById(item.id);
+                      if (!contentContainer) {
+                        console.warn(`[DocsUnlocked] TOC link: Content container not found for anchor "${item.id}"`);
+                        return;
+                      }
+                      
+                      // Try multiple selectors to find the element
+                      let element = contentContainer.querySelector(`#${item.id}`);
+                      if (!element) {
+                        // Try direct getElementById as fallback
+                        element = document.getElementById(item.id);
+                      }
+                      if (!element) {
+                        // Try finding by text content as last resort
+                        const headers = contentContainer.querySelectorAll('h1, h2, h3, h4');
+                        for (const header of Array.from(headers)) {
+                          if (header.textContent?.trim() === item.text) {
+                            element = header;
+                            break;
+                          }
+                        }
+                      }
+                      
                       if (element) {
                         // Remove any existing TOC highlight
-                        const existingHighlight = contentContainer?.querySelector('.toc-highlight');
+                        const existingHighlight = contentContainer.querySelector('.toc-highlight');
                         if (existingHighlight) {
                           existingHighlight.classList.remove('toc-highlight', 'bg-yellow-200', 'px-1', 'rounded', 'font-semibold');
                         }
@@ -1525,6 +1546,8 @@ const DocsApp = () => {
                         setTimeout(() => {
                           element.classList.remove('toc-highlight', 'bg-yellow-200', 'px-1', 'rounded', 'font-semibold');
                         }, 5000);
+                      } else {
+                        console.warn(`[DocsUnlocked] TOC link: Element with id "${item.id}" not found (level ${item.level}, text: "${item.text}")`);
                       }
                     }, 150);
                   }}
