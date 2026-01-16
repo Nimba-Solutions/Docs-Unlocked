@@ -141,9 +141,82 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery }: { content: str
         return `<div class="navcards-grid grid sm:grid-cols-2 gap-4">${cardsHtml}</div>`;
       });
       
+      // Process images and videos - convert paths to StaticResource URLs
+      const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
+      let htmlWithMedia = htmlWithNavCards;
+      
+      // Process images: convert relative paths to StaticResource URLs
+      htmlWithMedia = htmlWithMedia.replace(/<img([^>]*)\ssrc=["']([^"']+)["']([^>]*)>/gi, (match, before, src, after) => {
+        // Skip if already absolute URL (http/https) or data URI
+        if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:')) {
+          return match;
+        }
+        
+        // Normalize path - remove leading ./ or ../
+        let normalizedPath = src.replace(/^\.\//, '').replace(/^\.\.\//, '');
+        if (!normalizedPath.startsWith('/')) {
+          normalizedPath = '/' + normalizedPath;
+        }
+        
+        // Convert to StaticResource URL
+        const staticResourceUrl = `/resource/${contentResourceName}/content${normalizedPath}`;
+        return `<img${before} src="${staticResourceUrl}"${after}>`;
+      });
+      
+      // Process videos: detect video file extensions and convert to <video> tags
+      // Support both markdown image syntax for videos and explicit video syntax
+      const videoExtensions = /\.(mp4|webm|ogg|mov|avi|wmv|flv|mkv)$/i;
+      
+      // Convert image tags with video extensions to video tags
+      htmlWithMedia = htmlWithMedia.replace(/<img([^>]*)\ssrc=["']([^"']+)["']([^>]*)>/gi, (match, before, src, after) => {
+        if (!videoExtensions.test(src)) {
+          return match; // Not a video, return as-is
+        }
+        
+        // Skip if already absolute URL
+        if (src.startsWith('http://') || src.startsWith('https://')) {
+          return match;
+        }
+        
+        // Normalize path
+        let normalizedPath = src.replace(/^\.\//, '').replace(/^\.\.\//, '');
+        if (!normalizedPath.startsWith('/')) {
+          normalizedPath = '/' + normalizedPath;
+        }
+        
+        // Extract alt text from the img tag
+        const altMatch = before.match(/alt=["']([^"']*)["']/i) || after.match(/alt=["']([^"']*)["']/i);
+        const altText = altMatch ? altMatch[1] : '';
+        
+        // Convert to StaticResource URL and create video tag
+        const staticResourceUrl = `/resource/${contentResourceName}/content${normalizedPath}`;
+        return `<video controls class="w-full rounded-lg my-4"${altText ? ` aria-label="${altText}"` : ''}><source src="${staticResourceUrl}" type="video/${normalizedPath.split('.').pop()}">Your browser does not support the video tag.</video>`;
+      });
+      
+      // Also support explicit video syntax: ![video](path.mp4) or <video src="path.mp4"></video>
+      htmlWithMedia = htmlWithMedia.replace(/<video([^>]*)\ssrc=["']([^"']+)["']([^>]*)>/gi, (match, before, src, after) => {
+        // Skip if already absolute URL
+        if (src.startsWith('http://') || src.startsWith('https://')) {
+          return match;
+        }
+        
+        // Normalize path
+        let normalizedPath = src.replace(/^\.\//, '').replace(/^\.\.\//, '');
+        if (!normalizedPath.startsWith('/')) {
+          normalizedPath = '/' + normalizedPath;
+        }
+        
+        // Convert to StaticResource URL
+        const staticResourceUrl = `/resource/${contentResourceName}/content${normalizedPath}`;
+        return `<video${before} src="${staticResourceUrl}"${after}>`;
+      });
+      
       // Wrap code blocks with copy button before sanitizing
-      const wrappedHtml = wrapCodeBlocks(htmlWithNavCards);
-      return DOMPurify.sanitize(wrappedHtml);
+      const wrappedHtml = wrapCodeBlocks(htmlWithMedia);
+      return DOMPurify.sanitize(wrappedHtml, {
+        ADD_TAGS: ['video', 'source'],
+        ADD_ATTR: ['controls', 'aria-label']
+      });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error(`[DocsUnlocked] Error rendering markdown: ${errorMsg}`);
