@@ -255,13 +255,15 @@ const Sidebar = ({
   onClose, 
   navigation,
   currentPath,
-  onNavigate
+  onNavigate,
+  displayHeader
 }: { 
   isOpen: boolean; 
   onClose: () => void; 
   navigation: any[];
   currentPath: string;
   onNavigate: (path: string) => void;
+  displayHeader: boolean;
 }) => {
   const renderNavItems = (items: any[], level = 0) => {
     return items.map((item) => {
@@ -308,7 +310,7 @@ const Sidebar = ({
         fixed left-0 w-72 bg-white border-r border-gray-200 
         transform transition-transform duration-300 ease-in-out z-40
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:absolute lg:left-0 lg:top-16 lg:bottom-0 lg:w-72 lg:transform-none lg:translate-x-0
+        lg:absolute lg:left-0 ${displayHeader ? 'lg:top-16' : 'lg:top-0'} lg:bottom-0 lg:w-72 lg:transform-none lg:translate-x-0
       `} style={{ 
         overflowY: 'auto'
       }}>
@@ -372,7 +374,7 @@ const NavigationLinks = ({
   if (!prevPage && !nextPage) return null;
 
   return (
-    <div className="flex items-center justify-between pt-8 mt-8 border-t border-gray-200">
+    <div className="flex items-center justify-between pb-8 mb-8 border-b border-gray-200">
       <div className="text-sm">
         {prevPage ? (
           <a
@@ -604,6 +606,7 @@ const DocsApp = () => {
         navigation={navigation}
         currentPath={currentPath}
         onNavigate={handleNavigate}
+        displayHeader={displayHeader}
       />
       <main className="lg:pl-72">
         <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -613,12 +616,12 @@ const DocsApp = () => {
             </div>
           ) : (
             <>
-              <ContentRenderer content={content} onNavigate={handleNavigate} />
               <NavigationLinks 
                 navigation={navigation}
                 currentPath={currentPath}
                 onNavigate={handleNavigate}
               />
+              <ContentRenderer content={content} onNavigate={handleNavigate} />
             </>
           )}
         </article>
