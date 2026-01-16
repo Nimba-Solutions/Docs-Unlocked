@@ -111,7 +111,7 @@ const wrapCodeBlocks = (html: string): string => {
 };
 
 // Content Renderer - renders markdown content using marked.js (same config as Markdown-Unlocked)
-const ContentRenderer = ({ content, onNavigate }: { content: string; onNavigate?: (path: string) => void }) => {
+const ContentRenderer = ({ content, onNavigate, highlightQuery }: { content: string; onNavigate?: (path: string) => void; highlightQuery?: string }) => {
   const contentRef = useRef<HTMLDivElement>(null);
 
   // Parse NavCards from markdown before rendering
@@ -240,6 +240,99 @@ const ContentRenderer = ({ content, onNavigate }: { content: string; onNavigate?
     };
   }, [html, onNavigate]);
 
+  // Highlight search query and scroll to first match
+  useEffect(() => {
+    if (!contentRef.current || !highlightQuery || !highlightQuery.trim()) return;
+
+    const container = contentRef.current;
+    const query = highlightQuery.trim();
+    const lowerQuery = query.toLowerCase();
+    
+    // Find all text nodes that contain the query
+    const walker = document.createTreeWalker(
+      container,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: (node) => {
+          // Skip code blocks and pre elements
+          const parent = node.parentElement;
+          if (parent && (parent.tagName === 'CODE' || parent.tagName === 'PRE' || parent.closest('pre'))) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+    
+    const matches: Array<{ node: Text; index: number }> = [];
+    let node: Node | null;
+    
+    while (node = walker.nextNode()) {
+      const text = node.textContent || '';
+      const lowerText = text.toLowerCase();
+      const index = lowerText.indexOf(lowerQuery);
+      if (index !== -1) {
+        matches.push({ node: node as Text, index });
+      }
+    }
+
+    if (matches.length === 0) return;
+
+    // Highlight the first match
+    const firstMatch = matches[0];
+    const textNode = firstMatch.node;
+    const text = textNode.textContent || '';
+    const index = firstMatch.index;
+
+    const beforeText = text.substring(0, index);
+    const matchText = text.substring(index, index + query.length);
+    const afterText = text.substring(index + query.length);
+
+    const highlightSpan = document.createElement('span');
+    highlightSpan.className = 'bg-yellow-200 px-1 rounded font-semibold';
+    highlightSpan.id = 'search-highlight';
+    highlightSpan.textContent = matchText;
+
+    const beforeNode = document.createTextNode(beforeText);
+    const afterNode = document.createTextNode(afterText);
+
+    const parentElement = textNode.parentNode;
+    if (parentElement) {
+      parentElement.replaceChild(beforeNode, textNode);
+      parentElement.insertBefore(highlightSpan, beforeNode.nextSibling);
+      parentElement.insertBefore(afterNode, highlightSpan.nextSibling);
+    }
+
+    // Scroll to highlight after a short delay to ensure DOM is updated
+    const scrollTimeout = setTimeout(() => {
+      const highlightEl = container.querySelector('#search-highlight');
+      if (highlightEl) {
+        highlightEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 150);
+
+    // Cleanup function - remove highlight after 5 seconds
+    const cleanupTimeout = setTimeout(() => {
+      const highlightEl = container.querySelector('#search-highlight');
+      if (highlightEl && highlightEl.parentNode) {
+        const text = highlightEl.textContent || '';
+        const textNode = document.createTextNode(text);
+        highlightEl.parentNode.replaceChild(textNode, highlightEl);
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(scrollTimeout);
+      clearTimeout(cleanupTimeout);
+      const highlightEl = container.querySelector('#search-highlight');
+      if (highlightEl && highlightEl.parentNode) {
+        const text = highlightEl.textContent || '';
+        const textNode = document.createTextNode(text);
+        highlightEl.parentNode.replaceChild(textNode, highlightEl);
+      }
+    };
+  }, [html, highlightQuery]);
+
   return (
     <div 
       ref={contentRef}
@@ -262,11 +355,11 @@ const Sidebar = ({
   onClose: () => void; 
   navigation: any[];
   currentPath: string;
-  onNavigate: (path: string) => void;
+  onNavigate: (path: string, searchQuery?: string) => void;
   displayHeader: boolean;
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Array<{ title: string; path: string; snippet: string }>>([]);
+  const [searchResults, setSearchResults] = useState<Array<{ title: string; path: string; snippet: string; searchQuery?: string }>>([]);
   const [isSearching, setIsSearching] = useState(false);
 
   // Helper to check if an item matches the search query
@@ -305,7 +398,7 @@ const Sidebar = ({
     
     const searchAllContent = async () => {
       const query = searchQuery.toLowerCase();
-      const results: Array<{ title: string; path: string; snippet: string }> = [];
+      const results: Array<{ title: string; path: string; snippet: string; searchQuery?: string }> = [];
       
       // Get content resource name
       const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
@@ -355,7 +448,8 @@ const Sidebar = ({
               results.push({
                 title: page.title,
                 path: page.path,
-                snippet: snippet || page.title
+                snippet: snippet || page.title,
+                searchQuery: query // Store the search query for highlighting
               });
             }
           }
@@ -461,7 +555,7 @@ const Sidebar = ({
                         href="#"
                         onClick={(e) => {
                           e.preventDefault();
-                          onNavigate(result.path);
+                          onNavigate(result.path, result.searchQuery);
                           onClose();
                         }}
                         className={`
@@ -514,10 +608,10 @@ const SearchModal = ({
   onClose: () => void; 
   navigation: any[];
   currentPath: string;
-  onNavigate: (path: string) => void;
+  onNavigate: (path: string, searchQuery?: string) => void;
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Array<{ title: string; path: string; snippet: string }>>([]);
+  const [searchResults, setSearchResults] = useState<Array<{ title: string; path: string; snippet: string; searchQuery?: string }>>([]);
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -541,7 +635,7 @@ const SearchModal = ({
     
     const searchAllContent = async () => {
       const query = searchQuery.toLowerCase();
-      const results: Array<{ title: string; path: string; snippet: string }> = [];
+      const results: Array<{ title: string; path: string; snippet: string; searchQuery?: string }> = [];
       
       const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
       
@@ -587,7 +681,8 @@ const SearchModal = ({
               results.push({
                 title: page.title,
                 path: page.path,
-                snippet: snippet || page.title
+                snippet: snippet || page.title,
+                searchQuery: query // Store the search query for highlighting
               });
             }
           }
@@ -619,7 +714,7 @@ const SearchModal = ({
         onClose();
       }
       if (e.key === 'Enter' && searchResults.length > 0 && !isSearching) {
-        onNavigate(searchResults[0].path);
+        onNavigate(searchResults[0].path, searchResults[0].searchQuery);
         onClose();
       }
     };
@@ -638,7 +733,10 @@ const SearchModal = ({
         className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] px-4">
+      <div 
+        className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] px-4"
+        onClick={onClose}
+      >
         <div 
           className="w-full max-w-2xl bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden transform transition-all duration-200"
           style={{ animation: 'fadeIn 0.2s ease-out' }}
@@ -678,7 +776,7 @@ const SearchModal = ({
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      onNavigate(result.path);
+                      onNavigate(result.path, result.searchQuery);
                       onClose();
                       setSearchQuery('');
                     }}
@@ -921,8 +1019,11 @@ const DocsApp = () => {
     loadContent();
   }, [currentPath]);
 
-  const handleNavigate = (path: string) => {
+  const [highlightQuery, setHighlightQuery] = useState<string>('');
+
+  const handleNavigate = (path: string, searchQuery?: string) => {
     setCurrentPath(path);
+    setHighlightQuery(searchQuery || '');
     // Update URL hash for bookmarking
     window.location.hash = path;
   };
@@ -1014,7 +1115,7 @@ const DocsApp = () => {
                 currentPath={currentPath}
                 onNavigate={handleNavigate}
               />
-              <ContentRenderer content={content} onNavigate={handleNavigate} />
+              <ContentRenderer content={content} onNavigate={handleNavigate} highlightQuery={highlightQuery} />
             </>
           )}
         </article>

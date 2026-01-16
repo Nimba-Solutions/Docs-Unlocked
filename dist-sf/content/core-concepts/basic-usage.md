@@ -11,7 +11,7 @@ public/content/
 ├── navigation.json          # Navigation menu structure
 ├── getting-started/
 │   ├── introduction.md
-│   └── installation.md
+│   └── contributing.md
 └── core-concepts/
     ├── basic-usage.md
     └── configuration.md

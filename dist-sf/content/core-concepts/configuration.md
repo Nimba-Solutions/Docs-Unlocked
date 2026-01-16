@@ -17,8 +17,8 @@ The navigation structure is defined in `public/content/navigation.json`:
         "path": "/getting-started/introduction"
       },
       {
-        "title": "Installation",
-        "path": "/getting-started/installation"
+        "title": "Contributing",
+        "path": "/getting-started/contributing"
       }
     ]
   },

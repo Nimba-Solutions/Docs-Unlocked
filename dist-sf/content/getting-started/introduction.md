@@ -62,9 +62,9 @@ Docs Unlocked uses `marked.js` with the same configuration as the popular [Markd
 ## Next Steps
 
 :::navcards
-title: Installation Guide
-description: Detailed setup instructions for deploying Docs Unlocked
-href: /getting-started/installation
+title: Contributing
+description: Learn how to contribute to Docs Unlocked
+href: /getting-started/contributing
 ---
 title: Basic Usage
 description: Learn how to add content and use markdown features
