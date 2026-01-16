@@ -1084,7 +1084,7 @@ const DocsApp = () => {
   const articleRef = useRef<HTMLElement>(null);
   
   // Get configuration from window (set by LWC)
-  const displayHeader = (window as any).DOCS_DISPLAY_HEADER !== false; // Default to true
+  const displayHeader = (window as any).DOCS_DISPLAY_HEADER === true; // Default to false
   const headerLabel = (window as any).DOCS_HEADER_LABEL || 'Documentation';
   const displayFooter = (window as any).DOCS_DISPLAY_FOOTER !== false; // Default to true
 
@@ -1480,7 +1480,7 @@ const DocsApp = () => {
         bottom: 0,
         height: displayHeader ? 'calc(100% - 124px)' : 'calc(100% - 60px)'
       }}>
-        <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-4 md:px-6 lg:px-8 py-8">
+        <article ref={articleRef} className="max-w-4xl mx-auto px-2 sm:px-3 md:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
           {contentLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-gray-600">Loading content...</div>
