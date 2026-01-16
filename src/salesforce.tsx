@@ -1002,9 +1002,10 @@ const DocsApp = () => {
   // Runtime discovery: Build navigation by trying to fetch files dynamically
   const [discoveredFiles, setDiscoveredFiles] = useState<Map<string, { title: string; path: string; displayPath: string; order: number }>>(new Map());
   
-  // Strip numerical prefix from a path segment (e.g., "01-getting-started" -> "getting-started")
+  // Strip numerical prefix from a path segment (e.g., "01.getting-started" or "01-getting-started" -> "getting-started")
   const stripNumericPrefix = (segment: string): { clean: string; order: number } => {
-    const match = segment.match(/^(\d+)-(.+)$/);
+    // Support both dots and dashes: 01.getting-started or 01-getting-started
+    const match = segment.match(/^(\d+)[.-](.+)$/);
     if (match) {
       return { clean: match[2], order: parseInt(match[1], 10) };
     }
@@ -1045,23 +1046,37 @@ const DocsApp = () => {
     
     const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
     
-    // Try paths with numeric prefixes (01-, 02-, etc.) and without
+    // Convert display path (with dots) to StaticResource path (with underscores)
+    // Local files use dots (01.getting-started), but ZIP uses underscores (01_getting-started)
+    const convertPathForStaticResource = (path: string): string => {
+      return path.split('/').map(segment => {
+        // Convert dots to underscores but preserve file extensions
+        if (segment.includes('.')) {
+          const ext = segment.match(/\.[^.]+$/)?.[0] || '';
+          const nameWithoutExt = ext ? segment.slice(0, -ext.length) : segment;
+          return nameWithoutExt.replace(/\./g, '_') + ext;
+        }
+        return segment;
+      }).join('/');
+    };
+    
+    // Try paths with numeric prefixes (01., 02., etc.) and without
     const pathParts = displayPath.split('/').filter(p => p);
     const possiblePaths: string[] = [displayPath]; // Start with display path
     
     // Generate possible paths with numeric prefixes for each segment
     if (pathParts.length > 0) {
-      // Try common prefixes: 01-, 02-, 03-, etc.
+      // Try common prefixes: 01., 02., 03., etc. (using dots for display)
       for (let i = 1; i <= 99; i++) {
         const prefix = i.toString().padStart(2, '0');
         const prefixedParts = pathParts.map((part, idx) => {
-          if (idx === 0) return `${prefix}-${part}`; // Only prefix first segment (section)
+          if (idx === 0) return `${prefix}.${part}`; // Only prefix first segment (section) with dot
           return part;
         });
         possiblePaths.push('/' + prefixedParts.join('/'));
         
         // Also try prefixing all segments
-        const allPrefixed = pathParts.map(part => `${prefix}-${part}`);
+        const allPrefixed = pathParts.map(part => `${prefix}.${part}`);
         possiblePaths.push('/' + allPrefixed.join('/'));
       }
     }
@@ -1069,7 +1084,9 @@ const DocsApp = () => {
     // Try each possible path
     for (const tryPath of possiblePaths) {
       try {
-        const contentPath = `${tryPath}.md`;
+        // Convert dots to underscores for StaticResource access
+        const staticResourcePath = convertPathForStaticResource(tryPath);
+        const contentPath = `${staticResourcePath}.md`;
         let response = await fetch(`/resource/${contentResourceName}/content${contentPath}`);
         
         // Fallback: try old single-file StaticResource naming
@@ -1223,17 +1240,17 @@ const DocsApp = () => {
         const pathParts = currentPath.split('/').filter(p => p);
         const possiblePaths: string[] = [actualPath, currentPath];
         
-        // Generate possible paths with numeric prefixes
+        // Generate possible paths with numeric prefixes (using dots, not dashes)
         if (pathParts.length > 0) {
           for (let i = 1; i <= 99; i++) {
             const prefix = i.toString().padStart(2, '0');
             const prefixedParts = pathParts.map((part, idx) => {
-              if (idx === 0) return `${prefix}-${part}`;
+              if (idx === 0) return `${prefix}.${part}`; // Use dot separator
               return part;
             });
             possiblePaths.push('/' + prefixedParts.join('/'));
             
-            const allPrefixed = pathParts.map(part => `${prefix}-${part}`);
+            const allPrefixed = pathParts.map(part => `${prefix}.${part}`); // Use dot separator
             possiblePaths.push('/' + allPrefixed.join('/'));
           }
         }
@@ -1242,11 +1259,14 @@ const DocsApp = () => {
         let foundPath = '';
         
         // Try each possible path
+        let lastError: string = '';
         for (const tryPath of possiblePaths) {
           const contentPath = `${tryPath}.md`;
-          response = await fetch(`/resource/${contentResourceName}/content${contentPath}`);
+          const url = `/resource/${contentResourceName}/content${contentPath}`;
+          response = await fetch(url);
           
           if (!response.ok) {
+            lastError = `Failed to fetch ${url}: ${response.status} ${response.statusText}`;
             const resourceName = tryPath.replace(/^\//, '').replace(/\//g, '_');
             response = await fetch(`/resource/${resourceName}`);
             if (!response.ok) {
@@ -1256,6 +1276,7 @@ const DocsApp = () => {
           
           if (response.ok) {
             foundPath = tryPath;
+            console.log(`[DocsUnlocked] Found content at: ${tryPath}`);
             break;
           }
         }
@@ -1273,7 +1294,9 @@ const DocsApp = () => {
         }
         
         if (!response || !response.ok) {
-          throw new Error('Content not found');
+          console.error(`[DocsUnlocked] Failed to load content for "${currentPath}". Last error: ${lastError}`);
+          console.error(`[DocsUnlocked] Tried ${possiblePaths.length} paths, starting with: ${possiblePaths.slice(0, 5).join(', ')}`);
+          throw new Error(`Content not found: ${lastError}`);
         }
         
         const text = await response.text();
