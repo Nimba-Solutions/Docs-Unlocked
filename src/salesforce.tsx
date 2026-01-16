@@ -141,6 +141,27 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery, onTOCChange }: {
         return '<div class="navcards-container"></div>';
       });
 
+      // Process GitHub-style callouts before parsing
+      // Format: > [!NOTE] ... or > [!IMPORTANT] ... etc.
+      // This regex matches blockquotes that start with [!TYPE] and captures everything until the next blockquote or end
+      processedContent = processedContent.replace(/^>\s*\[!([A-Z]+)\]\s*\n([\s\S]*?)(?=^>|$)/gm, (_match, type, content) => {
+        const calloutTypes: Record<string, { bg: string; border: string; icon: string; title: string }> = {
+          'NOTE': { bg: 'bg-blue-50', border: 'border-blue-200', icon: '💡', title: 'Note' },
+          'TIP': { bg: 'bg-green-50', border: 'border-green-200', icon: '💡', title: 'Tip' },
+          'IMPORTANT': { bg: 'bg-yellow-50', border: 'border-yellow-300', icon: '⚠️', title: 'Important' },
+          'WARNING': { bg: 'bg-orange-50', border: 'border-orange-300', icon: '⚠️', title: 'Warning' },
+          'CAUTION': { bg: 'bg-red-50', border: 'border-red-300', icon: '⚠️', title: 'Caution' }
+        };
+        const callout = calloutTypes[type] || calloutTypes['NOTE'];
+        const cleanContent = content.trim();
+        return `\n<div class="callout ${callout.bg} ${callout.border} border-l-4 rounded-lg p-4 my-4">\n<div class="flex items-start gap-2">\n<span class="text-lg">${callout.icon}</span>\n<div class="flex-1">\n<p class="font-semibold text-gray-900 mb-1">${callout.title}</p>\n<div class="text-gray-700">${cleanContent}</div>\n</div>\n</div>\n</div>\n`;
+      });
+
+      // Also convert existing "Important:" patterns to callouts (standalone or in paragraphs)
+      processedContent = processedContent.replace(/\*\*Important:\*\*\s*([^\n]+)/g, (_match, text) => {
+        return `\n<div class="callout bg-yellow-50 border-yellow-300 border-l-4 rounded-lg p-4 my-4">\n<div class="flex items-start gap-2">\n<span class="text-lg">⚠️</span>\n<div class="flex-1">\n<p class="font-semibold text-gray-900 mb-1">Important</p>\n<div class="text-gray-700"><strong>Important:</strong> ${text}</div>\n</div>\n</div>\n</div>\n`;
+      });
+
       // marked.parse() returns a string (synchronous) in the version we're using
       const rawHtml = marked.parse(processedContent) as string;
       
