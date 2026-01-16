@@ -1475,12 +1475,12 @@ const DocsApp = () => {
         displayHeader={displayHeader}
         discoveredFiles={discoveredFiles}
       />
-      <main className="lg:pl-72 lg:pr-80 lg:absolute lg:left-72 lg:right-80 lg:overflow-y-auto" style={{
+      <main className="lg:absolute lg:left-72 lg:right-80 lg:overflow-y-auto" style={{
         top: displayHeader ? '124px' : '0px',
         bottom: 0,
         height: displayHeader ? 'calc(100% - 124px)' : '100%'
       }}>
-        <article ref={articleRef} className="max-w-4xl mx-auto px-0 py-0">
+        <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6 lg:pt-8 lg:pb-8">
           {contentLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-gray-600">Loading content...</div>
