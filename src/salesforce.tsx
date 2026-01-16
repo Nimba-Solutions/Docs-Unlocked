@@ -1365,7 +1365,7 @@ const DocsApp = () => {
   }
 
   return (
-    <div className="bg-gray-50 relative">
+    <div className="bg-gray-50 relative min-h-screen">
       {displayHeader && (
         <header className="sticky top-0 h-16 bg-white border-b border-gray-200 z-50">
           <div className="h-full px-4 flex items-center justify-between">
@@ -1399,7 +1399,7 @@ const DocsApp = () => {
         displayHeader={displayHeader}
       />
       <main className="lg:pl-72">
-        <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-24">
           {contentLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-gray-600">Loading content...</div>
