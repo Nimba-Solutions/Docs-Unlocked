@@ -924,7 +924,16 @@ const DocsApp = () => {
   }, []);
 
   // Runtime discovery: Build navigation by trying to fetch files dynamically
-  const [discoveredFiles, setDiscoveredFiles] = useState<Map<string, { title: string; path: string }>>(new Map());
+  const [discoveredFiles, setDiscoveredFiles] = useState<Map<string, { title: string; path: string; displayPath: string; order: number }>>(new Map());
+  
+  // Strip numerical prefix from a path segment (e.g., "01-getting-started" -> "getting-started")
+  const stripNumericPrefix = (segment: string): { clean: string; order: number } => {
+    const match = segment.match(/^(\d+)-(.+)$/);
+    if (match) {
+      return { clean: match[2], order: parseInt(match[1], 10) };
+    }
+    return { clean: segment, order: 999999 }; // No prefix = sort last
+  };
   
   // Extract title from markdown content
   const extractTitle = (content: string): string => {
@@ -950,77 +959,119 @@ const DocsApp = () => {
   };
   
   // Try to fetch a file by path and discover it
-  const discoverFile = async (path: string): Promise<{ title: string; path: string } | null> => {
-    // Skip if already discovered
-    if (discoveredFiles.has(path)) {
-      return discoveredFiles.get(path)!;
+  // Tries both the display path and paths with numeric prefixes
+  const discoverFile = async (displayPath: string): Promise<{ title: string; path: string; displayPath: string; order: number } | null> => {
+    // Skip if already discovered (by display path)
+    const existing = Array.from(discoveredFiles.values()).find(f => f.displayPath === displayPath);
+    if (existing) {
+      return existing;
     }
     
-    try {
-      const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
-      const contentPath = `${path}.md`;
-      
-      // Try ZIP StaticResource path: /resource/ResourceName/content/path/to/file.md
-      let response = await fetch(`/resource/${contentResourceName}/content${contentPath}`);
-      
-      // Fallback: try old single-file StaticResource naming
-      if (!response.ok) {
-        const resourceName = path.replace(/^\//, '').replace(/\//g, '_');
-        response = await fetch(`/resource/${resourceName}`);
-        if (!response.ok) {
-          response = await fetch(`/resource/${resourceName}_md`);
-        }
-      }
-      
-      if (response.ok) {
-        const content = await response.text();
-        const title = extractTitle(content) || path.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || path;
-        
-        const fileInfo = { title, path };
-        setDiscoveredFiles(prev => new Map(prev).set(path, fileInfo));
-        
-        // Discover linked files (async, don't await)
-        const links = extractInternalLinks(content);
-        links.forEach(linkPath => {
-          if (!discoveredFiles.has(linkPath)) {
-            discoverFile(linkPath).catch(() => {});
-          }
+    const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
+    
+    // Try paths with numeric prefixes (01-, 02-, etc.) and without
+    const pathParts = displayPath.split('/').filter(p => p);
+    const possiblePaths: string[] = [displayPath]; // Start with display path
+    
+    // Generate possible paths with numeric prefixes for each segment
+    if (pathParts.length > 0) {
+      // Try common prefixes: 01-, 02-, 03-, etc.
+      for (let i = 1; i <= 99; i++) {
+        const prefix = i.toString().padStart(2, '0');
+        const prefixedParts = pathParts.map((part, idx) => {
+          if (idx === 0) return `${prefix}-${part}`; // Only prefix first segment (section)
+          return part;
         });
+        possiblePaths.push('/' + prefixedParts.join('/'));
         
-        return fileInfo;
+        // Also try prefixing all segments
+        const allPrefixed = pathParts.map(part => `${prefix}-${part}`);
+        possiblePaths.push('/' + allPrefixed.join('/'));
       }
-    } catch (error) {
-      // File doesn't exist - that's ok
+    }
+    
+    // Try each possible path
+    for (const tryPath of possiblePaths) {
+      try {
+        const contentPath = `${tryPath}.md`;
+        let response = await fetch(`/resource/${contentResourceName}/content${contentPath}`);
+        
+        // Fallback: try old single-file StaticResource naming
+        if (!response.ok) {
+          const resourceName = tryPath.replace(/^\//, '').replace(/\//g, '_');
+          response = await fetch(`/resource/${resourceName}`);
+          if (!response.ok) {
+            response = await fetch(`/resource/${resourceName}_md`);
+          }
+        }
+        
+        if (response.ok) {
+          const content = await response.text();
+          const title = extractTitle(content) || displayPath.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || displayPath;
+          
+          // Calculate order from actual path
+          const actualParts = tryPath.split('/').filter(p => p);
+          const sectionOrder = actualParts.length > 0 ? stripNumericPrefix(actualParts[0]).order : 999999;
+          const pageOrder = actualParts.length > 1 ? stripNumericPrefix(actualParts[1]).order : 999999;
+          const order = sectionOrder * 1000 + pageOrder; // Section order is primary
+          
+          const fileInfo = { title, path: tryPath, displayPath, order };
+          setDiscoveredFiles(prev => new Map(prev).set(tryPath, fileInfo));
+          
+          // Discover linked files (async, don't await)
+          const links = extractInternalLinks(content);
+          links.forEach(linkPath => {
+            const existingLink = Array.from(discoveredFiles.values()).find(f => f.displayPath === linkPath);
+            if (!existingLink) {
+              discoverFile(linkPath).catch(() => {});
+            }
+          });
+          
+          return fileInfo;
+        }
+      } catch (error) {
+        // Continue trying other paths
+      }
     }
     
     return null;
   };
   
   // Build navigation structure from discovered files
-  const buildNavigationFromDiscovered = (files: Map<string, { title: string; path: string }>) => {
-    const sections: Record<string, Array<{ title: string; path: string }>> = {};
+  const buildNavigationFromDiscovered = (files: Map<string, { title: string; path: string; displayPath: string; order: number }>) => {
+    const sections: Record<string, { order: number; children: Array<{ title: string; path: string; displayPath: string; order: number }> }> = {};
     
     files.forEach((file) => {
-      const pathParts = file.path.split('/').filter(p => p);
+      const pathParts = file.displayPath.split('/').filter(p => p);
       if (pathParts.length >= 2) {
         const sectionName = pathParts[0].replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         if (!sections[sectionName]) {
-          sections[sectionName] = [];
+          // Get order from first file in section
+          const sectionOrder = file.order;
+          sections[sectionName] = { order: sectionOrder, children: [] };
         }
-        sections[sectionName].push({
+        sections[sectionName].children.push({
           title: file.title,
-          path: file.path
+          path: file.path, // Use actual path for fetching
+          displayPath: file.displayPath,
+          order: file.order
         });
       }
     });
     
     return Object.entries(sections)
-      .map(([sectionName, children]) => ({
+      .map(([sectionName, sectionData]) => ({
         title: sectionName,
-        path: `/${children[0]?.path.split('/')[1] || ''}`,
-        children: children.sort((a, b) => a.path.localeCompare(b.path))
+        path: sectionData.children[0]?.displayPath.split('/').slice(0, 2).join('/') || '',
+        order: sectionData.order,
+        children: sectionData.children
+          .sort((a, b) => a.order - b.order)
+          .map(child => ({
+            title: child.title,
+            path: child.path // Keep actual path for fetching
+          }))
       }))
-      .sort((a, b) => a.title.localeCompare(b.title));
+      .sort((a, b) => a.order - b.order);
   };
   
   // Discover files at runtime by trying common paths
@@ -1084,32 +1135,68 @@ const DocsApp = () => {
         // Get content resource name from window (set by LWC) or use default
         const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
         
-        // Load from ZIP StaticResource
-        // Path format: /resource/{contentResourceName}/content/getting-started/introduction.md
-        const contentPath = `${currentPath}.md`;
-        let response = await fetch(`/resource/${contentResourceName}/content${contentPath}`);
+        // currentPath might be a display path - try to find the actual file
+        // First check if we already know the actual path from discovered files
+        let actualPath = currentPath;
+        const existingFile = Array.from(discoveredFiles.values()).find(f => f.displayPath === currentPath);
+        if (existingFile) {
+          actualPath = existingFile.path;
+        }
         
-        if (!response.ok) {
-          // Fallback: try old single-file StaticResource naming convention
-          const resourceName = currentPath.replace(/^\//, '').replace(/\//g, '_');
-          response = await fetch(`/resource/${resourceName}`);
-          
-          if (!response.ok) {
-            // Try with _md suffix
-            response = await fetch(`/resource/${resourceName}_md`);
+        // Try paths with numeric prefixes if needed
+        const pathParts = currentPath.split('/').filter(p => p);
+        const possiblePaths: string[] = [actualPath, currentPath];
+        
+        // Generate possible paths with numeric prefixes
+        if (pathParts.length > 0) {
+          for (let i = 1; i <= 99; i++) {
+            const prefix = i.toString().padStart(2, '0');
+            const prefixedParts = pathParts.map((part, idx) => {
+              if (idx === 0) return `${prefix}-${part}`;
+              return part;
+            });
+            possiblePaths.push('/' + prefixedParts.join('/'));
+            
+            const allPrefixed = pathParts.map(part => `${prefix}-${part}`);
+            possiblePaths.push('/' + allPrefixed.join('/'));
           }
         }
         
-        if (!response.ok) {
+        let response: Response | null = null;
+        let foundPath = '';
+        
+        // Try each possible path
+        for (const tryPath of possiblePaths) {
+          const contentPath = `${tryPath}.md`;
+          response = await fetch(`/resource/${contentResourceName}/content${contentPath}`);
+          
+          if (!response.ok) {
+            const resourceName = tryPath.replace(/^\//, '').replace(/\//g, '_');
+            response = await fetch(`/resource/${resourceName}`);
+            if (!response.ok) {
+              response = await fetch(`/resource/${resourceName}_md`);
+            }
+          }
+          
+          if (response.ok) {
+            foundPath = tryPath;
+            break;
+          }
+        }
+        
+        if (!response || !response.ok) {
           // Fallback: try CDN (for future use)
           const cdnBase = (window as any).DOCS_CDN_BASE_URL;
           if (cdnBase) {
             const cdnUrl = `${cdnBase}${currentPath}.md`;
             response = await fetch(cdnUrl);
+            if (response.ok) {
+              foundPath = currentPath;
+            }
           }
         }
         
-        if (!response.ok) {
+        if (!response || !response.ok) {
           throw new Error('Content not found');
         }
         
@@ -1118,15 +1205,24 @@ const DocsApp = () => {
         
         // Discover this file for navigation
         const title = extractTitle(text) || currentPath.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || currentPath;
+        const displayPath = currentPath; // currentPath is the display path
+        const actualParts = foundPath.split('/').filter(p => p);
+        const sectionOrder = actualParts.length > 0 ? stripNumericPrefix(actualParts[0]).order : 999999;
+        const pageOrder = actualParts.length > 1 ? stripNumericPrefix(actualParts[1]).order : 999999;
+        const order = sectionOrder * 1000 + pageOrder;
+        
         setDiscoveredFiles(prev => {
           const newMap = new Map(prev);
-          if (!newMap.has(currentPath)) {
-            newMap.set(currentPath, { title, path: currentPath });
+          // Check if we already have this file (by display path)
+          const existing = Array.from(newMap.values()).find(f => f.displayPath === displayPath);
+          if (!existing) {
+            newMap.set(foundPath, { title, path: foundPath, displayPath, order });
             
             // Discover linked files
             const links = extractInternalLinks(text);
             links.forEach(linkPath => {
-              if (!newMap.has(linkPath)) {
+              const existingLink = Array.from(newMap.values()).find(f => f.displayPath === linkPath);
+              if (!existingLink) {
                 discoverFile(linkPath).catch(() => {});
               }
             });
