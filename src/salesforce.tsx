@@ -5,11 +5,87 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import './index.css';
 
+// NavCard Component
+const NavCard = ({ title, description, href, onNavigate }: { 
+  title: string; 
+  description: string; 
+  href: string;
+  onNavigate?: (path: string) => void;
+}) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onNavigate) {
+      onNavigate(href);
+    } else {
+      window.location.hash = href;
+    }
+  };
+
+  return (
+    <a
+      href={href}
+      onClick={handleClick}
+      className="block p-6 bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all cursor-pointer"
+    >
+      <div className="flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+          <p className="text-sm text-gray-600">{description}</p>
+        </div>
+        <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 ml-4" />
+      </div>
+    </a>
+  );
+};
+
 // Configure marked.js with same options as Markdown-Unlocked
 marked.use({
   gfm: true,      // GitHub Flavored Markdown
   breaks: true    // Automatic line breaks
 });
+
+// Helper to parse NavCard definitions from markdown
+const parseNavCards = (markdown: string): Array<{ title: string; description: string; href: string }> => {
+  const navCards: Array<{ title: string; description: string; href: string }> = [];
+  
+  // Match :::navcards blocks
+  const navCardsRegex = /:::navcards\s*\n([\s\S]*?)\n:::/g;
+  const matches = markdown.matchAll(navCardsRegex);
+  
+  for (const match of matches) {
+    const content = match[1];
+    
+    // Try YAML-like format first (title: ... description: ... href: ...)
+    const yamlCards = content.split(/^---$/gm);
+    
+    for (const cardBlock of yamlCards) {
+      const titleMatch = cardBlock.match(/^title:\s*(.+)$/m);
+      const descMatch = cardBlock.match(/^description:\s*(.+)$/m);
+      const hrefMatch = cardBlock.match(/^href:\s*(.+)$/m);
+      
+      if (titleMatch && descMatch && hrefMatch) {
+        navCards.push({
+          title: titleMatch[1].trim(),
+          description: descMatch[1].trim(),
+          href: hrefMatch[1].trim()
+        });
+        continue;
+      }
+      
+      // Try markdown link format: - [Title](href) - Description
+      const linkMatch = cardBlock.match(/^-\s*\[([^\]]+)\]\(([^)]+)\)\s*-\s*(.+)$/m);
+      if (linkMatch) {
+        navCards.push({
+          title: linkMatch[1].trim(),
+          description: linkMatch[3].trim(),
+          href: linkMatch[2].trim()
+        });
+      }
+    }
+  }
+  
+  return navCards;
+};
 
 // Helper to wrap code blocks with copy button (post-processing)
 const wrapCodeBlocks = (html: string): string => {
@@ -35,24 +111,45 @@ const wrapCodeBlocks = (html: string): string => {
 };
 
 // Content Renderer - renders markdown content using marked.js (same config as Markdown-Unlocked)
-const ContentRenderer = ({ content }: { content: string }) => {
+const ContentRenderer = ({ content, onNavigate }: { content: string; onNavigate?: (path: string) => void }) => {
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Parse NavCards from markdown before rendering
+  const navCards = useMemo(() => parseNavCards(content), [content]);
 
   // Parse markdown to HTML and sanitize it
   const html = useMemo(() => {
     if (!content) return '';
     try {
+      // Replace :::navcards blocks with placeholder divs before parsing
+      let processedContent = content;
+      const navCardsRegex = /:::navcards\s*\n([\s\S]*?)\n:::/g;
+      processedContent = processedContent.replace(navCardsRegex, () => {
+        return '<div class="navcards-container"></div>';
+      });
+
       // marked.parse() returns a string (synchronous) in the version we're using
-      const rawHtml = marked.parse(content) as string;
+      const rawHtml = marked.parse(processedContent) as string;
+      
+      // Replace navcards container with actual NavCard HTML
+      let htmlWithNavCards = rawHtml;
+      const navCardsContainerRegex = /<div\s+class="navcards-container"[^>]*><\/div>/g;
+      htmlWithNavCards = htmlWithNavCards.replace(navCardsContainerRegex, () => {
+        const cardsHtml = navCards.map((card, idx) => 
+          `<div class="navcard-placeholder" data-title="${card.title.replace(/"/g, '&quot;')}" data-description="${card.description.replace(/"/g, '&quot;')}" data-href="${card.href.replace(/"/g, '&quot;')}" data-index="${idx}"></div>`
+        ).join('');
+        return `<div class="navcards-grid grid sm:grid-cols-2 gap-4">${cardsHtml}</div>`;
+      });
+      
       // Wrap code blocks with copy button before sanitizing
-      const wrappedHtml = wrapCodeBlocks(rawHtml);
+      const wrappedHtml = wrapCodeBlocks(htmlWithNavCards);
       return DOMPurify.sanitize(wrappedHtml);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error(`[DocsUnlocked] Error rendering markdown: ${errorMsg}`);
       return `<p>Error rendering markdown: ${DOMPurify.sanitize(errorMsg)}</p>`;
     }
-  }, [content]);
+  }, [content, navCards]);
 
   // Attach copy button handlers after render
   useEffect(() => {
@@ -103,6 +200,45 @@ const ContentRenderer = ({ content }: { content: string }) => {
       cleanupFunctions.forEach(cleanup => cleanup());
     };
   }, [html]);
+
+  // Replace NavCard placeholders with React components
+  useEffect(() => {
+    if (!contentRef.current) return;
+
+    const placeholders = contentRef.current.querySelectorAll('.navcard-placeholder');
+    const cleanupFunctions: Array<() => void> = [];
+
+    placeholders.forEach((placeholder) => {
+      const title = placeholder.getAttribute('data-title');
+      const description = placeholder.getAttribute('data-description');
+      const href = placeholder.getAttribute('data-href');
+      
+      if (!title || !description || !href) return;
+
+      // Create a container for the React component
+      const container = document.createElement('div');
+      placeholder.parentNode?.replaceChild(container, placeholder);
+
+      // Render NavCard component
+      const root = ReactDOM.createRoot(container);
+      root.render(
+        <NavCard 
+          title={title} 
+          description={description} 
+          href={href}
+          onNavigate={onNavigate}
+        />
+      );
+
+      cleanupFunctions.push(() => {
+        root.unmount();
+      });
+    });
+
+    return () => {
+      cleanupFunctions.forEach(cleanup => cleanup());
+    };
+  }, [html, onNavigate]);
 
   return (
     <div 
@@ -462,7 +598,7 @@ const DocsApp = () => {
             </div>
           ) : (
             <>
-              <ContentRenderer content={content} />
+              <ContentRenderer content={content} onNavigate={handleNavigate} />
               <NavigationLinks 
                 navigation={navigation}
                 currentPath={currentPath}
