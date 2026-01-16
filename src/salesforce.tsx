@@ -307,8 +307,8 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery, onTOCChange }: {
       }
       
       return DOMPurify.sanitize(htmlWithIds, {
-        ADD_TAGS: ['video', 'source'],
-        ADD_ATTR: ['controls', 'aria-label', 'id']
+        ADD_TAGS: ['video', 'source', 'iframe'],
+        ADD_ATTR: ['controls', 'aria-label', 'id', 'frameborder', 'allow', 'allowfullscreen', 'style']
       });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
