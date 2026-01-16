@@ -15,6 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const contentDir = path.join(__dirname, '../public/content');
+const mediaDir = path.join(__dirname, '../public/media');
 const targetZip = path.join(__dirname, '../force-app/main/default/staticresources/docsContent.zip');
 const targetDir = path.dirname(targetZip);
 
@@ -31,7 +32,7 @@ async function createContentZip() {
   }
 
   console.log('📦 Creating content ZIP StaticResource...');
-  console.log('   Source:', contentDir);
+  console.log('   Source:', path.join(__dirname, '../public'));
   console.log('   Target:', targetZip);
 
   return new Promise((resolve, reject) => {
@@ -52,8 +53,14 @@ async function createContentZip() {
 
     archive.pipe(output);
 
-    // Add all files from content directory, preserving directory structure
+    // Add content directory, preserving directory structure
     archive.directory(contentDir, 'content', false);
+    
+    // Add media directory if it exists
+    if (fs.existsSync(mediaDir)) {
+      archive.directory(mediaDir, 'media', false);
+      console.log('   ✓ Including media directory');
+    }
 
     archive.finalize();
   });
