@@ -923,47 +923,156 @@ const DocsApp = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Load navigation
+  // Runtime discovery: Build navigation by trying to fetch files dynamically
+  const [discoveredFiles, setDiscoveredFiles] = useState<Map<string, { title: string; path: string }>>(new Map());
+  
+  // Extract title from markdown content
+  const extractTitle = (content: string): string => {
+    const h1Match = content.match(/^#\s+(.+)$/m);
+    return h1Match ? h1Match[1].trim() : '';
+  };
+  
+  // Extract internal links from markdown to discover more files
+  const extractInternalLinks = (content: string): string[] => {
+    const links: string[] = [];
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    let match;
+    while ((match = linkRegex.exec(content)) !== null) {
+      const href = match[2];
+      if (href.startsWith('/') && !href.startsWith('//')) {
+        const normalizedPath = href.replace(/\.md$/, '');
+        if (normalizedPath && !links.includes(normalizedPath)) {
+          links.push(normalizedPath);
+        }
+      }
+    }
+    return links;
+  };
+  
+  // Try to fetch a file by path and discover it
+  const discoverFile = async (path: string): Promise<{ title: string; path: string } | null> => {
+    // Skip if already discovered
+    if (discoveredFiles.has(path)) {
+      return discoveredFiles.get(path)!;
+    }
+    
+    try {
+      const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
+      const contentPath = `${path}.md`;
+      
+      // Try ZIP StaticResource path: /resource/ResourceName/content/path/to/file.md
+      let response = await fetch(`/resource/${contentResourceName}/content${contentPath}`);
+      
+      // Fallback: try old single-file StaticResource naming
+      if (!response.ok) {
+        const resourceName = path.replace(/^\//, '').replace(/\//g, '_');
+        response = await fetch(`/resource/${resourceName}`);
+        if (!response.ok) {
+          response = await fetch(`/resource/${resourceName}_md`);
+        }
+      }
+      
+      if (response.ok) {
+        const content = await response.text();
+        const title = extractTitle(content) || path.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || path;
+        
+        const fileInfo = { title, path };
+        setDiscoveredFiles(prev => new Map(prev).set(path, fileInfo));
+        
+        // Discover linked files (async, don't await)
+        const links = extractInternalLinks(content);
+        links.forEach(linkPath => {
+          if (!discoveredFiles.has(linkPath)) {
+            discoverFile(linkPath).catch(() => {});
+          }
+        });
+        
+        return fileInfo;
+      }
+    } catch (error) {
+      // File doesn't exist - that's ok
+    }
+    
+    return null;
+  };
+  
+  // Build navigation structure from discovered files
+  const buildNavigationFromDiscovered = (files: Map<string, { title: string; path: string }>) => {
+    const sections: Record<string, Array<{ title: string; path: string }>> = {};
+    
+    files.forEach((file) => {
+      const pathParts = file.path.split('/').filter(p => p);
+      if (pathParts.length >= 2) {
+        const sectionName = pathParts[0].replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        if (!sections[sectionName]) {
+          sections[sectionName] = [];
+        }
+        sections[sectionName].push({
+          title: file.title,
+          path: file.path
+        });
+      }
+    });
+    
+    return Object.entries(sections)
+      .map(([sectionName, children]) => ({
+        title: sectionName,
+        path: `/${children[0]?.path.split('/')[1] || ''}`,
+        children: children.sort((a, b) => a.path.localeCompare(b.path))
+      }))
+      .sort((a, b) => a.title.localeCompare(b.title));
+  };
+  
+  // Discover files at runtime by trying common paths
   useEffect(() => {
-    const loadNavigation = async () => {
+    const discoverNavigation = async () => {
       try {
-        // Get content resource name from window (set by LWC) or use default
         const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
         
-        // Load navigation from ZIP StaticResource
-        // ZIP StaticResources can be accessed via /resource/ResourceName/path/to/file
-        const response = await fetch(`/resource/${contentResourceName}/content/navigation.json`);
-        if (!response.ok) {
-          // Fallback: try old single-file StaticResource
-          const fallbackResponse = await fetch('/resource/navigation_json');
-          if (!fallbackResponse.ok) {
-            throw new Error('StaticResource not found');
-          }
-          const fallbackData = await fallbackResponse.json();
-          setNavigation(fallbackData);
-          return;
+        // Seed paths - try common documentation patterns
+        const seedPaths = [
+          '/getting-started/introduction',
+          '/getting-started/contributing',
+          '/core-concepts/basic-usage',
+          '/core-concepts/configuration',
+        ];
+        
+        // Try to discover seed files
+        await Promise.allSettled(seedPaths.map(path => discoverFile(path)));
+        
+        // Also try to discover from URL hash
+        const hashPath = window.location.hash.replace('#', '');
+        if (hashPath) {
+          await discoverFile(hashPath);
         }
-        const data = await response.json();
-        setNavigation(data);
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        console.error(`[DocsUnlocked] Failed to load navigation: ${errorMsg}`);
-        // Default navigation structure
-        setNavigation([
-          {
-            title: 'Getting Started',
-            children: [
-              { title: 'Introduction', path: '/getting-started/introduction' },
-              { title: 'Installation', path: '/getting-started/installation' },
-            ]
+        
+        // Fallback: try old navigation.json for backwards compatibility
+        if (discoveredFiles.size === 0) {
+          const fallbackResponse = await fetch(`/resource/${contentResourceName}/content/navigation.json`);
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            setNavigation(fallbackData);
+            setLoading(false);
+            return;
           }
-        ]);
+        }
+      } catch (error) {
+        console.error(`[DocsUnlocked] Failed to discover navigation:`, error);
       } finally {
         setLoading(false);
       }
     };
-    loadNavigation();
+    
+    discoverNavigation();
   }, []);
+  
+  // Update navigation when discovered files change
+  useEffect(() => {
+    if (discoveredFiles.size > 0) {
+      const nav = buildNavigationFromDiscovered(discoveredFiles);
+      setNavigation(nav);
+    }
+  }, [discoveredFiles]);
 
   // Load markdown content
   useEffect(() => {
@@ -1006,6 +1115,24 @@ const DocsApp = () => {
         
         const text = await response.text();
         setContent(text);
+        
+        // Discover this file for navigation
+        const title = extractTitle(text) || currentPath.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || currentPath;
+        setDiscoveredFiles(prev => {
+          const newMap = new Map(prev);
+          if (!newMap.has(currentPath)) {
+            newMap.set(currentPath, { title, path: currentPath });
+            
+            // Discover linked files
+            const links = extractInternalLinks(text);
+            links.forEach(linkPath => {
+              if (!newMap.has(linkPath)) {
+                discoverFile(linkPath).catch(() => {});
+              }
+            });
+          }
+          return newMap;
+        });
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
