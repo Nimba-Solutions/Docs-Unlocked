@@ -1,0 +1,53 @@
+# This workflow generates a FEATURE TEST PACKAGE from the latest Commit SHA.
+# It only serves to validate the deployment and packageability of the latest commit.
+# It does NOT affect the version of the package and is not included in the package ancestry.
+# To generate a new Beta Package Version, you need to run the `Beta (Unlocked) - Create` workflow.
+
+name: Feature - Test (Unlocked)
+
+on:
+  pull_request:
+    branches:
+      - feature/**
+      - main
+
+jobs:
+  feature-test:
+    if: startsWith(github.head_ref, 'feature/')
+    uses: nimba-actions/standard-workflows/.github/workflows/feature-unlocked.yml@main
+    secrets:
+      cci-token: ${{ secrets.CUMULUSCI_TOKEN }}
+      dev-hub-auth-url: ${{ secrets.DEV_HUB_AUTH_URL }}
+    with:
+      cumulusci-version: "3.93.0"
+      sfdx-version: "7.209.6"
+
+  apex-and-metadata-scanner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.x"
+
+      - name: Install Salesforce CLI and Scanner
+        run: |
+          npm install @salesforce/cli -g
+          sf plugins install @salesforce/sfdx-scanner@latest
+
+      ##############################################################
+      #          Mute this until we agree on the ruleset
+      ##############################################################
+      # - name: Run SFDX Scanner - Report findings as comments
+      #   uses: nimba-actions/sfdx-scan-pull-request@main
+      #   with:
+      #     pmdconfig: pmd-rules.xml
+      #     severity-threshold: 3
+      #     report-mode: comments
+      #     delete-resolved-comments: true
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

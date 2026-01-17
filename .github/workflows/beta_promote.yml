@@ -1,0 +1,33 @@
+# This workflow promotes the latest Beta Package Version.
+# It does *not* deliver the promoted package to any org.
+# To deliver a Promoted Release to an Org, you need to run the `Package Install` workflow.
+
+name: Beta - Promote (Unlocked)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  upload-prod:
+    uses: nimba-actions/standard-workflows/.github/workflows/production-unlocked.yml@main
+    secrets:
+      cci-token: ${{ secrets.CUMULUSCI_TOKEN }}
+      dev-hub-auth-url: ${{ secrets.DEV_HUB_AUTH_URL }}
+    with:
+      cumulusci-version: "3.93.0"
+      sfdx-version: "7.209.6"
+
+permissions:
+  actions: write
+  attestations: write
+  checks: write
+  contents: write
+  deployments: write
+  discussions: write
+  issues: write
+  packages: write
+  pages: write
+  pull-requests: write
+  repository-projects: write
+  security-events: write
+  statuses: write
