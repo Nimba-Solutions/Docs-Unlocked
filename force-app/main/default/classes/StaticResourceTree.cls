@@ -44,9 +44,14 @@ public class StaticResourceTree {
         ];
         
         Compression.ZipReader reader = new Compression.ZipReader(sr.Body);
-        Blob fileContent = reader.extract(filePath);
         
-        return fileContent != null ? fileContent.toString() : null;
+        try {
+            Blob fileContent = reader.extract(filePath);
+            return fileContent != null ? fileContent.toString() : null;
+        } catch (NullPointerException e) {
+            // File doesn't exist in ZIP
+            return null;
+        }
     }
     
     private static void addPath(Map<String, Object> root, String path) {
