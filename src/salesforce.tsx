@@ -492,13 +492,42 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery, onTOCChange }: {
       parentElement.insertBefore(afterNode, highlightSpan.nextSibling);
     }
 
-    // Scroll to highlight after a short delay to ensure DOM is updated
+    // Scroll to highlight after ensuring DOM is updated and content is rendered
     const scrollTimeout = setTimeout(() => {
-      const highlightEl = container.querySelector('#search-highlight');
-      if (highlightEl) {
-        highlightEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 150);
+      const highlightEl = container.querySelector('#search-highlight') as HTMLElement;
+      if (!highlightEl) return;
+      
+      // Find the scrollable container (main element)
+      const scrollContainer = container.closest('main') as HTMLElement;
+      
+      // Use requestAnimationFrame to ensure DOM is fully painted
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // Double-check element still exists
+          if (!container.querySelector('#search-highlight')) return;
+          
+          if (scrollContainer && scrollContainer !== document.body) {
+            // For scrollable container elements, calculate relative position
+            const elementRect = highlightEl.getBoundingClientRect();
+            
+            // Calculate the element's position relative to the container's scroll position
+            const elementTop = highlightEl.offsetTop;
+            const containerHeight = scrollContainer.clientHeight;
+            
+            // Calculate target scroll position to center the element
+            const targetScrollTop = elementTop - (containerHeight / 2) + (elementRect.height / 2);
+            
+            scrollContainer.scrollTo({ 
+              top: Math.max(0, targetScrollTop), 
+              behavior: 'smooth' 
+            });
+          } else {
+            // Fallback to standard scrollIntoView for window scrolling
+            highlightEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
+      });
+    }, 400);
 
     // Cleanup function - remove highlight after 5 seconds
     const cleanupTimeout = setTimeout(() => {
