@@ -1,6 +1,6 @@
 import { LightningElement, api } from 'lwc';
 import { loadScript } from 'lightning/platformResourceLoader';
-import { getTreeAsJson } from 'lightning/apex/StaticResourceTree.getTreeAsJson';
+import getTreeAsJson from '@salesforce/apex/StaticResourceTree.getTreeAsJson';
 import DOCS_UNLOCKED from '@salesforce/resourceUrl/docsUnlocked';
 
 export default class DocsUnlocked extends LightningElement {

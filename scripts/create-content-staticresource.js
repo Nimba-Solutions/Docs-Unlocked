@@ -77,7 +77,7 @@ async function generateManifest() {
   return manifest;
 }
 
-async function createContentZip() {
+async function createContentZip(includeManifest = true) {
   // Ensure target directory exists
   if (!fs.existsSync(targetDir)) {
     fs.mkdirSync(targetDir, { recursive: true });
@@ -92,9 +92,15 @@ async function createContentZip() {
   console.log('📦 Creating content ZIP StaticResource...');
   console.log('   Source:', path.join(__dirname, '../public'));
   console.log('   Target:', targetZip);
+  if (!includeManifest) {
+    console.log('   ⚠ Skipping manifest.yaml (will be generated from Apex)');
+  }
 
-  // Generate manifest first
-  const manifest = await generateManifest();
+  // Generate manifest only if needed
+  let manifest = null;
+  if (includeManifest) {
+    manifest = await generateManifest();
+  }
 
   return new Promise((resolve, reject) => {
     const output = createWriteStream(targetZip);
@@ -114,9 +120,11 @@ async function createContentZip() {
 
     archive.pipe(output);
 
-    // Add manifest.yaml first
-    archive.append(yaml.dump(manifest, { indent: 2, lineWidth: -1 }), { name: 'content/manifest.yaml' });
-    console.log('   ✓ Added manifest.yaml');
+    // Add manifest.yaml only if requested
+    if (includeManifest && manifest) {
+      archive.append(yaml.dump(manifest, { indent: 2, lineWidth: -1 }), { name: 'content/manifest.yaml' });
+      console.log('   ✓ Added manifest.yaml');
+    }
 
     // Add content directory, preserving directory structure (including dots)
     archive.directory(contentDir, 'content', false);
@@ -145,7 +153,9 @@ async function createMetadataFile() {
 
 async function main() {
   try {
-    await createContentZip();
+    // Check for --no-manifest flag
+    const includeManifest = !process.argv.includes('--no-manifest');
+    await createContentZip(includeManifest);
     await createMetadataFile();
     console.log('✓ Content StaticResource ready for deployment');
   } catch (error) {

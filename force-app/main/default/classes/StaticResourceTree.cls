@@ -3,6 +3,7 @@ public class StaticResourceTree {
     /**
      * Returns nested Map structure of ZIP contents
      */
+    @AuraEnabled(cacheable=true)
     public static Map<String, Object> getTree(String resourceName) {
         StaticResource sr = [
             SELECT Body FROM StaticResource 
@@ -16,7 +17,6 @@ public class StaticResourceTree {
         
         for (Compression.ZipEntry entry : entries) {
             String name = entry.getName();
-            // Skip directories (they end with /)
             if (!name.endsWith('/')) {
                 addPath(root, name);
             }
@@ -28,13 +28,27 @@ public class StaticResourceTree {
     /**
      * Returns JSON string of the tree
      */
+    @AuraEnabled(cacheable=true)
     public static String getTreeAsJson(String resourceName) {
         return JSON.serializePretty(getTree(resourceName));
     }
     
     /**
-     * Adds a file path to the nested map structure
+     * Extract a specific file's content as string
      */
+    @AuraEnabled(cacheable=true)
+    public static String getFileContent(String resourceName, String filePath) {
+        StaticResource sr = [
+            SELECT Body FROM StaticResource 
+            WHERE Name = :resourceName LIMIT 1
+        ];
+        
+        Compression.ZipReader reader = new Compression.ZipReader(sr.Body);
+        Blob fileContent = reader.extract(filePath);
+        
+        return fileContent != null ? fileContent.toString() : null;
+    }
+    
     private static void addPath(Map<String, Object> root, String path) {
         List<String> parts = path.split('/');
         Map<String, Object> current = root;
@@ -52,22 +66,5 @@ public class StaticResourceTree {
                 current = (Map<String, Object>) current.get(part);
             }
         }
-    }
-    
-    /**
-     * Navigate using dot notation
-     */
-    public static Object getPath(Map<String, Object> tree, String dotPath) {
-        List<String> parts = dotPath.split('\\.');
-        Object current = tree;
-        
-        for (String part : parts) {
-            if (current instanceof Map<String, Object>) {
-                current = ((Map<String, Object>) current).get(part);
-            } else {
-                return null;
-            }
-        }
-        return current;
     }
 }

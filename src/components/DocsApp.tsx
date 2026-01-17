@@ -3,6 +3,7 @@ import { Menu, X, Github } from 'lucide-react';
 import yaml from 'js-yaml';
 import { TOCItem, DiscoveredFile, NavigationSection } from '../types';
 import { extractTitle, normalizeDisplayPath, buildNavigationFromDiscovered } from '../utils/navigation';
+import { generateManifestFromTree } from '../utils/manifestGeneration';
 import { Sidebar } from './Sidebar';
 import { SearchModal } from './SearchModal';
 import { NavigationLinks } from './NavigationLinks';
@@ -52,19 +53,46 @@ export const DocsApp: React.FC = () => {
         // Add cache-busting to force fresh manifest fetch
         const cacheBustUrl = `${manifestUrl}?t=${Date.now()}`;
         console.log(`[DocsUnlocked] Loading manifest from: ${cacheBustUrl}`);
-        const response = await fetch(cacheBustUrl, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache'
+        
+        let manifest: any;
+        
+        try {
+          const response = await fetch(cacheBustUrl, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache'
+            }
+          });
+          
+          if (response.ok) {
+            const yamlText = await response.text();
+            manifest = yaml.load(yamlText) as any;
+            console.log(`[DocsUnlocked] Loaded manifest from manifest.yaml file`);
+          } else {
+            // 404 is expected when manifest.yaml is intentionally omitted
+            console.log(`[DocsUnlocked] Manifest file not found (${response.status}), generating from Apex tree...`);
+            throw new Error(`Manifest file not found: ${response.status}`);
           }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Failed to load manifest: ${response.status} ${response.statusText}`);
+        } catch (error) {
+          // Fallback: generate manifest from Apex tree
+          // This is expected when manifest.yaml is intentionally omitted
+          console.log(`[DocsUnlocked] Generating manifest from Apex tree (manifest.yaml intentionally omitted)...`);
+          
+          const getTreeJson = (window as any).DOCS_GET_TREE_JSON;
+          if (!getTreeJson || typeof getTreeJson !== 'function') {
+            console.error(`[DocsUnlocked] DOCS_GET_TREE_JSON function not available. Make sure the LWC component is properly initialized.`);
+            throw new Error('DOCS_GET_TREE_JSON function not available. Make sure the LWC component is properly initialized.');
+          }
+          
+          try {
+            const treeJson = await getTreeJson(contentResourceName);
+            manifest = await generateManifestFromTree(treeJson, contentResourceName);
+            console.log(`[DocsUnlocked] Successfully generated manifest from Apex tree`);
+          } catch (apexError) {
+            console.error(`[DocsUnlocked] Failed to generate manifest from Apex:`, apexError);
+            throw apexError;
+          }
         }
-        
-        const yamlText = await response.text();
-        const manifest = yaml.load(yamlText) as any;
         console.log(`[DocsUnlocked] === SECTIONS IN STATIC RESOURCE (from manifest) ===`);
         
         const filesMap = new Map<string, DiscoveredFile>();
