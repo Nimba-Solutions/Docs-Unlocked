@@ -581,6 +581,8 @@ const Sidebar = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Array<{ title: string; path: string; snippet: string; searchQuery?: string }>>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Helper to check if an item matches the search query
   const matchesSearch = (item: any, query: string): boolean => {
@@ -687,6 +689,34 @@ const Sidebar = ({
     };
   }, [searchQuery, discoveredFiles]);
 
+  // Reset selected index when search query or results change
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [searchQuery, searchResults.length]);
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    if (!searchQuery.trim() || searchResults.length === 0) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev < searchResults.length - 1 ? prev + 1 : prev));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+      } else if ((e.key === 'Enter' || e.key === ' ') && selectedIndex >= 0 && selectedIndex < searchResults.length) {
+        e.preventDefault();
+        const result = searchResults[selectedIndex];
+        onNavigate(result.path, result.searchQuery);
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [searchQuery, searchResults, selectedIndex, onNavigate, onClose]);
+
   const renderNavItems = (items: any[], level = 0, filteredItems?: any[]) => {
     const itemsToRender = filteredItems || items;
     return itemsToRender.map((item) => {
@@ -751,6 +781,7 @@ const Sidebar = ({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search documentation..."
                 value={searchQuery}
@@ -772,7 +803,7 @@ const Sidebar = ({
                     Search Results ({searchResults.length})
                   </div>
                   <div className="space-y-2">
-                    {searchResults.map((result) => (
+                    {searchResults.map((result, idx) => (
                       <a
                         key={result.path}
                         href="#"
@@ -781,11 +812,14 @@ const Sidebar = ({
                           onNavigate(result.path, result.searchQuery);
                           onClose();
                         }}
+                        onMouseEnter={() => setSelectedIndex(idx)}
                         className={`
-                          block p-3 text-sm rounded-lg transition-colors cursor-pointer border border-gray-200 hover:border-blue-300 hover:bg-blue-50
-                          ${currentPath === result.path
+                          block p-3 text-sm rounded-lg transition-colors cursor-pointer border
+                          ${idx === selectedIndex
                             ? 'bg-blue-50 text-blue-700 border-blue-300' 
-                            : 'text-gray-700 hover:text-gray-900'
+                            : currentPath === result.path
+                            ? 'bg-blue-50 text-blue-700 border-blue-300'
+                            : 'border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50 hover:text-gray-900'
                           }
                         `}
                       >
@@ -834,6 +868,7 @@ const SearchModal = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Array<{ title: string; path: string; snippet: string; searchQuery?: string }>>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Focus input when modal opens
@@ -919,23 +954,42 @@ const SearchModal = ({
     };
   }, [searchQuery, discoveredFiles]);
 
+  // Reset selected index when search query or results change
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [searchQuery, searchResults.length]);
+
   // Handle keyboard shortcuts
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
+        return;
       }
-      if (e.key === 'Enter' && searchResults.length > 0 && !isSearching) {
-        onNavigate(searchResults[0].path, searchResults[0].searchQuery);
+
+      // Only handle navigation keys if we have results
+      if (searchResults.length === 0 || isSearching) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev < searchResults.length - 1 ? prev + 1 : prev));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+      } else if ((e.key === 'Enter' || e.key === ' ') && selectedIndex >= 0 && selectedIndex < searchResults.length) {
+        e.preventDefault();
+        const result = searchResults[selectedIndex];
+        onNavigate(result.path, result.searchQuery);
         onClose();
+        setSearchQuery('');
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [isOpen, searchResults, isSearching, onNavigate, onClose]);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, searchResults, isSearching, selectedIndex, onNavigate, onClose]);
 
   if (!isOpen) return null;
 
@@ -992,9 +1046,10 @@ const SearchModal = ({
                       onClose();
                       setSearchQuery('');
                     }}
+                    onMouseEnter={() => setSelectedIndex(idx)}
                     className={`
                       block p-4 rounded-lg transition-all cursor-pointer border-2
-                      ${idx === 0
+                      ${idx === selectedIndex
                         ? 'border-blue-300 bg-blue-50'
                         : 'border-transparent hover:border-gray-200 hover:bg-gray-50'
                       }
@@ -1006,7 +1061,7 @@ const SearchModal = ({
                         <div className="text-sm text-gray-600 line-clamp-2">{result.snippet}</div>
                         <div className="text-xs text-gray-400 mt-1 font-mono">{result.path}</div>
                       </div>
-                      {idx === 0 && (
+                      {idx === selectedIndex && (
                         <kbd className="hidden sm:inline-flex items-center px-2 py-1 text-xs font-semibold text-gray-500 bg-white border border-gray-300 rounded">Enter</kbd>
                       )}
                     </div>
