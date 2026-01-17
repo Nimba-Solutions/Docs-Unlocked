@@ -114,6 +114,64 @@ export const useNavCardRendering = (
 };
 
 /**
+ * Hook to handle internal documentation links (convert to hash navigation)
+ */
+export const useInternalLinks = (
+  contentRef: RefObject<HTMLDivElement>, 
+  html: string,
+  onNavigate?: (path: string) => void
+) => {
+  useEffect(() => {
+    if (!contentRef.current) return;
+
+    const links = contentRef.current.querySelectorAll('a[href]');
+    const cleanupFunctions: Array<() => void> = [];
+
+    links.forEach((link) => {
+      const href = link.getAttribute('href');
+      if (!href) return;
+
+      // Check if it's an internal link (starts with "/" and doesn't start with "lightning/")
+      // Also skip external links (http/https) and media links
+      if (href.startsWith('/') && !href.startsWith('/http') && !href.startsWith('lightning/') && !href.startsWith('/media/') && !href.startsWith('/resource/')) {
+        const handleClick = (e: Event) => {
+          e.preventDefault();
+          
+          // Parse the link - could be /path or /path#anchor
+          const [path, anchor] = href.split('#');
+          
+          if (anchor) {
+            // Has anchor: convert to hash format /path::anchor
+            const hashPath = `${path}::${anchor}`;
+            // Set hash directly (this will trigger hashchange event)
+            window.location.hash = hashPath;
+            // Also call onNavigate with just the path to load the page
+            if (onNavigate) {
+              onNavigate(path);
+            }
+          } else {
+            // No anchor: just navigate to the path
+            if (onNavigate) {
+              onNavigate(path);
+            } else {
+              window.location.hash = path;
+            }
+          }
+        };
+        link.addEventListener('click', handleClick);
+        cleanupFunctions.push(() => {
+          link.removeEventListener('click', handleClick);
+        });
+      }
+    });
+
+    return () => {
+      cleanupFunctions.forEach(cleanup => cleanup());
+    };
+  }, [contentRef, html, onNavigate]);
+};
+
+/**
  * Hook to handle Salesforce Lightning links
  */
 export const useLightningLinks = (contentRef: RefObject<HTMLDivElement>, html: string) => {

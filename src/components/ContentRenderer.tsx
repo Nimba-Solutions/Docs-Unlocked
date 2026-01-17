@@ -9,6 +9,7 @@ import { extractTOCAndAddIds } from '../utils/tocExtraction';
 import { 
   useCopyButtons, 
   useNavCardRendering, 
+  useInternalLinks,
   useLightningLinks, 
   useSearchHighlight 
 } from '../hooks/useContentEffects';
@@ -76,6 +77,7 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
   // Use hooks for DOM effects
   useCopyButtons(contentRef, html);
   useNavCardRendering(contentRef, html, onNavigate);
+  useInternalLinks(contentRef, html, onNavigate);
   useLightningLinks(contentRef, html);
   useSearchHighlight(contentRef, html, highlightQuery);
 
