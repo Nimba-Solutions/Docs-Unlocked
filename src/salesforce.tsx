@@ -538,7 +538,7 @@ const Sidebar = ({
   navigation,
   currentPath,
   onNavigate,
-  displayHeader,
+  displayHeader: _displayHeader,
   discoveredFiles
 }: { 
   isOpen: boolean; 
@@ -701,15 +701,14 @@ const Sidebar = ({
         />
       )}
       <aside className={`
-        absolute left-0 w-72 bg-white border-r border-gray-200 
+        fixed lg:relative
+        left-0 top-0 bottom-0 lg:top-auto lg:bottom-auto lg:h-auto
+        w-72 bg-white border-r border-gray-200 
         transform transition-transform duration-300 ease-in-out z-40
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:absolute lg:left-0 lg:w-72 lg:transform-none lg:translate-x-0
-      `} style={{
-        top: displayHeader ? '124px' : '64px', // Account for ROW1 on mobile
-        bottom: 0,
-        height: displayHeader ? 'calc(100% - 124px)' : 'calc(100% - 64px)' // Account for ROW1 on mobile
-      }}>
+        lg:translate-x-0 lg:flex-shrink-0
+        overflow-y-auto
+      `}>
         <div className="h-full overflow-y-auto p-6">
           <div className="mb-6">
             <div className="relative">
@@ -1519,40 +1518,27 @@ const DocsApp = () => {
             )}
           </article>
         </main>
-      </div>
-      
-      {/* ROW4: Footer */}
-      {displayFooter && (
-        <footer className="border-t border-gray-200 bg-white py-6">
-          <div className="max-w-4xl mx-auto px-4 sm:px-4 md:px-6 lg:px-8">
-            <div className="text-center text-sm text-gray-600">
-              <p>Documentation powered by Docs Unlocked</p>
-            </div>
-          </div>
-        </footer>
-      )}
-      
-      {/* Right Sidebar - Table of Contents */}
-      {tableOfContents.length > 0 && (
-        <>
-          {/* Mobile overlay */}
-          {tocSidebarOpen && (
-            <div 
-              className="lg:hidden absolute inset-0 bg-black/50 z-30"
-              onClick={() => setTocSidebarOpen(false)}
-            />
-          )}
-          <aside className={`
-            ${tocSidebarOpen ? 'translate-x-0' : 'translate-x-full'}
-            lg:translate-x-0
-            absolute right-0 w-80 bg-white border-l border-gray-200 z-40
-            transform transition-transform duration-300 ease-in-out
-            lg:absolute lg:right-0
-          `} style={{
-            top: displayHeader ? '124px' : '0px',
-            bottom: 0,
-            height: displayHeader ? 'calc(100% - 124px)' : '100%'
-          }}>
+        
+        {/* Right Sidebar - Table of Contents */}
+        {tableOfContents.length > 0 && (
+          <>
+            {/* Mobile overlay */}
+            {tocSidebarOpen && (
+              <div 
+                className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+                onClick={() => setTocSidebarOpen(false)}
+              />
+            )}
+            <aside className={`
+              ${tocSidebarOpen ? 'translate-x-0' : 'translate-x-full'}
+              lg:translate-x-0
+              fixed lg:relative
+              right-0 top-0 bottom-0 lg:top-auto lg:bottom-auto lg:h-auto
+              w-80 bg-white border-l border-gray-200 z-40
+              transform transition-transform duration-300 ease-in-out
+              lg:flex-shrink-0
+              overflow-y-auto
+            `}>
           <div className="h-full overflow-y-auto p-6">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
               On This Page
@@ -1628,6 +1614,18 @@ const DocsApp = () => {
           </div>
         </aside>
         </>
+      )}
+      </div>
+      
+      {/* ROW4: Footer */}
+      {displayFooter && (
+        <footer className="border-t border-gray-200 bg-white py-6">
+          <div className="max-w-4xl mx-auto px-4 sm:px-4 md:px-6 lg:px-8">
+            <div className="text-center text-sm text-gray-600">
+              <p>Documentation powered by Docs Unlocked</p>
+            </div>
+          </div>
+        </footer>
       )}
       
       <SearchModal
