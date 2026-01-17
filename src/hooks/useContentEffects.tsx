@@ -62,47 +62,55 @@ export const useCopyButtons = (contentRef: RefObject<HTMLDivElement>, html: stri
 export const useNavCardRendering = (
   contentRef: RefObject<HTMLDivElement>,
   html: string,
-  navCards: Array<{ title: string; description: string; href: string }>,
   onNavigate?: (path: string) => void
 ) => {
   useEffect(() => {
     if (!contentRef.current) return;
 
-    const placeholders = contentRef.current.querySelectorAll('.navcard-placeholder');
-    console.log(`[DocsUnlocked] Found ${placeholders.length} navcard placeholders in DOM`);
     const cleanupFunctions: Array<() => void> = [];
 
-    placeholders.forEach((placeholder) => {
-      const title = placeholder.getAttribute('data-title');
-      const description = placeholder.getAttribute('data-description');
-      const href = placeholder.getAttribute('data-href');
+    // Use a small delay to ensure DOM is fully updated after dangerouslySetInnerHTML
+    const timeoutId = setTimeout(() => {
+      if (!contentRef.current) return;
+
+      const placeholders = contentRef.current.querySelectorAll('.navcard-placeholder');
+      console.log(`[DocsUnlocked] Found ${placeholders.length} navcard placeholders in DOM`);
       
-      if (!title || !description || !href) return;
+      if (placeholders.length === 0) return;
 
-      // Create a container for the React component
-      const container = document.createElement('div');
-      placeholder.parentNode?.replaceChild(container, placeholder);
+      placeholders.forEach((placeholder) => {
+        const title = placeholder.getAttribute('data-title');
+        const description = placeholder.getAttribute('data-description');
+        const href = placeholder.getAttribute('data-href');
+        
+        if (!title || !description || !href) return;
 
-      // Render NavCard component
-      const root = ReactDOM.createRoot(container);
-      root.render(
-        <NavCard 
-          title={title} 
-          description={description} 
-          href={href}
-          onNavigate={onNavigate}
-        />
-      );
+        // Create a container for the React component
+        const container = document.createElement('div');
+        placeholder.parentNode?.replaceChild(container, placeholder);
 
-      cleanupFunctions.push(() => {
-        root.unmount();
+        // Render NavCard component
+        const root = ReactDOM.createRoot(container);
+        root.render(
+          <NavCard 
+            title={title} 
+            description={description} 
+            href={href}
+            onNavigate={onNavigate}
+          />
+        );
+
+        cleanupFunctions.push(() => {
+          root.unmount();
+        });
       });
-    });
+    }, 0);
 
     return () => {
+      clearTimeout(timeoutId);
       cleanupFunctions.forEach(cleanup => cleanup());
     };
-  }, [contentRef, html, navCards, onNavigate]);
+  }, [html, onNavigate]); // Removed contentRef and navCards from deps - only react to html changes
 };
 
 /**

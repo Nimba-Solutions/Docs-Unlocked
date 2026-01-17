@@ -75,7 +75,7 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
 
   // Use hooks for DOM effects
   useCopyButtons(contentRef, html);
-  useNavCardRendering(contentRef, html, navCards, onNavigate);
+  useNavCardRendering(contentRef, html, onNavigate);
   useLightningLinks(contentRef, html);
   useSearchHighlight(contentRef, html, highlightQuery);
 
