@@ -1,14 +1,58 @@
 import { NavCard } from '../types';
 
 // Helper to parse NavCard definitions from markdown
+// Skips navcards inside code blocks
 export const parseNavCards = (markdown: string): NavCard[] => {
   const navCards: NavCard[] = [];
   
+  // First, find all fenced code blocks to exclude navcards inside them
+  const lines = markdown.split('\n');
+  const codeBlockRanges: Array<{ start: number; end: number }> = [];
+  let inFencedBlock = false;
+  let fenceChar = '';
+  let fenceStart = -1;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    const fenceMatch = trimmed.match(/^(```+|~~~+)/);
+    
+    if (fenceMatch) {
+      if (!inFencedBlock) {
+        inFencedBlock = true;
+        fenceChar = fenceMatch[1][0];
+        fenceStart = i;
+      } else if (trimmed.startsWith(fenceChar.repeat(3))) {
+        codeBlockRanges.push({ start: fenceStart, end: i });
+        inFencedBlock = false;
+        fenceStart = -1;
+      }
+    }
+  }
+  
+  // Close any open block at end
+  if (inFencedBlock && fenceStart !== -1) {
+    codeBlockRanges.push({ start: fenceStart, end: lines.length - 1 });
+  }
+  
   // Match :::navcards blocks
   const navCardsRegex = /:::navcards\s*\n([\s\S]*?)\n:::/g;
-  const matches = markdown.matchAll(navCardsRegex);
+  let match;
   
-  for (const match of matches) {
+  while ((match = navCardsRegex.exec(markdown)) !== null) {
+    const matchStartLine = markdown.substring(0, match.index).split('\n').length - 1;
+    const matchEndLine = markdown.substring(0, match.index + match[0].length).split('\n').length - 1;
+    
+    // Check if this navcards block overlaps with any code block
+    const isInCodeBlock = codeBlockRanges.some(range => 
+      (matchStartLine >= range.start && matchStartLine <= range.end) ||
+      (matchEndLine >= range.start && matchEndLine <= range.end) ||
+      (matchStartLine < range.start && matchEndLine > range.end)
+    );
+    
+    if (isInCodeBlock) {
+      continue; // Skip navcards inside code blocks
+    }
+    
     const content = match[1];
     
     // Try YAML-like format first (title: ... description: ... href: ...)

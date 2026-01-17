@@ -50,14 +50,11 @@ export const DocsApp: React.FC = () => {
         const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
         const manifestUrl = `/resource/${contentResourceName}/content/manifest.yaml`;
         
-        // Add cache-busting to force fresh manifest fetch
-        const cacheBustUrl = `${manifestUrl}?t=${Date.now()}`;
-        console.log(`[DocsUnlocked] Loading manifest from: ${cacheBustUrl}`);
-        
         let manifest: any;
         
         try {
-          const response = await fetch(cacheBustUrl, {
+          // Try to fetch manifest.yaml - 404 is expected when intentionally omitted
+          const response = await fetch(`${manifestUrl}?t=${Date.now()}`, {
             cache: 'no-store',
             headers: {
               'Cache-Control': 'no-cache'
@@ -69,15 +66,19 @@ export const DocsApp: React.FC = () => {
             manifest = yaml.load(yamlText) as any;
             console.log(`[DocsUnlocked] Loaded manifest from manifest.yaml file`);
           } else {
-            // 404 is expected when manifest.yaml is intentionally omitted
-            console.log(`[DocsUnlocked] Manifest file not found (${response.status}), generating from Apex tree...`);
-            throw new Error(`Manifest file not found: ${response.status}`);
+            // 404 is expected - silently fall through to Apex generation
+            throw new Error('MANIFEST_NOT_FOUND');
           }
-        } catch (error) {
-          // Fallback: generate manifest from Apex tree
-          // This is expected when manifest.yaml is intentionally omitted
-          console.log(`[DocsUnlocked] Generating manifest from Apex tree (manifest.yaml intentionally omitted)...`);
+        } catch (error: any) {
+          // Suppress 404 console errors - this is expected when manifest.yaml is intentionally omitted
+          if (error?.message === 'MANIFEST_NOT_FOUND' || error?.message?.includes('404')) {
+            console.log(`[DocsUnlocked] manifest.yaml not provided. Generating routes from Apex...`);
+          } else {
+            // Only log unexpected errors
+            console.log(`[DocsUnlocked] manifest.yaml not available. Generating routes from Apex...`);
+          }
           
+          // Fallback: generate manifest from Apex tree
           const getTreeJson = (window as any).DOCS_GET_TREE_JSON;
           if (!getTreeJson || typeof getTreeJson !== 'function') {
             console.error(`[DocsUnlocked] DOCS_GET_TREE_JSON function not available. Make sure the LWC component is properly initialized.`);
@@ -87,7 +88,7 @@ export const DocsApp: React.FC = () => {
           try {
             const treeJson = await getTreeJson(contentResourceName);
             manifest = await generateManifestFromTree(treeJson, contentResourceName);
-            console.log(`[DocsUnlocked] Successfully generated manifest from Apex tree`);
+            console.log(`[DocsUnlocked] Successfully generated routes from Apex`);
           } catch (apexError) {
             console.error(`[DocsUnlocked] Failed to generate manifest from Apex:`, apexError);
             throw apexError;

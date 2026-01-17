@@ -34,12 +34,75 @@ export const processCallouts = (content: string): string => {
 
 /**
  * Replace :::navcards blocks with placeholder divs
+ * Skips navcards inside code blocks (fenced code blocks only - most common case)
  */
 export const processNavCardsPlaceholders = (content: string): string => {
   const navCardsRegex = /:::navcards\s*\n([\s\S]*?)\n:::/g;
-  return content.replace(navCardsRegex, () => {
-    return '<div class="navcards-container"></div>';
-  });
+  
+  // Track fenced code blocks (``` or ~~~)
+  const lines = content.split('\n');
+  const codeBlockRanges: Array<{ start: number; end: number }> = [];
+  let inFencedBlock = false;
+  let fenceChar = '';
+  let fenceStart = -1;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    const fenceMatch = trimmed.match(/^(```+|~~~+)/);
+    
+    if (fenceMatch) {
+      if (!inFencedBlock) {
+        inFencedBlock = true;
+        fenceChar = fenceMatch[1][0];
+        fenceStart = i;
+      } else if (trimmed.startsWith(fenceChar.repeat(3))) {
+        codeBlockRanges.push({ start: fenceStart, end: i });
+        inFencedBlock = false;
+        fenceStart = -1;
+      }
+    }
+  }
+  
+  // Close any open block at end
+  if (inFencedBlock && fenceStart !== -1) {
+    codeBlockRanges.push({ start: fenceStart, end: lines.length - 1 });
+  }
+  
+  // Process navcards, skipping those inside code blocks
+  let result = content;
+  let match;
+  const replacements: Array<{ start: number; end: number; replacement: string }> = [];
+  
+  // Reset regex
+  navCardsRegex.lastIndex = 0;
+  
+  while ((match = navCardsRegex.exec(content)) !== null) {
+    const matchStartLine = content.substring(0, match.index).split('\n').length - 1;
+    const matchEndLine = content.substring(0, match.index + match[0].length).split('\n').length - 1;
+    
+    // Check if this navcards block overlaps with any code block
+    const isInCodeBlock = codeBlockRanges.some(range => 
+      (matchStartLine >= range.start && matchStartLine <= range.end) ||
+      (matchEndLine >= range.start && matchEndLine <= range.end) ||
+      (matchStartLine < range.start && matchEndLine > range.end)
+    );
+    
+    if (!isInCodeBlock) {
+      replacements.push({
+        start: match.index,
+        end: match.index + match[0].length,
+        replacement: '<div class="navcards-container"></div>'
+      });
+    }
+  }
+  
+  // Apply replacements in reverse order to preserve indices
+  for (let i = replacements.length - 1; i >= 0; i--) {
+    const rep = replacements[i];
+    result = result.substring(0, rep.start) + rep.replacement + result.substring(rep.end);
+  }
+  
+  return result;
 };
 
 /**
