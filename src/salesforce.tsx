@@ -1259,6 +1259,92 @@ const DocsApp = () => {
     return '/' + parts.join('/');
   };
   
+  // Convert tree JSON from Apex to manifest format
+  const generateManifestFromTree = async (treeJson: string, resourceName: string): Promise<any> => {
+    const tree = JSON.parse(treeJson);
+    const manifest: any = {};
+    
+    // Helper to remove numeric prefix (e.g., "01.getting-started" -> "getting-started")
+    const parseSegment = (segment: string): string => {
+      const match = segment.match(/^(\d+)[.-](.+)$/);
+      return match ? match[2] : segment;
+    };
+    
+    // Helper to generate title from filename
+    const generateTitleFromFilename = (filename: string): string => {
+      return filename.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    };
+    
+    // Navigate to content section
+    if (!tree.content || typeof tree.content !== 'object') {
+      return manifest;
+    }
+    
+    const content = tree.content;
+    
+    // Process each section folder
+    for (const [sectionFolder, sectionObj] of Object.entries(content)) {
+      // Skip manifest.yaml itself
+      if (sectionFolder === 'manifest.yaml') {
+        continue;
+      }
+      
+      if (typeof sectionObj !== 'object' || sectionObj === null) {
+        continue;
+      }
+      
+      const section = sectionObj as Record<string, any>;
+      const sectionName = parseSegment(sectionFolder);
+      const files: Array<{ title: string; file: string; path: string }> = [];
+      
+      // Process each markdown file in the section
+      for (const [fileName, filePath] of Object.entries(section)) {
+        if (!fileName.endsWith('.md') || typeof filePath !== 'string') {
+          continue;
+        }
+        
+        const cleanFileName = parseSegment(fileName.replace('.md', ''));
+        
+        // Try to extract title from markdown content
+        let title = '';
+        try {
+          const contentUrl = `/resource/${resourceName}/${filePath}`;
+          const contentResponse = await fetch(contentUrl);
+          if (contentResponse.ok) {
+            const contentText = await contentResponse.text();
+            const h1Match = contentText.match(/^#\s+(.+)$/m);
+            title = h1Match ? h1Match[1].trim() : generateTitleFromFilename(cleanFileName);
+          } else {
+            title = generateTitleFromFilename(cleanFileName);
+          }
+        } catch {
+          title = generateTitleFromFilename(cleanFileName);
+        }
+        
+        files.push({
+          title,
+          file: filePath.replace('content/', ''),
+          path: `/${sectionName}/${cleanFileName}`
+        });
+      }
+      
+      // Sort files by numeric prefix in filename
+      files.sort((a, b) => {
+        const aFileName = a.file.split('/').pop() || '';
+        const bFileName = b.file.split('/').pop() || '';
+        const aMatch = aFileName.match(/^(\d+)[.-]/);
+        const bMatch = bFileName.match(/^(\d+)[.-]/);
+        return (aMatch ? parseInt(aMatch[1]) : 999) - (bMatch ? parseInt(bMatch[1]) : 999);
+      });
+      
+      if (files.length > 0) {
+        manifest[sectionName] = files;
+      }
+    }
+    
+    return manifest;
+  };
+  
   
   // Build navigation structure from discovered files
   const buildNavigationFromDiscovered = (files: Map<string, { title: string; path: string; displayPath: string; order: number }>) => {
@@ -1307,19 +1393,39 @@ const DocsApp = () => {
         // Add cache-busting to force fresh manifest fetch
         const cacheBustUrl = `${manifestUrl}?t=${Date.now()}`;
         console.log(`[DocsUnlocked] Loading manifest from: ${cacheBustUrl}`);
-        const response = await fetch(cacheBustUrl, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache'
+        
+        let manifest: any;
+        let manifestSource = 'file';
+        
+        try {
+          const response = await fetch(cacheBustUrl, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache'
+            }
+          });
+          
+          if (response.ok) {
+            const yamlText = await response.text();
+            manifest = yaml.load(yamlText) as any;
+            console.log(`[DocsUnlocked] Loaded manifest from manifest.yaml file`);
+          } else {
+            throw new Error(`Manifest file not found: ${response.status}`);
           }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Failed to load manifest: ${response.status} ${response.statusText}`);
+        } catch (error) {
+          // Fallback: generate manifest from Apex tree
+          console.log(`[DocsUnlocked] Manifest file not found, generating from Apex tree...`);
+          manifestSource = 'apex';
+          
+          const getTreeJson = (window as any).DOCS_GET_TREE_JSON;
+          if (!getTreeJson || typeof getTreeJson !== 'function') {
+            throw new Error('DOCS_GET_TREE_JSON function not available. Make sure the LWC component is properly initialized.');
+          }
+          
+          const treeJson = await getTreeJson(contentResourceName);
+          manifest = await generateManifestFromTree(treeJson, contentResourceName);
+          console.log(`[DocsUnlocked] Generated manifest from Apex tree`);
         }
-        
-        const yamlText = await response.text();
-        const manifest = yaml.load(yamlText) as any;
         console.log(`[DocsUnlocked] === SECTIONS IN STATIC RESOURCE (from manifest) ===`);
         
         const filesMap = new Map<string, { title: string; path: string; displayPath: string; order: number }>();

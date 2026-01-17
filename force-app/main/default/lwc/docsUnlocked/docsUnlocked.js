@@ -1,5 +1,6 @@
 import { LightningElement, api } from 'lwc';
 import { loadScript } from 'lightning/platformResourceLoader';
+import { getTreeAsJson } from 'lightning/apex/StaticResourceTree.getTreeAsJson';
 import DOCS_UNLOCKED from '@salesforce/resourceUrl/docsUnlocked';
 
 export default class DocsUnlocked extends LightningElement {
@@ -40,6 +41,17 @@ export default class DocsUnlocked extends LightningElement {
             window.DOCS_DISPLAY_HEADER = this.displayHeader === true;
             window.DOCS_HEADER_LABEL = this.headerLabel || 'Documentation';
             window.DOCS_DISPLAY_FOOTER = this.displayFooter === true;
+            
+            // Expose method to get tree JSON from Apex
+            window.DOCS_GET_TREE_JSON = async (resourceName) => {
+                try {
+                    const result = await getTreeAsJson({ resourceName: resourceName });
+                    return result;
+                } catch (error) {
+                    console.error('[DocsUnlocked LWC] Error calling getTreeAsJson: ' + (error?.message || String(error)));
+                    throw error;
+                }
+            };
             
             console.log('[DocsUnlocked LWC] Container ID set, content resource: ' + this.contentResourceName + ', loading script bundle...');
             
