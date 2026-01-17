@@ -294,7 +294,12 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery, onTOCChange }: {
       // Use a more robust regex that handles headers with nested HTML
       const htmlWithIds = wrappedHtml.replace(/<h([1-4])([^>]*)>([\s\S]*?)<\/h[1-4]>/gi, (_match, level, attrs, content) => {
         // Extract text content from HTML (remove HTML tags using regex)
-        const text = content.replace(/<[^>]*>/g, '').trim();
+        let text = content.replace(/<[^>]*>/g, '').trim();
+        
+        // Decode HTML entities (like &#39; -> ')
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = text;
+        text = tempDiv.textContent || tempDiv.innerText || text;
         
         if (!text) return _match; // Skip empty headers
         
@@ -1707,10 +1712,28 @@ const DocsApp = () => {
                       if (!element) {
                         // Try finding by text content as last resort (for numbered headers)
                         const headers = contentContainer.querySelectorAll('h1, h2, h3, h4');
+                        const itemText = item.text.trim();
+                        console.log(`[DocsUnlocked] TOC link: Searching for "${itemText}" (ID: "${item.id}")`);
+                        
                         for (const header of Array.from(headers)) {
-                          const headerText = header.textContent?.trim();
-                          // Match exact text or text without leading number/period
-                          if (headerText === item.text || headerText?.replace(/^\d+\.\s*/, '') === item.text.replace(/^\d+\.\s*/, '')) {
+                          const headerText = header.textContent?.trim() || '';
+                          const headerId = header.id || '';
+                          
+                          // Check if header ID matches (case-insensitive)
+                          if (headerId.toLowerCase() === item.id.toLowerCase()) {
+                            console.log(`[DocsUnlocked] TOC link: Found by ID match: "${headerId}"`);
+                            element = header;
+                            break;
+                          }
+                          
+                          // Normalize both texts for comparison (remove leading numbers/periods, lowercase)
+                          const normalizeText = (txt: string) => txt.replace(/^\d+\.\s*/, '').toLowerCase().trim();
+                          const normalizedHeader = normalizeText(headerText);
+                          const normalizedItem = normalizeText(itemText);
+                          
+                          // Match exact text or normalized text
+                          if (headerText === itemText || normalizedHeader === normalizedItem) {
+                            console.log(`[DocsUnlocked] TOC link: Found by text match: "${headerText}" === "${itemText}"`);
                             element = header;
                             break;
                           }
