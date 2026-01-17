@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Menu, X, Github } from 'lucide-react';
 import yaml from 'js-yaml';
 import { TOCItem, DiscoveredFile, NavigationSection } from '../types';
@@ -328,8 +328,12 @@ export const DocsApp: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [currentPath, contentLoading, discoveredFiles]);
 
-  // Handle initial hash
-  useEffect(() => {
+  // Helper function to handle hash changes (used by both initial load and hashchange listener)
+  const handleHashChange = useCallback(() => {
+    if (discoveredFiles.size === 0 || navigation.length === 0) {
+      return; // Wait for navigation to load
+    }
+    
     const hash = window.location.hash.replace('#', '');
     if (hash) {
       // Check if hash contains :: separator (page path::anchor)
@@ -340,7 +344,7 @@ export const DocsApp: React.FC = () => {
         const normalizedPath = normalizeDisplayPath(pagePath);
         // Validate path exists in manifest
         if (discoveredFiles.has(normalizedPath)) {
-          console.log(`[DocsUnlocked] Setting initial path from hash: ${pagePath} -> ${normalizedPath}, anchor: ${anchorId}`);
+          console.log(`[DocsUnlocked] Hash changed: ${pagePath} -> ${normalizedPath}, anchor: ${anchorId}`);
           setCurrentPath(normalizedPath);
           // Anchor scrolling will be handled after content loads
         } else {
@@ -357,7 +361,7 @@ export const DocsApp: React.FC = () => {
         if (hash.startsWith('/') || discoveredFiles.has(hash) || discoveredFiles.has(normalizeDisplayPath(hash))) {
           // Normalize hash path (remove numeric prefixes) to match manifest displayPath
           const normalizedHash = normalizeDisplayPath(hash);
-          console.log(`[DocsUnlocked] Setting initial path from hash: ${hash} -> ${normalizedHash}`);
+          console.log(`[DocsUnlocked] Hash changed: ${hash} -> ${normalizedHash}`);
           setCurrentPath(normalizedHash);
         } else {
           // It's an anchor ID only - load default page first, then scroll to anchor
@@ -372,9 +376,29 @@ export const DocsApp: React.FC = () => {
         }
       }
     } else {
-      console.log(`[DocsUnlocked] No hash found, using default path: ${currentPath}`);
+      // No hash - set to first page
+      if (navigation.length > 0 && navigation[0].children.length > 0) {
+        const firstPath = navigation[0].children[0].path;
+        console.log(`[DocsUnlocked] No hash found, setting default path: ${firstPath}`);
+        setCurrentPath(firstPath);
+      }
     }
   }, [discoveredFiles, navigation]);
+
+  // Handle initial hash
+  useEffect(() => {
+    handleHashChange();
+  }, [handleHashChange]);
+
+  // Listen for hashchange events (browser back/forward buttons)
+  useEffect(() => {
+    const handleHashChangeEvent = () => {
+      handleHashChange();
+    };
+
+    window.addEventListener('hashchange', handleHashChangeEvent);
+    return () => window.removeEventListener('hashchange', handleHashChangeEvent);
+  }, [handleHashChange]);
 
   if (loading) {
     return (
