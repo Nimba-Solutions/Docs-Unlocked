@@ -1304,8 +1304,15 @@ const DocsApp = () => {
         const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
         const manifestUrl = `/resource/${contentResourceName}/content/manifest.yaml`;
         
-        console.log(`[DocsUnlocked] Loading manifest from: ${manifestUrl}`);
-        const response = await fetch(manifestUrl);
+        // Add cache-busting to force fresh manifest fetch
+        const cacheBustUrl = `${manifestUrl}?t=${Date.now()}`;
+        console.log(`[DocsUnlocked] Loading manifest from: ${cacheBustUrl}`);
+        const response = await fetch(cacheBustUrl, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
         
         if (!response.ok) {
           throw new Error(`Failed to load manifest: ${response.status} ${response.statusText}`);
@@ -1355,8 +1362,25 @@ const DocsApp = () => {
         setDiscoveredFiles(filesMap);
         setNavigation(nav);
         
-        // Set default path if no hash is present
-        if (!window.location.hash && nav.length > 0 && nav[0].children.length > 0) {
+        // Set default path if no hash is present, or validate hash path exists
+        const hash = window.location.hash.replace('#', '').split('::')[0]; // Get page path, ignore anchor
+        if (hash) {
+          // Check if hash path exists in manifest
+          const hashPath = hash.startsWith('/') ? hash : '/' + hash;
+          const pathExists = filesMap.has(hashPath);
+          if (pathExists) {
+            console.log(`[DocsUnlocked] Hash found, setting path: ${hashPath}`);
+            setCurrentPath(hashPath);
+          } else {
+            console.warn(`[DocsUnlocked] Hash path "${hashPath}" not found in manifest, redirecting to first page`);
+            // Redirect to first page
+            if (nav.length > 0 && nav[0].children.length > 0) {
+              const firstPath = nav[0].children[0].path;
+              window.location.hash = firstPath;
+              setCurrentPath(firstPath);
+            }
+          }
+        } else if (nav.length > 0 && nav[0].children.length > 0) {
           const firstPath = nav[0].children[0].path;
           console.log(`[DocsUnlocked] No hash found, setting default path: ${firstPath}`);
           setCurrentPath(firstPath);
@@ -1540,9 +1564,20 @@ const DocsApp = () => {
         const [pagePath, anchorId] = parts;
         // Normalize and set page path
         const normalizedPath = normalizeDisplayPath(pagePath);
-        console.log(`[DocsUnlocked] Setting initial path from hash: ${pagePath} -> ${normalizedPath}, anchor: ${anchorId}`);
-        setCurrentPath(normalizedPath);
-        // Anchor scrolling will be handled after content loads
+        // Validate path exists in manifest
+        if (discoveredFiles.has(normalizedPath)) {
+          console.log(`[DocsUnlocked] Setting initial path from hash: ${pagePath} -> ${normalizedPath}, anchor: ${anchorId}`);
+          setCurrentPath(normalizedPath);
+          // Anchor scrolling will be handled after content loads
+        } else {
+          console.warn(`[DocsUnlocked] Hash path "${normalizedPath}" not found in manifest, redirecting to first page`);
+          // Redirect to first page
+          if (navigation.length > 0 && navigation[0].children.length > 0) {
+            const firstPath = navigation[0].children[0].path;
+            window.location.hash = firstPath;
+            setCurrentPath(firstPath);
+          }
+        }
       } else {
         // Check if hash is a page path (starts with /) or exists in discoveredFiles
         if (hash.startsWith('/') || discoveredFiles.has(hash) || discoveredFiles.has(normalizeDisplayPath(hash))) {
