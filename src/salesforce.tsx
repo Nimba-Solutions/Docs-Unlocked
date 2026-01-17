@@ -429,6 +429,42 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery, onTOCChange }: {
     };
   }, [html, onNavigate]);
 
+  // Handle Salesforce Lightning links and other special links
+  useEffect(() => {
+    if (!contentRef.current) return;
+
+    const links = contentRef.current.querySelectorAll('a[href]');
+    const cleanupFunctions: Array<() => void> = [];
+
+    links.forEach((link) => {
+      const href = link.getAttribute('href');
+      if (!href) return;
+
+      // Check if it's a Lightning link (starts with "lightning/")
+      if (href.startsWith('lightning/')) {
+        const handleClick = (e: Event) => {
+          e.preventDefault();
+          // Convert to full Lightning URL
+          const lightningUrl = href.startsWith('/') ? href : `/${href}`;
+          // Use Salesforce's navigation API if available, otherwise use window.location
+          if ((window as any).sforce?.one?.navigateToURL) {
+            (window as any).sforce.one.navigateToURL(lightningUrl);
+          } else {
+            window.location.href = lightningUrl;
+          }
+        };
+        link.addEventListener('click', handleClick);
+        cleanupFunctions.push(() => {
+          link.removeEventListener('click', handleClick);
+        });
+      }
+    });
+
+    return () => {
+      cleanupFunctions.forEach(cleanup => cleanup());
+    };
+  }, [html]);
+
   // Highlight search query and scroll to first match
   useEffect(() => {
     if (!contentRef.current || !highlightQuery || !highlightQuery.trim()) return;
