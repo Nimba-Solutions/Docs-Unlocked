@@ -1,14 +1,44 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { marked } from 'marked';
+import hljs from 'highlight.js';
+import 'highlight.js/styles/github-dark.css';
 import { DocsApp } from './components/DocsApp';
 import { safeLog, safeError, safeStringify } from './utils/logger';
 import './index.css';
 
-// Configure marked.js with same options as Markdown-Unlocked
+// Configure marked.js with syntax highlighting
 marked.use({
   gfm: true,      // GitHub Flavored Markdown
   breaks: true    // Automatic line breaks
+});
+
+// Add syntax highlighting via renderer extension
+marked.use({
+  renderer: {
+    code(token: any) {
+      const codeText = token.text || '';
+      const lang = (token.lang || '').trim();
+      
+      if (lang && hljs.getLanguage(lang)) {
+        try {
+          const highlighted = hljs.highlight(codeText, { language: lang }).value;
+          return `<pre><code class="hljs language-${lang}">${highlighted}</code></pre>\n`;
+        } catch (err) {
+          // Fall through to auto-detect
+        }
+      }
+      
+      // Auto-detect language or use plain code
+      try {
+        const highlighted = hljs.highlightAuto(codeText).value;
+        return `<pre><code class="hljs">${highlighted}</code></pre>\n`;
+      } catch (err) {
+        // Fallback to plain code if highlighting fails
+        return `<pre><code>${codeText}</code></pre>\n`;
+      }
+    }
+  }
 });
 
 // Auto-initialize function - accepts container element or ID string

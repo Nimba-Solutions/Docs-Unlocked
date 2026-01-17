@@ -10,13 +10,22 @@ html {
 .prose pre {
   background-color: #111827 !important;
   border: 1px solid #374151 !important;
-  color: #f3f4f6 !important;
 }
 
 .prose pre code {
   background-color: transparent !important;
-  color: inherit !important;
   padding: 0 !important;
+}
+
+/* Non-highlighted code text - ensure it's bright and readable */
+.prose pre code:not(.hljs) {
+  color: #f8fafc !important; /* Very light text for non-highlighted code */
+}
+
+/* For highlighted code blocks - only fix the base/default text color */
+.prose pre code.hljs {
+  background: transparent;
+  color: #e5e7eb !important; /* Light gray for plain text - github-dark colors will override for highlighted tokens */
 }
 
 /* Code block wrapper for copy button */
@@ -36,8 +45,48 @@ html {
   background: transparent;
 }
 
-.prose pre code.hljs * {
-  color: inherit;
+/* Allow highlight.js to apply its own colors - don't override */
+.prose pre code.hljs {
+  /* Remove any color inheritance that would override highlight.js */
+}
+
+/* Task list (checkbox) styling - ensure visibility and contrast */
+.prose ul li input[type="checkbox"] {
+  margin-right: 0.5rem;
+  margin-left: -1.5rem;
+  width: 1rem;
+  height: 1rem;
+  cursor: default;
+  accent-color: #3b82f6; /* blue-500 */
+  opacity: 1 !important;
+  appearance: checkbox !important;
+  -webkit-appearance: checkbox !important;
+  border: 2px solid #6b7280 !important; /* gray-500 */
+  background-color: white !important;
+}
+
+.prose ul li input[type="checkbox"]:checked {
+  accent-color: #3b82f6; /* blue-500 */
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Ensure task list items have proper text color - override any code block styling */
+.prose ul li:has(input[type="checkbox"]),
+.prose ul li input[type="checkbox"] + * {
+  color: #374151 !important; /* gray-700 - dark text for readability */
+  background-color: transparent !important;
+}
+
+/* Make sure task list text isn't inside a code block */
+.prose ul li:has(input[type="checkbox"]) {
+  list-style: none;
+  padding-left: 0;
+}
+
+.prose ul:has(li input[type="checkbox"]) {
+  list-style: none;
+  padding-left: 1.5rem;
 }
 
 /* Search modal animation */
