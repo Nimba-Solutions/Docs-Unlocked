@@ -1,0 +1,40 @@
+# This workflow delivers the latest Production Release to an org.
+# It does *not* promote a Beta Release.
+# To promote a Beta Release to enable it for installation you need to run the `Production Release` workflow.
+
+name: Package - Install (Unlocked)
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Choose the environment"
+        required: true
+        default: "production"
+        type: choice
+        options:
+          - production
+          - sandbox
+
+jobs:
+  install-package:
+    uses: nimba-actions/standard-workflows/.github/workflows/install-production.yml@main
+    secrets:
+      cci-token: ${{ secrets.CUMULUSCI_TOKEN }}
+      prod-org-auth-url: ${{ inputs.environment == 'production' && secrets.PROD_ORG_AUTH_URL || secrets.BETA_ORG_AUTH_URL }}
+    with:
+      cumulusci-version: "3.93.0"
+
+permissions:
+  actions: write
+  attestations: write
+  checks: write
+  contents: write
+  deployments: write
+  discussions: write
+  issues: write
+  packages: write
+  pages: write
+  pull-requests: write
+  repository-projects: write
+  security-events: write
+  statuses: write

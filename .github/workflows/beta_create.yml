@@ -1,0 +1,52 @@
+# This workflow generates a new Beta Package Version and installs it into a Validation Org.
+# It also generates a corresponding Github Release and Tag.
+# Beta Package Versions can only be installed into scratch orgs and sandboxes.
+# To enable it for production installation you need to run the `Beta (Unlocked) - Promote` workflow.
+
+name: Beta - Create (Unlocked)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "main"
+    # Only generate a new package if the contents of the following directories have been changed.
+    paths:
+      - "force-app/**"
+      - "unpackaged/**"
+      - "datasets/**"
+jobs:
+  upload-beta:
+    uses: nimba-actions/standard-workflows/.github/workflows/beta-unlocked.yml@main
+    secrets:
+      cci-token: ${{ secrets.CUMULUSCI_TOKEN }}
+      dev-hub-auth-url: ${{ secrets.DEV_HUB_AUTH_URL }}
+    with:
+      cumulusci-version: "3.93.0"
+      sfdx-version: "7.209.6"
+      org-name: "dev"
+      debug: true
+  install-beta:
+    needs: upload-beta
+    uses: nimba-actions/standard-workflows/.github/workflows/install-beta.yml@main
+    secrets:
+      cci-token: ${{ secrets.CUMULUSCI_TOKEN }}
+      dev-hub-auth-url: ${{ secrets.DEV_HUB_AUTH_URL }}
+    with:
+      cumulusci-version: "3.93.0"
+      sfdx-version: "7.209.6"
+      debug: true
+
+permissions:
+  actions: write
+  attestations: write
+  checks: write
+  contents: write
+  deployments: write
+  discussions: write
+  issues: write
+  packages: write
+  pages: write
+  pull-requests: write
+  repository-projects: write
+  security-events: write
+  statuses: write
