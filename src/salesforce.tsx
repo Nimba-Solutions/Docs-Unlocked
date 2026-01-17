@@ -709,11 +709,11 @@ const Sidebar = ({
         lg:translate-x-0 lg:flex-shrink-0
         overflow-y-auto
       `}>
-        <div className="h-full overflow-y-auto p-6">
+        <div className="h-full overflow-y-auto p-6 relative">
           {/* Mobile close button */}
           <button
             onClick={onClose}
-            className="lg:hidden absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+            className="lg:hidden absolute top-0 left-0 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg z-50"
             aria-label="Close sidebar"
           >
             <X className="w-5 h-5" />
@@ -1467,7 +1467,7 @@ const DocsApp = () => {
             className="p-3 bg-white border border-gray-200 rounded-lg shadow-lg hover:bg-gray-50"
             aria-label="Toggle table of contents"
           >
-            {tocSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 rotate-90" />}
+            {tocSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         )}
       </div>
