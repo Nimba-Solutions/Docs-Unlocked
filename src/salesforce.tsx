@@ -701,7 +701,7 @@ const Sidebar = ({
         />
       )}
       <aside className={`
-        fixed lg:relative
+        absolute lg:relative
         left-0 top-0 bottom-0 lg:top-auto lg:bottom-auto lg:h-auto
         w-72 bg-white border-r border-gray-200 
         transform transition-transform duration-300 ease-in-out z-40
@@ -1525,14 +1525,14 @@ const DocsApp = () => {
             {/* Mobile overlay */}
             {tocSidebarOpen && (
               <div 
-                className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+                className="absolute inset-0 bg-black/50 z-30 lg:hidden"
                 onClick={() => setTocSidebarOpen(false)}
               />
             )}
             <aside className={`
               ${tocSidebarOpen ? 'translate-x-0' : 'translate-x-full'}
               lg:translate-x-0
-              fixed lg:relative
+              absolute lg:relative
               right-0 top-0 bottom-0 lg:top-auto lg:bottom-auto lg:h-auto
               w-80 bg-white border-l border-gray-200 z-40
               transform transition-transform duration-300 ease-in-out
