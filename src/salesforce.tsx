@@ -710,6 +710,14 @@ const Sidebar = ({
         overflow-y-auto
       `}>
         <div className="h-full overflow-y-auto p-6">
+          {/* Mobile close button */}
+          <button
+            onClick={onClose}
+            className="lg:hidden absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+            aria-label="Close sidebar"
+          >
+            <X className="w-5 h-5" />
+          </button>
           <div className="mb-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -1539,7 +1547,15 @@ const DocsApp = () => {
               lg:flex-shrink-0
               overflow-y-auto
             `}>
-          <div className="h-full overflow-y-auto p-6">
+          <div className="h-full overflow-y-auto p-6 relative">
+            {/* Mobile close button */}
+            <button
+              onClick={() => setTocSidebarOpen(false)}
+              className="lg:hidden absolute top-0 right-0 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+              aria-label="Close table of contents"
+            >
+              <X className="w-5 h-5" />
+            </button>
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
               On This Page
             </h3>
