@@ -706,9 +706,9 @@ const Sidebar = ({
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:absolute lg:left-0 lg:w-72 lg:transform-none lg:translate-x-0
       `} style={{
-        top: displayHeader ? '124px' : '0px',
+        top: displayHeader ? '124px' : '64px', // Account for ROW1 on mobile
         bottom: 0,
-        height: displayHeader ? 'calc(100% - 124px)' : '100%'
+        height: displayHeader ? 'calc(100% - 124px)' : 'calc(100% - 64px)' // Account for ROW1 on mobile
       }}>
         <div className="h-full overflow-y-auto p-6">
           <div className="mb-6">
@@ -1023,8 +1023,12 @@ const NavigationLinks = ({
 
   if (!prevPage && !nextPage) return null;
 
+  const spacingClass = _position === 'top' 
+    ? 'mb-8 pb-8 border-b border-gray-200' 
+    : 'mt-8 pt-8 border-t border-gray-200';
+
   return (
-    <div className="flex items-center justify-between">
+    <div className={`flex items-center justify-between ${spacingClass}`}>
       <div className="text-sm">
         {prevPage ? (
           <a
@@ -1438,99 +1442,88 @@ const DocsApp = () => {
   }
 
   return (
-    <div className="bg-gray-50" style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'relative' }}>
-      {/* Mobile menu buttons - always visible on mobile/tablet */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="lg:hidden fixed z-40 p-3 bg-white border border-gray-200 rounded-lg shadow-lg hover:bg-gray-50"
-        style={{ 
-          top: displayHeader ? '76px' : '16px', 
-          left: '16px' 
-        }}
-        aria-label="Toggle navigation sidebar"
-      >
-        {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
-      
-      {/* TOC button - only show if TOC has content */}
-      {tableOfContents.length > 0 && (
+    <div className="bg-gray-50 flex flex-col" style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
+      {/* ROW1: Mobile sidebar buttons - Only visible on mobile */}
+      <div className="lg:hidden flex items-center justify-between h-16 bg-white border-b border-gray-200 px-4">
         <button
-          onClick={() => setTocSidebarOpen(!tocSidebarOpen)}
-          className="lg:hidden fixed z-40 p-3 bg-white border border-gray-200 rounded-lg shadow-lg hover:bg-gray-50"
-          style={{ 
-            top: displayHeader ? '76px' : '16px', 
-            right: '16px' 
-          }}
-          aria-label="Toggle table of contents"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-3 bg-white border border-gray-200 rounded-lg shadow-lg hover:bg-gray-50"
+          aria-label="Toggle navigation sidebar"
         >
-          {tocSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 rotate-90" />}
+          {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
-      )}
+        
+        {/* TOC button - only show if TOC has content */}
+        {tableOfContents.length > 0 && (
+          <button
+            onClick={() => setTocSidebarOpen(!tocSidebarOpen)}
+            className="p-3 bg-white border border-gray-200 rounded-lg shadow-lg hover:bg-gray-50"
+            aria-label="Toggle table of contents"
+          >
+            {tocSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 rotate-90" />}
+          </button>
+        )}
+      </div>
       
       {/* ROW2: Header - Only visible when enabled */}
       {displayHeader && (
-        <header className="absolute left-0 right-0 h-16 bg-white border-b border-gray-200 z-50" style={{ 
-          top: '0px'
-        }}>
-          <div className="h-full px-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />
-                <span className="text-xl font-bold text-gray-900">{headerLabel}</span>
-              </div>
-            </div>
+        <header className="h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <button className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
-                <Github className="w-4 h-4" />
-                <span>GitHub</span>
-              </button>
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />
+              <span className="text-xl font-bold text-gray-900">{headerLabel}</span>
             </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+              <Github className="w-4 h-4" />
+              <span>GitHub</span>
+            </button>
           </div>
         </header>
       )}
+      
       {/* ROW3: Left Sidebar + Content + Right Sidebar */}
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
-        navigation={navigation}
-        currentPath={currentPath}
-        onNavigate={handleNavigate}
-        displayHeader={displayHeader}
-        discoveredFiles={discoveredFiles}
-      />
-      <main className="lg:absolute lg:left-72 lg:right-80 lg:overflow-y-auto" style={{
-        top: displayHeader ? '64px' : '0px',
-        bottom: displayFooter ? '64px' : '0px',
-        height: displayHeader 
-          ? (displayFooter ? 'calc(100% - 128px)' : 'calc(100% - 64px)')
-          : (displayFooter ? 'calc(100% - 64px)' : '100%')
-      }}>
-        <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6 lg:pt-8 lg:pb-8">
-          {contentLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-gray-600">Loading content...</div>
-            </div>
-          ) : (
-            <>
-              <NavigationLinks 
-                navigation={navigation}
-                currentPath={currentPath}
-                onNavigate={handleNavigate}
-                position="top"
-              />
-              <ContentRenderer content={content} onNavigate={handleNavigate} highlightQuery={highlightQuery} onTOCChange={setTableOfContents} />
-              <NavigationLinks 
-                navigation={navigation}
-                currentPath={currentPath}
-                onNavigate={handleNavigate}
-                position="bottom"
-              />
-            </>
-          )}
-        </article>
-      </main>
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar 
+          isOpen={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)} 
+          navigation={navigation}
+          currentPath={currentPath}
+          onNavigate={handleNavigate}
+          displayHeader={displayHeader}
+          discoveredFiles={discoveredFiles}
+        />
+        <main className="flex-1 overflow-y-auto">
+          <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6 lg:pt-8 lg:pb-8">
+            {contentLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-gray-600">Loading content...</div>
+              </div>
+            ) : (
+              <>
+                <NavigationLinks 
+                  navigation={navigation}
+                  currentPath={currentPath}
+                  onNavigate={handleNavigate}
+                  position="top"
+                />
+                <ContentRenderer content={content} onNavigate={handleNavigate} highlightQuery={highlightQuery} onTOCChange={setTableOfContents} />
+                <NavigationLinks 
+                  navigation={navigation}
+                  currentPath={currentPath}
+                  onNavigate={handleNavigate}
+                  position="bottom"
+                />
+              </>
+            )}
+          </article>
+        </main>
+      </div>
+      
+      {/* ROW4: Footer */}
       {displayFooter && (
-        <footer className="absolute left-0 right-0 border-t border-gray-200 bg-white py-6 z-50" style={{ bottom: '0px' }}>
+        <footer className="border-t border-gray-200 bg-white py-6">
           <div className="max-w-4xl mx-auto px-4 sm:px-4 md:px-6 lg:px-8">
             <div className="text-center text-sm text-gray-600">
               <p>Documentation powered by Docs Unlocked</p>
