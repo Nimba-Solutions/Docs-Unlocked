@@ -1009,7 +1009,7 @@ const NavigationLinks = ({
   navigation, 
   currentPath, 
   onNavigate,
-  position = 'top'
+  position: _position = 'top'
 }: { 
   navigation: any[]; 
   currentPath: string; 
@@ -1023,12 +1023,8 @@ const NavigationLinks = ({
 
   if (!prevPage && !nextPage) return null;
 
-  const borderClass = position === 'top' 
-    ? 'pb-8 mb-8 border-b border-gray-200' 
-    : 'pt-8 mt-8 border-t border-gray-200';
-
   return (
-    <div className={`flex items-center justify-between ${borderClass}`}>
+    <div className="flex items-center justify-between">
       <div className="text-sm">
         {prevPage ? (
           <a
@@ -1074,6 +1070,7 @@ const NavigationLinks = ({
 // Main App Component
 const DocsApp = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [tocSidebarOpen, setTocSidebarOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [navigation, setNavigation] = useState<any[]>([]);
   const [content, setContent] = useState<string>('');
@@ -1442,21 +1439,39 @@ const DocsApp = () => {
 
   return (
     <div className="bg-gray-50" style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'relative' }}>
-      {/* Mobile menu button - always visible on mobile/tablet */}
+      {/* Mobile menu buttons - always visible on mobile/tablet */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="lg:hidden absolute z-50 p-3 bg-white border border-gray-200 rounded-lg shadow-lg hover:bg-gray-50"
+        className="lg:hidden fixed z-40 p-3 bg-white border border-gray-200 rounded-lg shadow-lg hover:bg-gray-50"
         style={{ 
           top: displayHeader ? '76px' : '16px', 
           left: '16px' 
         }}
-        aria-label="Toggle sidebar"
+        aria-label="Toggle navigation sidebar"
       >
         {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
       </button>
       
+      {/* TOC button - only show if TOC has content */}
+      {tableOfContents.length > 0 && (
+        <button
+          onClick={() => setTocSidebarOpen(!tocSidebarOpen)}
+          className="lg:hidden fixed z-40 p-3 bg-white border border-gray-200 rounded-lg shadow-lg hover:bg-gray-50"
+          style={{ 
+            top: displayHeader ? '76px' : '16px', 
+            right: '16px' 
+          }}
+          aria-label="Toggle table of contents"
+        >
+          {tocSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 rotate-90" />}
+        </button>
+      )}
+      
+      {/* ROW2: Header - Only visible when enabled */}
       {displayHeader && (
-        <header className="absolute left-0 right-0 h-16 bg-white border-b border-gray-200 z-50" style={{ top: '60px' }}>
+        <header className="absolute left-0 right-0 h-16 bg-white border-b border-gray-200 z-50" style={{ 
+          top: '0px'
+        }}>
           <div className="h-full px-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
@@ -1473,6 +1488,7 @@ const DocsApp = () => {
           </div>
         </header>
       )}
+      {/* ROW3: Left Sidebar + Content + Right Sidebar */}
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
@@ -1483,9 +1499,11 @@ const DocsApp = () => {
         discoveredFiles={discoveredFiles}
       />
       <main className="lg:absolute lg:left-72 lg:right-80 lg:overflow-y-auto" style={{
-        top: displayHeader ? '124px' : '0px',
-        bottom: 0,
-        height: displayHeader ? 'calc(100% - 124px)' : '100%'
+        top: displayHeader ? '64px' : '0px',
+        bottom: displayFooter ? '64px' : '0px',
+        height: displayHeader 
+          ? (displayFooter ? 'calc(100% - 128px)' : 'calc(100% - 64px)')
+          : (displayFooter ? 'calc(100% - 64px)' : '100%')
       }}>
         <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6 lg:pt-8 lg:pb-8">
           {contentLoading ? (
@@ -1512,7 +1530,7 @@ const DocsApp = () => {
         </article>
       </main>
       {displayFooter && (
-        <footer className="border-t border-gray-200 bg-white py-6 mt-12">
+        <footer className="absolute left-0 right-0 border-t border-gray-200 bg-white py-6 z-50" style={{ bottom: '0px' }}>
           <div className="max-w-4xl mx-auto px-4 sm:px-4 md:px-6 lg:px-8">
             <div className="text-center text-sm text-gray-600">
               <p>Documentation powered by Docs Unlocked</p>
@@ -1523,11 +1541,25 @@ const DocsApp = () => {
       
       {/* Right Sidebar - Table of Contents */}
       {tableOfContents.length > 0 && (
-        <aside className="hidden lg:block lg:absolute lg:right-0 w-80 bg-white border-l border-gray-200 z-30" style={{
-          top: displayHeader ? '124px' : '0px',
-          bottom: 0,
-          height: displayHeader ? 'calc(100% - 124px)' : '100%'
-        }}>
+        <>
+          {/* Mobile overlay */}
+          {tocSidebarOpen && (
+            <div 
+              className="lg:hidden absolute inset-0 bg-black/50 z-30"
+              onClick={() => setTocSidebarOpen(false)}
+            />
+          )}
+          <aside className={`
+            ${tocSidebarOpen ? 'translate-x-0' : 'translate-x-full'}
+            lg:translate-x-0
+            absolute right-0 w-80 bg-white border-l border-gray-200 z-40
+            transform transition-transform duration-300 ease-in-out
+            lg:absolute lg:right-0
+          `} style={{
+            top: displayHeader ? '124px' : '0px',
+            bottom: 0,
+            height: displayHeader ? 'calc(100% - 124px)' : '100%'
+          }}>
           <div className="h-full overflow-y-auto p-6">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
               On This Page
@@ -1602,6 +1634,7 @@ const DocsApp = () => {
             </nav>
           </div>
         </aside>
+        </>
       )}
       
       <SearchModal
