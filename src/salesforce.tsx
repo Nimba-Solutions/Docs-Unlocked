@@ -155,12 +155,14 @@ const ContentRenderer = ({ content, onNavigate, highlightQuery, onTOCChange }: {
         const callout = calloutTypes[type] || calloutTypes['NOTE'];
         // Remove > prefix from each line and trim
         const cleanContent = content.replace(/^>\s?/gm, '').trim();
-        return `\n<div class="callout ${callout.bg} ${callout.border} border-l-4 rounded-lg p-4 my-4">\n<div class="flex items-start gap-2 mb-1">\n<span class="text-lg flex-shrink-0 mt-0.5">${callout.icon}</span>\n<p class="font-semibold text-gray-900 m-0 leading-tight">${callout.title}</p>\n</div>\n<div class="text-gray-700">${cleanContent}</div>\n</div>\n`;
+        // Parse the content as markdown to support nested markdown (links, bold, etc.)
+        const parsedContent = marked.parse(cleanContent) as string;
+        return `\n<div class="callout ${callout.bg} ${callout.border} border-l-4 rounded-lg p-4 my-4">\n<div class="flex items-start gap-2 mb-1">\n<span class="text-lg flex-shrink-0">${callout.icon}</span>\n<p class="font-semibold text-gray-900 m-0 leading-tight">${callout.title}</p>\n</div>\n<div class="text-gray-700">${parsedContent}</div>\n</div>\n`;
       });
 
       // Also convert existing "Important:" patterns to callouts (standalone or in paragraphs)
       processedContent = processedContent.replace(/\*\*Important:\*\*\s*([^\n]+)/g, (_match, text) => {
-        return `\n<div class="callout bg-yellow-50 border-yellow-300 border-l-4 rounded-lg p-4 my-4">\n<div class="flex items-start gap-2 mb-1">\n<span class="text-lg flex-shrink-0 mt-0.5">⚠️</span>\n<p class="font-semibold text-gray-900 m-0 leading-tight">Important</p>\n</div>\n<div class="text-gray-700"><strong>Important:</strong> ${text}</div>\n</div>\n`;
+        return `\n<div class="callout bg-yellow-50 border-yellow-300 border-l-4 rounded-lg p-4 my-4">\n<div class="flex items-start gap-2 mb-1">\n<span class="text-lg flex-shrink-0">⚠️</span>\n<p class="font-semibold text-gray-900 m-0 leading-tight">Important</p>\n</div>\n<div class="text-gray-700"><strong>Important:</strong> ${text}</div>\n</div>\n`;
       });
 
       // marked.parse() returns a string (synchronous) in the version we're using
