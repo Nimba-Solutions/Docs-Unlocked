@@ -55,15 +55,78 @@ class ZipPath(BaseTask):
                 return True
         return False
 
+    def _get_option_value(self, option_name):
+        """Extract option value, handling both direct values and dict structures.
+        
+        When tasks are loaded from sources, CumulusCI may pass option definitions
+        (dicts with description, required, etc.) instead of actual values.
+        This method extracts the actual value regardless of how it's structured.
+        """
+        # Try multiple ways to access the option value
+        value = None
+        
+        # First, try self.options (standard way)
+        if hasattr(self, 'options') and option_name in self.options:
+            value = self.options[option_name]
+        
+        # If not found, try task_config.options
+        if value is None and hasattr(self, 'task_config') and hasattr(self.task_config, 'options'):
+            value = self.task_config.options.get(option_name)
+        
+        # If value is None or empty, return as-is
+        if value is None:
+            return None
+        
+        # If value is already a simple type (str, bool, int, etc.), return it
+        if not isinstance(value, dict):
+            return value
+        
+        # Value is a dict - try to extract the actual value
+        # This can happen when options come from YAML configurations or sources
+        
+        # Check if it's the actual value wrapped in a dict
+        if "value" in value:
+            return value["value"]
+        
+        # Check for common CumulusCI option definition keys
+        # If it has these keys, it's likely a definition dict, not a value
+        definition_keys = {"description", "required", "default"}
+        if definition_keys.intersection(value.keys()):
+            # It's a definition dict - try to get the default
+            default = value.get("default")
+            if default is not None:
+                return default
+            # If no default and it's required, this is an error condition
+            # But we'll let the caller handle that
+        
+        # Last resort: if the dict has a single key that's not a definition key,
+        # maybe that's the value? Unlikely but possible.
+        if len(value) == 1:
+            key = list(value.keys())[0]
+            if key not in definition_keys:
+                return value[key]
+        
+        # If we can't extract a value, log and return None
+        self.logger.warning(
+            f"Option '{option_name}' is a dict but doesn't match expected structure. "
+            f"Keys: {list(value.keys())}. Value: {value}"
+        )
+        return None
+
     def _run_task(self):
-        source_path = Path(self.options["path"]).resolve()
+        # Get path option, handling dict structures
+        path_value = self._get_option_value("path")
+        if not path_value:
+            raise ValueError("path option is required")
+        source_path = Path(path_value).resolve()
 
         if not source_path.exists():
             raise FileNotFoundError(f"Path does not exist: {source_path}")
 
         # Determine output zip file path
-        if "output" in self.options and self.options["output"]:
-            output_path = Path(self.options["output"]).resolve()
+        output_value = self._get_option_value("output")
+        if output_value:
+            output_path = Path(output_value).resolve()
         else:
             # If source is a directory, append .zip; if file, replace extension
             if source_path.is_dir():
@@ -76,8 +139,9 @@ class ZipPath(BaseTask):
 
         # Get exclude patterns
         exclude_patterns = []
-        if "exclude" in self.options and self.options["exclude"]:
-            exclude_patterns = process_list_arg(self.options["exclude"])
+        exclude_value = self._get_option_value("exclude")
+        if exclude_value:
+            exclude_patterns = process_list_arg(exclude_value)
 
         # Create the zip file
         self.logger.info(f"Compressing {source_path} to {output_path}")
@@ -110,7 +174,9 @@ class ZipPath(BaseTask):
         self.logger.info(f"Successfully created zip file: {output_path}")
 
         # Create meta.xml file if requested
-        include_meta = self.options.get("include_meta", False)
+        include_meta = self._get_option_value("include_meta")
+        if include_meta is None:
+            include_meta = False
         # Handle both boolean and string values
         if isinstance(include_meta, str):
             include_meta = include_meta.lower() in ("true", "1", "yes")
