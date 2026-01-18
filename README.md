@@ -69,7 +69,7 @@ Package your `content/` folder (and optional `media/` folder) into a ZIP file. S
 That's it! Your documentation is now live.
 
 > [!TIP]
-> Docs Unlocked automatically generates navigation from your file structure. Sections and pages will be sorted alphabetically by default, and numeric prefixes (like `01.getting-started`) can be specified for more control. Page titles are extracted from the first H1 header in each markdown file, and a full table of contents is generated from your H1-H4 headers within each page. For more details, see [Basic Usage](/public/content/01.getting-started/02.basic-usage.md).
+> Docs Unlocked automatically generates navigation from your file structure. Page titles are extracted from the first H1 header in each markdown file, and a full table of contents is generated from your H1-H4 headers for each page. Sections and pages will be sorted alphabetically by default, but this can be controlled granularly through numeric prefixes or by including a `manifest.yml` file with your content. For more details, see [Basic Usage](/public/content/01.getting-started/02.basic-usage.md).
 
 ## Navigation
 
