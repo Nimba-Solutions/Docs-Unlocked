@@ -24,9 +24,7 @@ Docs Unlocked provides a beautiful, searchable documentation experience with min
 Docs Unlocked consists of two main components:
 
 1. **Lightning Web Component** - The Salesforce component that displays your documentation
-2. **Content Files** - Your markdown files organized in folders, stored in a ZIP StaticResource
-
-Navigation is automatically generated from your file structure. You can also provide a `manifest.yaml` file for full control ([learn more](/public/content/01.getting-started/02.basic-usage.md#automatic-vs-manual-navigation)).
+2. **Content Files** - Your markdown files organized in folders, stored in a ZIP StaticResource ([learn more](/public/content/01.getting-started/02.basic-usage.md#automatic-vs-manual-navigation)).
 
 ## Quick Start
 
