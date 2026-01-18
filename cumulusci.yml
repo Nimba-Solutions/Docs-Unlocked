@@ -26,3 +26,20 @@ tasks:
     run_tests:
         options:
             required_org_code_coverage_percent: 75
+
+    zip:
+        class_path: tasks.zip_path.ZipPath
+        description: Compress a user-defined path into a .zip file
+        options:
+            path:
+                description: Path to the directory or file to compress
+                required: True
+            output:
+                description: Output zip file path (defaults to {path}.zip)
+                required: False
+            exclude:
+                description: List of patterns to exclude from the zip file
+                required: False
+            include_meta:
+                description: If True, create a .resource-meta.xml file alongside the zip file
+                required: False
