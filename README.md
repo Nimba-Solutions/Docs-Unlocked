@@ -50,7 +50,7 @@ For more details on file organization, see the [directory structure guide](/publ
 Package your `content/` folder (and optional `media/` folder) into a ZIP file. See [packaging instructions](/public/content/01.getting-started/02.basic-usage.md#packaging-your-content) for details.
 
 > [!IMPORTANT]
-> Static Resources have a maximum file size of 5mb, so while you technically can include media directly, we *strongly* recommend you serve rich content from a content from remote sources. see [Basic Usage](/public/content/01.getting-started/02.basic-usage.md) for more information.
+> Static Resources have a maximum file size of 5mb, so while you technically can include media directly, we *strongly* recommend you serve rich content from remote sources. see [Basic Usage > Media](/public/content/01.getting-started/02.basic-usage.md#Media) for more information.
 
 ### 3. Upload to Salesforce
 
