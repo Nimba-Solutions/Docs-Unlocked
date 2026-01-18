@@ -204,12 +204,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
       <aside className={`
         absolute lg:relative
-        left-0 top-0 bottom-0 lg:top-auto lg:bottom-auto lg:h-auto
+        left-0 top-0 bottom-0 lg:top-0 lg:bottom-0
         w-72 bg-white border-r border-gray-200 
         transform transition-transform duration-300 ease-in-out z-40
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 lg:flex-shrink-0
         overflow-y-auto
+        h-full
       `}>
         <div className="h-full overflow-y-auto p-6 relative">
           {/* Mobile close button */}
