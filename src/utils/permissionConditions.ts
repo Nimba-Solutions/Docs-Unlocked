@@ -77,22 +77,15 @@ async function checkStandardPermission(permission: string): Promise<boolean> {
   if (cached !== null) return cached;
   
   try {
-    // Use Salesforce UserInfo API if available
-    if (typeof (window as any).sf !== 'undefined' && (window as any).sf.UserInfo) {
-      const hasPermission = await (window as any).sf.UserInfo.hasPermission(permission);
+    // Use Apex method via LWC bridge
+    if (typeof (window as any).DOCS_CHECK_PERMISSION === 'function') {
+      const hasPermission = await (window as any).DOCS_CHECK_PERMISSION(permission);
       setCachedPermission(cacheKey, hasPermission);
       return hasPermission;
     }
     
-    // Fallback: Use Lightning Platform API
-    if (typeof (window as any).Lightning !== 'undefined' && (window as any).Lightning.UserInfo) {
-      const hasPermission = await (window as any).Lightning.UserInfo.hasPermission(permission);
-      setCachedPermission(cacheKey, hasPermission);
-      return hasPermission;
-    }
-    
-    // If no Salesforce context available, return false and log warning
-    console.warn(`[DocsUnlocked] Permission check for "${permission}" - Salesforce context not available. Content will be hidden.`);
+    // If Apex bridge not available, return false and log warning
+    console.warn(`[DocsUnlocked] Permission check for "${permission}" - DOCS_CHECK_PERMISSION not available. Content will be hidden.`);
     setCachedPermission(cacheKey, false);
     return false;
   } catch (error) {
@@ -111,21 +104,14 @@ async function checkCustomPermission(permission: string): Promise<boolean> {
   if (cached !== null) return cached;
   
   try {
-    // Use Salesforce UserInfo API for custom permissions
-    if (typeof (window as any).sf !== 'undefined' && (window as any).sf.UserInfo) {
-      const hasPermission = await (window as any).sf.UserInfo.hasCustomPermission(permission);
+    // Use Apex method via LWC bridge
+    if (typeof (window as any).DOCS_CHECK_CUSTOM_PERMISSION === 'function') {
+      const hasPermission = await (window as any).DOCS_CHECK_CUSTOM_PERMISSION(permission);
       setCachedPermission(cacheKey, hasPermission);
       return hasPermission;
     }
     
-    // Fallback: Use Lightning Platform API
-    if (typeof (window as any).Lightning !== 'undefined' && (window as any).Lightning.UserInfo) {
-      const hasPermission = await (window as any).Lightning.UserInfo.hasCustomPermission(permission);
-      setCachedPermission(cacheKey, hasPermission);
-      return hasPermission;
-    }
-    
-    console.warn(`[DocsUnlocked] Custom permission check for "${permission}" - Salesforce context not available. Content will be hidden.`);
+    console.warn(`[DocsUnlocked] Custom permission check for "${permission}" - DOCS_CHECK_CUSTOM_PERMISSION not available. Content will be hidden.`);
     setCachedPermission(cacheKey, false);
     return false;
   } catch (error) {
@@ -171,23 +157,14 @@ async function checkProfile(profile: string): Promise<boolean> {
   if (cached !== null) return cached;
   
   try {
-    // Check profile name via UserInfo
-    if (typeof (window as any).sf !== 'undefined' && (window as any).sf.UserInfo) {
-      const userProfile = await (window as any).sf.UserInfo.getProfileName();
-      const matches = userProfile === profile;
+    // Use Apex method via LWC bridge
+    if (typeof (window as any).DOCS_CHECK_PROFILE === 'function') {
+      const matches = await (window as any).DOCS_CHECK_PROFILE(profile);
       setCachedPermission(cacheKey, matches);
       return matches;
     }
     
-    // Fallback: Use Lightning Platform API
-    if (typeof (window as any).Lightning !== 'undefined' && (window as any).Lightning.UserInfo) {
-      const userProfile = await (window as any).Lightning.UserInfo.getProfileName();
-      const matches = userProfile === profile;
-      setCachedPermission(cacheKey, matches);
-      return matches;
-    }
-    
-    console.warn(`[DocsUnlocked] Profile check for "${profile}" - Salesforce context not available. Content will be hidden.`);
+    console.warn(`[DocsUnlocked] Profile check for "${profile}" - DOCS_CHECK_PROFILE not available. Content will be hidden.`);
     setCachedPermission(cacheKey, false);
     return false;
   } catch (error) {
@@ -206,34 +183,14 @@ async function checkObjectAccess(objectName: string, access: 'read' | 'edit' | '
   if (cached !== null) return cached;
   
   try {
-    // Use Salesforce UserInfo API for object access
-    if (typeof (window as any).sf !== 'undefined' && (window as any).sf.UserInfo) {
-      let hasAccess = false;
-      switch (access) {
-        case 'read':
-          hasAccess = await (window as any).sf.UserInfo.hasObjectAccess(objectName, 'read');
-          break;
-        case 'edit':
-          hasAccess = await (window as any).sf.UserInfo.hasObjectAccess(objectName, 'edit');
-          break;
-        case 'create':
-          hasAccess = await (window as any).sf.UserInfo.hasObjectAccess(objectName, 'create');
-          break;
-        case 'delete':
-          hasAccess = await (window as any).sf.UserInfo.hasObjectAccess(objectName, 'delete');
-          break;
-        case 'viewAll':
-          hasAccess = await (window as any).sf.UserInfo.hasObjectAccess(objectName, 'viewAll');
-          break;
-        case 'modifyAll':
-          hasAccess = await (window as any).sf.UserInfo.hasObjectAccess(objectName, 'modifyAll');
-          break;
-      }
+    // Use Apex method via LWC bridge
+    if (typeof (window as any).DOCS_CHECK_OBJECT_ACCESS === 'function') {
+      const hasAccess = await (window as any).DOCS_CHECK_OBJECT_ACCESS(objectName, access);
       setCachedPermission(cacheKey, hasAccess);
       return hasAccess;
     }
     
-    console.warn(`[DocsUnlocked] Object access check for "${objectName}" (${access}) - Salesforce context not available. Content will be hidden.`);
+    console.warn(`[DocsUnlocked] Object access check for "${objectName}" (${access}) - DOCS_CHECK_OBJECT_ACCESS not available. Content will be hidden.`);
     setCachedPermission(cacheKey, false);
     return false;
   } catch (error) {
@@ -252,14 +209,14 @@ async function checkFieldAccess(fieldName: string): Promise<boolean> {
   if (cached !== null) return cached;
   
   try {
-    // Use Salesforce UserInfo API for field access
-    if (typeof (window as any).sf !== 'undefined' && (window as any).sf.UserInfo) {
-      const hasAccess = await (window as any).sf.UserInfo.hasFieldAccess(fieldName);
+    // Use Apex method via LWC bridge
+    if (typeof (window as any).DOCS_CHECK_FIELD_ACCESS === 'function') {
+      const hasAccess = await (window as any).DOCS_CHECK_FIELD_ACCESS(fieldName);
       setCachedPermission(cacheKey, hasAccess);
       return hasAccess;
     }
     
-    console.warn(`[DocsUnlocked] Field access check for "${fieldName}" - Salesforce context not available. Content will be hidden.`);
+    console.warn(`[DocsUnlocked] Field access check for "${fieldName}" - DOCS_CHECK_FIELD_ACCESS not available. Content will be hidden.`);
     setCachedPermission(cacheKey, false);
     return false;
   } catch (error) {
