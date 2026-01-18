@@ -40,11 +40,11 @@ content/
     └── 01.configuration.md
 ```
 
-For more details on file organization, see the [directory structure guide](/public/content/01.getting-started/02.basic-usage#directory-structure).
+For more details on file organization, see the [directory structure guide](/public/content/01.getting-started/02.basic-usage.md#directory-structure).
 
 ### 2. Create ZIP File
 
-Package your `content/` folder (and optional `media/` folder) into a ZIP file. See [packaging instructions](/public/content/01.getting-started/02.basic-usage#packaging-your-content) for details.
+Package your `content/` folder (and optional `media/` folder) into a ZIP file. See [packaging instructions](/public/content/01.getting-started/02.basic-usage.md#packaging-your-content) for details.
 
 ### 3. Upload to Salesforce
 
@@ -65,7 +65,7 @@ Package your `content/` folder (and optional `media/` folder) into a ZIP file. S
 That's it! Your documentation is now live.
 
 > [!TIP]
-> Docs Unlocked automatically generates navigation from your file structure. Just use numeric prefixes (like `01.getting-started`) for ordering, and titles are extracted from the first H1 header in each markdown file. For more details, see [Basic Usage](/public/content/01.getting-started/02.basic-usage).
+> Docs Unlocked automatically generates navigation from your file structure. Just use numeric prefixes (like `01.getting-started`) for ordering, and titles are extracted from the first H1 header in each markdown file. For more details, see [Basic Usage](/public/content/01.getting-started/02.basic-usage.md).
 
 ## Navigation
 
