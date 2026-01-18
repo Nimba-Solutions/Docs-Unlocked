@@ -5,7 +5,7 @@
 Welcome to **Docs Unlocked**! A powerful, lightweight documentation system built specifically for Salesforce.
 
 Docs Unlocked provides a beautiful, searchable documentation experience with minimal setup. Write your docs in Markdown, organize them in folders, and Docs Unlocked handles the rest.
-<img width="1084" height="700" alt="image" src="https://github.com/user-attachments/assets/365ff5a4-8ab7-45c6-a881-33ec9a423af9" />
+<img width="542" height="350" alt="image" src="https://github.com/user-attachments/assets/365ff5a4-8ab7-45c6-a881-33ec9a423af9" />
 ## Key Features
 
 - 📝 **Markdown Support** - Write documentation using simple markdown syntax
