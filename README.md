@@ -64,7 +64,8 @@ Package your `content/` folder (and optional `media/` folder) into a ZIP file. S
 1. Open Lightning App Builder
 2. Add the "Docs Unlocked" component to your page
 3. Set **Content Resource Name** to match your StaticResource name
-4. Save and activate
+4. Configure your header, footer, etc
+5. Save and activate
 
 That's it! Your documentation is now live.
 
