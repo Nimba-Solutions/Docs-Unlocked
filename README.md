@@ -75,8 +75,6 @@ That's it! Your documentation is now live.
 
 ## Navigation
 
-Navigation is automatically generated from your content:
-
 - **Sidebar** - Shows all sections and pages
 - **Search** - Press `Ctrl+K` (or `Cmd+K` on Mac) to search all content
 - **Previous/Next** - Navigate between pages at the top of content
