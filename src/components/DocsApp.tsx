@@ -20,11 +20,48 @@ export const DocsApp: React.FC = () => {
   const [contentLoading, setContentLoading] = useState(false);
   const [tableOfContents, setTableOfContents] = useState<TOCItem[]>([]);
   const articleRef = useRef<HTMLElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   
   // Get configuration from window (set by LWC)
   const displayHeader = (window as any).DOCS_DISPLAY_HEADER === true; // Default to false
   const headerLabel = (window as any).DOCS_HEADER_LABEL || 'Documentation';
   const displayFooter = (window as any).DOCS_DISPLAY_FOOTER !== false; // Default to true
+
+  // Force container height for scrolling to work in Lightning App Pages
+  useEffect(() => {
+    const setContainerHeight = () => {
+      if (rootRef.current) {
+        const container = rootRef.current.closest('#docs-app-root') || rootRef.current.parentElement;
+        if (container) {
+          // Find the nearest parent with a defined height, or use viewport
+          let parent = container.parentElement;
+          let height = window.innerHeight;
+          
+          // Try to find parent with height
+          while (parent && parent !== document.body) {
+            const parentHeight = parent.getBoundingClientRect().height;
+            if (parentHeight > 0) {
+              height = parentHeight;
+              break;
+            }
+            parent = parent.parentElement;
+          }
+          
+          // Set height on container
+          (container as HTMLElement).style.height = `${height}px`;
+          (container as HTMLElement).style.minHeight = `${height}px`;
+        }
+      }
+    };
+
+    setContainerHeight();
+    window.addEventListener('resize', setContainerHeight);
+    // Also try after a short delay to catch dynamic layouts
+    setTimeout(setContainerHeight, 100);
+    setTimeout(setContainerHeight, 500);
+    
+    return () => window.removeEventListener('resize', setContainerHeight);
+  }, []);
 
   // Keyboard shortcut handler for Ctrl+K / Cmd+K
   useEffect(() => {
@@ -409,7 +446,7 @@ export const DocsApp: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-50 flex flex-col" style={{ height: '100%', width: '100%', overflow: 'hidden' }}>
+    <div ref={rootRef} className="bg-gray-50 flex flex-col" style={{ height: '100%', minHeight: '100vh', width: '100%', overflow: 'hidden' }}>
       {/* ROW1: Mobile sidebar buttons - Only visible on mobile */}
       <div className="lg:hidden flex items-center justify-between h-16 bg-white border-b border-gray-200 px-4">
         <button
@@ -451,7 +488,7 @@ export const DocsApp: React.FC = () => {
       )}
       
       {/* ROW3: Left Sidebar + Content + Right Sidebar */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0 }}>
         <Sidebar 
           isOpen={sidebarOpen} 
           onClose={() => setSidebarOpen(false)} 
@@ -501,11 +538,12 @@ export const DocsApp: React.FC = () => {
               ${tocSidebarOpen ? 'translate-x-0' : 'translate-x-full'}
               lg:translate-x-0
               absolute lg:relative
-              right-0 top-0 bottom-0 lg:top-auto lg:bottom-auto lg:h-auto
+              right-0 top-0 bottom-0 lg:top-0 lg:bottom-0
               w-80 bg-white border-l border-gray-200 z-40
               transform transition-transform duration-300 ease-in-out
               lg:flex-shrink-0
               overflow-y-auto
+              h-full
             `}>
           <div className="h-full overflow-y-auto p-6 relative">
             {/* Mobile close button */}
