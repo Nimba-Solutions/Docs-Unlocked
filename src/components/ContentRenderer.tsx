@@ -6,6 +6,10 @@ import { parseNavCards, wrapCodeBlocks } from '../utils/markdown';
 import { processCallouts, processNavCardsPlaceholders, injectNavCardsPlaceholders } from '../utils/markdownProcessing';
 import { processImages, processVideos } from '../utils/mediaProcessing';
 import { extractTOCAndAddIds } from '../utils/tocExtraction';
+import { parseFrontmatter } from '../utils/frontmatter';
+import { processConditionBlocks, replaceConditionBlocksWithPlaceholders } from '../utils/conditionProcessing';
+import { findHeaderModifiers, removeHeaderModifiers } from '../utils/headerConditionModifiers';
+import '../utils/permissionConditions'; // Import to register permission conditions
 import { 
   useCopyButtons, 
   useNavCardRendering, 
@@ -13,6 +17,7 @@ import {
   useLightningLinks, 
   useSearchHighlight 
 } from '../hooks/useContentEffects';
+import { useConditionEffects } from '../hooks/useConditionEffects';
 
 interface ContentRendererProps {
   content: string;
@@ -38,19 +43,50 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
     return cards;
   }, [content]);
 
+  // Parse frontmatter and extract visibility rules
+  const { contentWithoutFrontmatter } = useMemo(() => {
+    const parsed = parseFrontmatter(content);
+    if (parsed) {
+      return { contentWithoutFrontmatter: parsed.content };
+    }
+    return { contentWithoutFrontmatter: content };
+  }, [content]);
+
   // Parse markdown to HTML and sanitize it
   const html = useMemo(() => {
-    if (!content) return '';
+    if (!contentWithoutFrontmatter) return '';
     try {
+      // Step 0: Process condition blocks and header modifiers (before markdown parsing)
+      const conditionBlocks = processConditionBlocks(contentWithoutFrontmatter);
+      let processedContent = replaceConditionBlocksWithPlaceholders(contentWithoutFrontmatter, conditionBlocks);
+      
+      // Process header modifiers - remove modifiers from headers but store them for later
+      const headerModifiers = findHeaderModifiers(processedContent);
+      processedContent = removeHeaderModifiers(processedContent);
+      
       // Step 1: Process markdown extensions (callouts, navcards placeholders)
-      let processedContent = processNavCardsPlaceholders(content);
+      processedContent = processNavCardsPlaceholders(processedContent);
       processedContent = processCallouts(processedContent);
 
       // Step 2: Parse markdown to HTML
+      // Condition block divs are already in place - marked.parse preserves HTML
       const rawHtml = marked.parse(processedContent) as string;
       
+      // Step 2.5: Add condition check attributes to headers that had modifiers
+      let htmlWithHeaderModifiers = rawHtml;
+      for (const modifier of headerModifiers) {
+        // Find the header in the HTML and add data-condition-check attribute
+        // Use [\s\S]*? to match any content including inline HTML tags like <code>, <em>, <strong>
+        const escapedContent = modifier.headerContent.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const headerRegex = new RegExp(`<h([1-6])([^>]*)>([\\s\\S]*?${escapedContent}[\\s\\S]*?)</h\\1>`, 'i');
+        htmlWithHeaderModifiers = htmlWithHeaderModifiers.replace(headerRegex, (_match, level, attrs, content) => {
+          const conditionJson = JSON.stringify(modifier.condition).replace(/"/g, '&quot;');
+          return `<h${level}${attrs} data-condition-check="${conditionJson}">${content}</h${level}>`;
+        });
+      }
+      
       // Step 3: Inject NavCard placeholders
-      let htmlWithNavCards = injectNavCardsPlaceholders(rawHtml, navCards);
+      let htmlWithNavCards = injectNavCardsPlaceholders(htmlWithHeaderModifiers, navCards);
       
       // Step 4: Process media (images and videos)
       let htmlWithMedia = processImages(htmlWithNavCards);
@@ -62,17 +98,17 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
       // Step 6: Extract TOC and add IDs to headers
       const htmlWithIds = extractTOCAndAddIds(wrappedHtml, onTOCChange);
       
-      // Step 7: Sanitize HTML
+      // Step 7: Sanitize HTML (allow condition-related attributes)
       return DOMPurify.sanitize(htmlWithIds, {
         ADD_TAGS: ['video', 'source', 'iframe'],
-        ADD_ATTR: ['controls', 'aria-label', 'id', 'frameborder', 'allow', 'allowfullscreen', 'style']
+        ADD_ATTR: ['controls', 'aria-label', 'id', 'frameborder', 'allow', 'allowfullscreen', 'style', 'data-condition', 'data-content', 'data-else-content', 'data-condition-check', 'data-permission-check', 'class', 'title']
       });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error(`[DocsUnlocked] Error rendering markdown: ${errorMsg}`);
       return `<p>Error rendering markdown: ${DOMPurify.sanitize(errorMsg)}</p>`;
     }
-  }, [content, navCards, onTOCChange]);
+  }, [contentWithoutFrontmatter, navCards, onTOCChange]);
 
   // Use hooks for DOM effects
   useCopyButtons(contentRef, html);
@@ -80,6 +116,7 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
   useInternalLinks(contentRef, html, onNavigate);
   useLightningLinks(contentRef, html);
   useSearchHighlight(contentRef, html, highlightQuery);
+  useConditionEffects(contentRef, html);
 
   return (
     <div 
