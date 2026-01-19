@@ -421,6 +421,70 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
     showInlineFlow(container, containerId, flowName, inputVariables, statusCallback, dimensions = { width: '100%', height: '400px' }) {
         console.log('[DocsUnlocked LWC] Showing inline flow: ' + flowName + ' with dimensions: ' + JSON.stringify(dimensions));
         
+        // Find all potential scroll containers to restore scroll position
+        // This prevents the browser from auto-scrolling when the iframe focuses
+        const mainContent = container.closest('.docs-main-content');
+        const scrollableMain = container.closest('main');
+        const articleParent = container.closest('article')?.parentElement;
+        
+        // Try multiple containers to find the one that's scrolled
+        const scrollContainer = mainContent || articleParent || scrollableMain || 
+                               document.scrollingElement || document.documentElement;
+        
+        // Store scroll positions from all potential containers
+        const savedScrollPositions = {
+            mainContent: mainContent?.scrollTop || 0,
+            scrollableMain: scrollableMain?.scrollTop || 0,
+            articleParent: articleParent?.scrollTop || 0,
+            window: window.scrollY,
+            container: scrollContainer?.scrollTop || 0
+        };
+        
+        console.log('[DocsUnlocked LWC] Saved scroll positions:', JSON.stringify(savedScrollPositions));
+        
+        // Temporarily disable scrolling on containers to prevent focus-triggered scroll
+        // This is more reliable than trying to restore scroll after focus events
+        const originalOverflow = {
+            mainContent: mainContent?.style.overflow,
+            scrollableMain: scrollableMain?.style.overflow,
+            body: document.body.style.overflow
+        };
+        
+        const lockScroll = () => {
+            if (mainContent) mainContent.style.overflow = 'hidden';
+            if (scrollableMain) scrollableMain.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden';
+        };
+        
+        const unlockScroll = () => {
+            if (mainContent) mainContent.style.overflow = originalOverflow.mainContent || '';
+            if (scrollableMain) scrollableMain.style.overflow = originalOverflow.scrollableMain || '';
+            document.body.style.overflow = originalOverflow.body || '';
+        };
+        
+        // Function to restore all scroll positions
+        const restoreScrollPositions = () => {
+            console.log('[DocsUnlocked LWC] Restoring scroll positions to:', JSON.stringify(savedScrollPositions));
+            
+            // Restore to all potential scroll containers
+            if (mainContent) mainContent.scrollTop = savedScrollPositions.mainContent;
+            if (scrollableMain) scrollableMain.scrollTop = savedScrollPositions.scrollableMain;
+            if (articleParent) articleParent.scrollTop = savedScrollPositions.articleParent;
+            if (scrollContainer) scrollContainer.scrollTop = savedScrollPositions.container;
+            window.scrollTo(0, savedScrollPositions.window);
+            
+            // Also try document scrolling element and body
+            if (document.scrollingElement) {
+                document.scrollingElement.scrollTop = savedScrollPositions.window;
+            }
+            if (document.documentElement) {
+                document.documentElement.scrollTop = savedScrollPositions.window;
+            }
+            if (document.body) {
+                document.body.scrollTop = savedScrollPositions.window;
+            }
+        };
+        
         // Build the flow URL with input parameters
         const queryString = this.buildFlowQueryString(inputVariables || []);
         const flowUrl = '/flow/' + flowName + (queryString ? '?' + queryString : '');
@@ -443,6 +507,8 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
         iframe.title = flowName;
         iframe.setAttribute('frameborder', '0');
         iframe.setAttribute('allowfullscreen', 'true');
+        // Prevent iframe from stealing focus and causing scroll
+        iframe.setAttribute('tabindex', '-1');
         
         // Create resize handle for manual adjustment
         const resizeHandle = document.createElement('div');
@@ -493,6 +559,27 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
         // Handle iframe load
         iframe.onload = () => {
             console.log('[DocsUnlocked LWC] Flow iframe loaded with dimensions: ' + dimensions.width + ' x ' + dimensions.height);
+            
+            // Restore scroll position to prevent auto-scroll when iframe loads
+            // The browser may have scrolled to focus the iframe content
+            restoreScrollPositions();
+            
+            // Also restore after short delays to catch focus-triggered scrolls
+            // The flow content may focus input fields after load
+            // Use multiple delays to catch all possible focus timing scenarios
+            setTimeout(restoreScrollPositions, 50);
+            setTimeout(restoreScrollPositions, 100);
+            setTimeout(restoreScrollPositions, 200);
+            setTimeout(restoreScrollPositions, 500);
+            setTimeout(restoreScrollPositions, 750);
+            setTimeout(() => {
+                restoreScrollPositions();
+                // Unlock scroll after all restorations complete
+                unlockScroll();
+                console.log('[DocsUnlocked LWC] Scroll unlocked after flow load');
+            }, 1000);
+            setTimeout(restoreScrollPositions, 1500);
+            
             if (statusCallback) {
                 statusCallback({ status: 'STARTED', flowName: flowName });
             }
@@ -505,11 +592,23 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
             }
         };
         
+        // Lock scroll before DOM insertion to prevent focus-triggered scroll
+        lockScroll();
+        
         // Assemble wrapper with iframe, overlay, and resize handle
         wrapper.appendChild(iframe);
         wrapper.appendChild(dragOverlay);
         wrapper.appendChild(resizeHandle);
         container.appendChild(wrapper);
+        
+        // Immediately restore scroll position after DOM insertion
+        // This catches any scroll that happens during element addition
+        restoreScrollPositions();
+        
+        // Also restore after short delays to catch any deferred scroll events
+        // that might occur as the browser processes the new iframe
+        setTimeout(restoreScrollPositions, 10);
+        setTimeout(restoreScrollPositions, 50);
         
         // Store reference for cleanup
         this._activeFlowIframe = iframe;
