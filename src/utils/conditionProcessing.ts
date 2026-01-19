@@ -1,146 +1,342 @@
 /**
  * Process conditional visibility blocks in markdown
  * Generic foundation that supports any condition type via the condition registry
- * Format: :::if condition="..." or :::if all="..." etc.
- * Supports logical operators: all, any, not
- * Supports optional else blocks
+ * Format: :::if attr="value" ... ::else ... :::
+ * Supports nested blocks
  */
-
 import { Condition, conditionRegistry } from './conditions';
+import { removeHeaderModifiers } from './headerConditionModifiers';
 
 export interface ConditionBlock {
-  start: number;
-  end: number;
-  condition: Condition;
-  content: string;
-  elseContent?: string;
-  originalMatch: string;
+    start: number;
+    end: number;
+    condition: Condition;
+    content: string;
+    elseContent?: string;
+    elseStart?: number; // Position of ::else marker
+    originalMatch: string;
+}
+
+interface ParsedBlock {
+    start: number;
+    end: number;
+    condition: Condition;
+    elsePos?: number; // Position where ::else starts (if present)
+    elseEndPos?: number; // Position where ::else ends (if present)
+    ifEndPos: number; // Position where :::if line ends
+    endStartPos: number; // Position where closing ::: starts
 }
 
 /**
  * Process :::if condition blocks in markdown
  * Skips blocks inside code blocks
+ * Format: :::if attr="value" ... ::else ... :::
  */
 export function processConditionBlocks(content: string): ConditionBlock[] {
-  const blocks: ConditionBlock[] = [];
-  
-  // Track fenced code blocks to skip condition blocks inside them
-  const lines = content.split('\n');
-  const codeBlockRanges: Array<{ start: number; end: number }> = [];
-  let inFencedBlock = false;
-  let fenceChar = '';
-  let fenceStart = -1;
-  
-  for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
-    const fenceMatch = trimmed.match(/^(```+|~~~+)/);
-    
-    if (fenceMatch) {
-      if (!inFencedBlock) {
-        inFencedBlock = true;
-        fenceChar = fenceMatch[1][0];
-        fenceStart = i;
-      } else if (trimmed.startsWith(fenceChar.repeat(3))) {
-        codeBlockRanges.push({ start: fenceStart, end: i });
-        inFencedBlock = false;
-        fenceStart = -1;
-      }
+    const blocks: ConditionBlock[] = [];
+    const codeBlockRanges = findCodeBlockRanges(content);
+
+    // Tokenize: find all markers with their positions
+    const markers: Array<{
+        type: 'if' | 'else' | 'end';
+        pos: number;
+        endPos: number;
+        attrs?: string;
+    }> = [];
+
+    // Find all :::if
+    const ifRegex = /^:::if\s+(.+)$/gm;
+    let match;
+    while ((match = ifRegex.exec(content)) !== null) {
+        if (!isInCodeBlock(match.index, codeBlockRanges)) {
+            markers.push({
+                type: 'if',
+                pos: match.index,
+                endPos: match.index + match[0].length,
+                attrs: match[1]
+            });
+        }
     }
-  }
-  
-  // Close any open block at end
-  if (inFencedBlock && fenceStart !== -1) {
-    codeBlockRanges.push({ start: fenceStart, end: lines.length - 1 });
-  }
-  
-  // Match :::if blocks
-  // Pattern: :::if ... ::: or :::if ... :::else ... ::::
-  const ifBlockRegex = /:::if\s+([^\n]+)\n([\s\S]*?)(?:\n:::else\n([\s\S]*?))?\n:::/g;
-  
-  let match;
-  ifBlockRegex.lastIndex = 0;
-  
-  while ((match = ifBlockRegex.exec(content)) !== null) {
-    const matchStartLine = content.substring(0, match.index).split('\n').length - 1;
-    const matchEndLine = content.substring(0, match.index + match[0].length).split('\n').length - 1;
-    
-    // Check if this block overlaps with any code block
-    const isInCodeBlock = codeBlockRanges.some(range =>
-      (matchStartLine >= range.start && matchStartLine <= range.end) ||
-      (matchEndLine >= range.start && matchEndLine <= range.end) ||
-      (matchStartLine < range.start && matchEndLine > range.end)
-    );
-    
-    if (!isInCodeBlock) {
-      const blockStart = match[1]; // Attributes line
-      const blockContent = match[2]; // Content between :::if and ::: or :::else
-      const elseContent = match[3]; // Content after :::else (optional)
-      
-      // Extract attributes from :::if line
-      const attrRegex = /(\w+(?:-\w+)*)=["']([^"']+)["']/g;
-      const attributes: Record<string, string> = {};
-      let attrMatch;
-      
-      while ((attrMatch = attrRegex.exec(blockStart)) !== null) {
-        attributes[attrMatch[1]] = attrMatch[2];
-      }
-      
-      // Parse condition using the registry (tries all registered parsers)
-      const condition = conditionRegistry.parse(attributes);
-      
-      if (condition) {
+
+    // Find all ::else (interior, 2 colons)
+    const elseRegex = /^::else$/gm;
+    while ((match = elseRegex.exec(content)) !== null) {
+        if (!isInCodeBlock(match.index, codeBlockRanges)) {
+            markers.push({
+                type: 'else',
+                pos: match.index,
+                endPos: match.index + match[0].length
+            });
+        }
+    }
+
+    // Find all ::: (closing, 3 colons, alone on line)
+    const endRegex = /^:::$/gm;
+    while ((match = endRegex.exec(content)) !== null) {
+        if (!isInCodeBlock(match.index, codeBlockRanges)) {
+            markers.push({
+                type: 'end',
+                pos: match.index,
+                endPos: match.index + match[0].length
+            });
+        }
+    }
+
+    // Sort by position
+    markers.sort((a, b) => a.pos - b.pos);
+
+    // Stack-based parsing - only collect positions, not content
+    const parsedBlocks: ParsedBlock[] = [];
+    const stack: Array<{
+        ifMarker: typeof markers[0];
+        elseMarker?: typeof markers[0];
+    }> = [];
+
+    for (const marker of markers) {
+        if (marker.type === 'if') {
+            stack.push({ ifMarker: marker });
+        } else if (marker.type === 'else') {
+            if (stack.length > 0 && !stack[stack.length - 1].elseMarker) {
+                stack[stack.length - 1].elseMarker = marker;
+            }
+        } else if (marker.type === 'end') {
+            if (stack.length > 0) {
+                const frame = stack.pop()!;
+                const ifMarker = frame.ifMarker;
+                const elseMarker = frame.elseMarker;
+
+                // Parse attributes
+                const attributes = parseAttributes(ifMarker.attrs || '');
+                const condition = conditionRegistry.parse(attributes);
+
+                if (condition) {
+                    const parsed: ParsedBlock = {
+                        start: ifMarker.pos,
+                        end: marker.endPos,
+                        condition,
+                        ifEndPos: ifMarker.endPos,
+                        endStartPos: marker.pos
+                    };
+
+                    if (elseMarker) {
+                        parsed.elsePos = elseMarker.pos;
+                        parsed.elseEndPos = elseMarker.endPos;
+                    }
+
+                    parsedBlocks.push(parsed);
+                }
+            }
+        }
+    }
+
+    // Convert to ConditionBlocks with content extracted from original
+    for (const parsed of parsedBlocks) {
+        let blockContent: string;
+        let elseContent: string | undefined;
+
+        if (parsed.elsePos !== undefined && parsed.elseEndPos !== undefined) {
+            blockContent = content.substring(parsed.ifEndPos + 1, parsed.elsePos).trim();
+            elseContent = content.substring(parsed.elseEndPos + 1, parsed.endStartPos).trim();
+        } else {
+            blockContent = content.substring(parsed.ifEndPos + 1, parsed.endStartPos).trim();
+        }
+
         blocks.push({
-          start: match.index,
-          end: match.index + match[0].length,
-          condition,
-          content: blockContent,
-          elseContent: elseContent,
-          originalMatch: match[0]
+            start: parsed.start,
+            end: parsed.end,
+            condition: parsed.condition,
+            content: blockContent,
+            elseContent,
+            elseStart: parsed.elsePos,
+            originalMatch: content.substring(parsed.start, parsed.end)
         });
-      } else {
-        console.warn('[DocsUnlocked] No valid condition attribute found in :::if block:', attributes);
-      }
     }
-  }
-  
-  return blocks;
+
+    return blocks;
+}
+
+function parseAttributes(attrLine: string): Record<string, string> {
+    const attrRegex = /(\w+(?:-\w+)*)=["']([^"']+)["']/g;
+    const attributes: Record<string, string> = {};
+    let match;
+    while ((match = attrRegex.exec(attrLine)) !== null) {
+        attributes[match[1]] = match[2];
+    }
+    return attributes;
+}
+
+function isInCodeBlock(pos: number, ranges: Array<{ start: number; end: number }>): boolean {
+    return ranges.some(r => pos >= r.start && pos <= r.end);
+}
+
+function findCodeBlockRanges(content: string): Array<{ start: number; end: number }> {
+    const ranges: Array<{ start: number; end: number }> = [];
+    // Match opening fence with optional language, or closing fence
+    const fenceRegex = /^(```+|~~~+)([^\n]*)?$/gm;
+    let inBlock = false;
+    let blockStart = 0;
+    let openingFenceChar = '';
+    let openingFenceLength = 0;
+    let match;
+
+    while ((match = fenceRegex.exec(content)) !== null) {
+        const fence = match[1];
+        const fenceChar = fence[0]; // '`' or '~'
+        const fenceLength = fence.length;
+
+        if (!inBlock) {
+            // Opening a new code block
+            inBlock = true;
+            blockStart = match.index;
+            openingFenceChar = fenceChar;
+            openingFenceLength = fenceLength;
+        } else {
+            // Check if this fence closes the current block
+            // Must be same character type and >= length
+            if (fenceChar === openingFenceChar && fenceLength >= openingFenceLength) {
+                ranges.push({ start: blockStart, end: match.index + match[0].length });
+                inBlock = false;
+                openingFenceChar = '';
+                openingFenceLength = 0;
+            }
+            // If fence doesn't match, it's part of the code block content (nested example)
+        }
+    }
+
+    if (inBlock) {
+        ranges.push({ start: blockStart, end: content.length });
+    }
+
+    return ranges;
 }
 
 /**
  * Replace condition blocks with placeholders that will be processed after condition checks
- * Note: Content is stored as markdown and will be parsed when the placeholder is processed
+ * Handles nested blocks by processing innermost first
  */
 export function replaceConditionBlocksWithPlaceholders(content: string, blocks: ConditionBlock[]): string {
-  let result = content;
-  
-  // Sort blocks by start position (descending) to apply replacements in reverse order
-  const sortedBlocks = [...blocks].sort((a, b) => b.start - a.start);
-  
-  for (const block of sortedBlocks) {
-    // Create a placeholder that encodes the condition and content
-    // We'll use a data attribute approach
-    // Content is stored as markdown - it will be parsed when processed
-    const conditionJson = JSON.stringify(block.condition).replace(/"/g, '&quot;');
-    // Escape content for HTML attribute (but keep as markdown)
-    const contentEscaped = block.content
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-    const elseContentEscaped = block.elseContent 
-      ? block.elseContent
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#39;')
-      : '';
-    
-    const placeholder = `<div class="condition-block-placeholder" data-condition='${conditionJson}' data-content='${contentEscaped}' data-else-content='${elseContentEscaped}'></div>`;
-    
-    result = result.substring(0, block.start) + placeholder + result.substring(block.end);
-  }
-  
-  return result;
+    if (blocks.length === 0) return content;
+
+    let result = content;
+
+    // Sort blocks by nesting depth (innermost first), then by position descending
+    // Innermost blocks have no other blocks fully contained within them
+    const sortedBlocks = sortByNestingDepth(blocks);
+
+    // Track position adjustments from previous replacements
+    const adjustments: Array<{ originalStart: number; originalEnd: number; newLength: number }> = [];
+
+    for (const block of sortedBlocks) {
+        // Calculate adjusted positions based on previous replacements
+        let adjustedStart = block.start;
+        let adjustedEnd = block.end;
+
+        for (const adj of adjustments) {
+            const originalLength = adj.originalEnd - adj.originalStart;
+            const shift = adj.newLength - originalLength;
+
+            if (adj.originalEnd <= block.start) {
+                // Replacement was entirely before this block, shift both positions
+                adjustedStart += shift;
+                adjustedEnd += shift;
+            } else if (adj.originalStart >= block.start && adj.originalEnd <= block.end) {
+                // Replacement was INSIDE this block (nested block), only adjust end
+                adjustedEnd += shift;
+            } else if (adj.originalStart < block.start && adj.originalEnd > block.end) {
+                // This block is inside the replacement (shouldn't happen with proper nesting order)
+                console.warn('[DocsUnlocked] Unexpected: block inside previous replacement');
+            }
+        }
+
+        // Extract fresh content from current result string
+        // Find the :::if line end and ::: positions in the current string
+        const blockText = result.substring(adjustedStart, adjustedEnd);
+
+        // Find positions within the block text
+        const ifLineEnd = blockText.indexOf('\n');
+        const elseMatch = blockText.match(/^::else$/m);
+        const endMatch = blockText.match(/^:::$/m);
+
+        if (ifLineEnd === -1 || !endMatch) {
+            console.warn('[DocsUnlocked] Malformed condition block, skipping');
+            continue;
+        }
+
+        let blockContent: string;
+        let elseContent: string | undefined;
+
+        if (elseMatch && elseMatch.index !== undefined) {
+            blockContent = blockText.substring(ifLineEnd + 1, elseMatch.index).trim();
+            const elseLineEnd = blockText.indexOf('\n', elseMatch.index);
+            if (elseLineEnd !== -1 && endMatch.index !== undefined) {
+                elseContent = blockText.substring(elseLineEnd + 1, endMatch.index).trim();
+            }
+        } else if (endMatch.index !== undefined) {
+            blockContent = blockText.substring(ifLineEnd + 1, endMatch.index).trim();
+        } else {
+            blockContent = '';
+        }
+
+        // Strip header modifiers from content (they'll be processed separately)
+        blockContent = removeHeaderModifiers(blockContent);
+        if (elseContent) {
+            elseContent = removeHeaderModifiers(elseContent);
+        }
+
+        // Create placeholder
+        const conditionJson = JSON.stringify(block.condition).replace(/"/g, '&quot;');
+        const contentEscaped = escapeForAttribute(blockContent);
+        const elseContentEscaped = elseContent ? escapeForAttribute(elseContent) : '';
+
+        const placeholder = `<div class="condition-block-placeholder" data-condition="${conditionJson}" data-content="${contentEscaped}" data-else-content="${elseContentEscaped}"></div>`;
+
+        // Replace in result
+        result = result.substring(0, adjustedStart) + placeholder + result.substring(adjustedEnd);
+
+        // Track this adjustment
+        adjustments.push({
+            originalStart: block.start,
+            originalEnd: block.end,
+            newLength: placeholder.length
+        });
+    }
+
+    return result;
+}
+
+/**
+ * Sort blocks so innermost (most deeply nested) blocks come first
+ */
+function sortByNestingDepth(blocks: ConditionBlock[]): ConditionBlock[] {
+    // Calculate nesting depth for each block
+    const withDepth = blocks.map(block => {
+        let depth = 0;
+        for (const other of blocks) {
+            if (other !== block && other.start < block.start && other.end > block.end) {
+                depth++;
+            }
+        }
+        return { block, depth };
+    });
+
+    // Sort by depth descending (deepest first), then by start position descending
+    withDepth.sort((a, b) => {
+        if (b.depth !== a.depth) return b.depth - a.depth;
+        return b.block.start - a.block.start;
+    });
+
+    return withDepth.map(x => x.block);
+}
+
+/**
+ * Escape content for use in HTML attribute
+ */
+function escapeForAttribute(content: string): string {
+    return content
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/\n/g, '&#10;');
 }

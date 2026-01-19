@@ -130,3 +130,11 @@ html {
   display: flex;
   flex-direction: column;
 }
+
+/* Ensure main content area can scroll and has proper padding at bottom */
+.docs-main-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  padding-bottom: 2rem; /* Add padding at bottom to prevent content cutoff */
+}

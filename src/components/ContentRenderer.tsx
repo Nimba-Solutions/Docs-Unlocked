@@ -69,16 +69,19 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
       processedContent = processCallouts(processedContent);
 
       // Step 2: Parse markdown to HTML
+      // Condition block divs are already in place - marked.parse preserves HTML
       const rawHtml = marked.parse(processedContent) as string;
       
       // Step 2.5: Add condition check attributes to headers that had modifiers
       let htmlWithHeaderModifiers = rawHtml;
       for (const modifier of headerModifiers) {
         // Find the header in the HTML and add data-condition-check attribute
-        const headerRegex = new RegExp(`<h([1-6])([^>]*)>([^<]*${modifier.headerContent.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^<]*)</h[1-6]>`, 'i');
+        // Use [\s\S]*? to match any content including inline HTML tags like <code>, <em>, <strong>
+        const escapedContent = modifier.headerContent.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const headerRegex = new RegExp(`<h([1-6])([^>]*)>([\\s\\S]*?${escapedContent}[\\s\\S]*?)</h\\1>`, 'i');
         htmlWithHeaderModifiers = htmlWithHeaderModifiers.replace(headerRegex, (_match, level, attrs, content) => {
           const conditionJson = JSON.stringify(modifier.condition).replace(/"/g, '&quot;');
-          return `<h${level}${attrs} data-condition-check='${conditionJson}'>${content}</h${level}>`;
+          return `<h${level}${attrs} data-condition-check="${conditionJson}">${content}</h${level}>`;
         });
       }
       

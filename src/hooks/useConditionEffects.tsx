@@ -15,32 +15,40 @@ export function useConditionEffects(contentRef: React.RefObject<HTMLElement>, ht
     if (!contentRef.current || !html) return;
     
     const processConditionBlocks = async () => {
-      const placeholders = contentRef.current?.querySelectorAll('.condition-block-placeholder');
+      // Process placeholders iteratively until none remain (handles nested blocks)
+      let iterations = 0;
+      const MAX_ITERATIONS = 10; // Safety limit
       
-      if (!placeholders || placeholders.length === 0) {
-        // Also check for old permission-block-placeholder for backward compatibility
-        const oldPlaceholders = contentRef.current?.querySelectorAll('.permission-block-placeholder');
-        if (!oldPlaceholders || oldPlaceholders.length === 0) {
-          console.log('[DocsUnlocked] No condition blocks found');
-          await processHeaderModifiers();
-          return;
+      while (iterations < MAX_ITERATIONS) {
+        const placeholders = contentRef.current?.querySelectorAll('.condition-block-placeholder');
+        
+        if (!placeholders || placeholders.length === 0) {
+          // Also check for old permission-block-placeholder for backward compatibility
+          const oldPlaceholders = contentRef.current?.querySelectorAll('.permission-block-placeholder');
+          if (!oldPlaceholders || oldPlaceholders.length === 0) {
+            break; // No more placeholders to process
+          }
+          // Process old placeholders
+          for (const placeholder of Array.from(oldPlaceholders)) {
+            await processPlaceholder(placeholder as HTMLElement);
+          }
+          break;
         }
-        console.log('[DocsUnlocked] Found', oldPlaceholders.length, 'legacy permission blocks');
-        // Process old placeholders the same way
-        for (const placeholder of Array.from(oldPlaceholders)) {
+        
+        console.log('[DocsUnlocked] Processing', placeholders.length, 'condition blocks (iteration', iterations + 1, ')');
+        
+        for (const placeholder of Array.from(placeholders)) {
           await processPlaceholder(placeholder as HTMLElement);
         }
-        await processHeaderModifiers();
-        return;
+        
+        iterations++;
       }
       
-      console.log('[DocsUnlocked] Processing', placeholders.length, 'condition blocks');
-      
-      for (const placeholder of Array.from(placeholders)) {
-        await processPlaceholder(placeholder as HTMLElement);
+      if (iterations >= MAX_ITERATIONS) {
+        console.warn('[DocsUnlocked] Max iterations reached processing condition blocks');
       }
       
-      // Process header modifiers
+      // Process header modifiers after all condition blocks
       await processHeaderModifiers();
     };
     
@@ -57,22 +65,23 @@ export function useConditionEffects(contentRef: React.RefObject<HTMLElement>, ht
       try {
         const condition = JSON.parse(conditionJson.replace(/&quot;/g, '"')) as Condition;
         
-        console.log('[DocsUnlocked] Evaluating condition:', condition);
+        console.log('[DocsUnlocked] Evaluating condition:', JSON.stringify(condition, null, 2));
         
         // Evaluate condition using the registry
         const result: ConditionResult = await conditionRegistry.evaluate(condition);
         
-        console.log('[DocsUnlocked] Condition result:', { 
+        console.log('[DocsUnlocked] Condition result:', JSON.stringify({ 
           type: condition.type, 
           shouldShow: result.shouldShow, 
           isValid: result.isValid,
-          hasElseContent: !!elseContent
-        });
+          hasElseContent: !!elseContent,
+          error: result.error
+        }, null, 2));
         
         // If condition check failed (invalid condition), show error indicator
         if (!result.isValid) {
           const errorMessage = result.error || 'Invalid condition reference';
-          console.warn('[DocsUnlocked] Invalid condition:', condition, 'Error:', errorMessage);
+          console.warn('[DocsUnlocked] Invalid condition:', JSON.stringify(condition, null, 2), 'Error:', errorMessage);
           const errorIcon = `
             <span class="condition-error-indicator inline-flex items-center ml-1" title="${errorMessage}">
               <svg class="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
@@ -88,28 +97,32 @@ export function useConditionEffects(contentRef: React.RefObject<HTMLElement>, ht
         if (result.shouldShow) {
           console.log('[DocsUnlocked] Showing content for condition:', condition.type);
           // Unescape content and parse as markdown
-          const unescapedContent = content
-            .replace(/&amp;/g, '&')
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/&quot;/g, '"')
-            .replace(/&#39;/g, "'");
+          const unescapedContent = unescapeContent(content);
+          
+          console.log('[DocsUnlocked] Unescaped content preview:', unescapedContent.substring(0, 100));
+          
           // Parse markdown to HTML
-          const parsedHtml = marked.parse(unescapedContent) as string;
+          const parsedHtml = marked.parse(unescapedContent.trim()) as string;
+          
+          console.log('[DocsUnlocked] Parsed HTML preview:', parsedHtml.substring(0, 200));
+          
+          // Replace the placeholder element with the parsed HTML
           element.outerHTML = parsedHtml;
         } else {
           // Show else content if available, otherwise remove (default behavior)
-          if (elseContent) {
+          console.log('[DocsUnlocked] Condition failed, checking else content.');
+          
+          if (elseContent && elseContent.trim().length > 0) {
             console.log('[DocsUnlocked] Showing else content for condition:', condition.type);
-            // Unescape else content and parse as markdown
-            const unescapedElseContent = elseContent
-              .replace(/&amp;/g, '&')
-              .replace(/&lt;/g, '<')
-              .replace(/&gt;/g, '>')
-              .replace(/&quot;/g, '"')
-              .replace(/&#39;/g, "'");
+            const unescapedElseContent = unescapeContent(elseContent);
+            
+            console.log('[DocsUnlocked] Unescaped else content preview:', unescapedElseContent.substring(0, 100));
+            
             // Parse markdown to HTML
-            const parsedElseHtml = marked.parse(unescapedElseContent) as string;
+            const parsedElseHtml = marked.parse(unescapedElseContent.trim()) as string;
+            
+            console.log('[DocsUnlocked] Parsed else HTML preview:', parsedElseHtml.substring(0, 200));
+            
             element.outerHTML = parsedElseHtml;
           } else {
             console.log('[DocsUnlocked] Hiding content (no else block) for condition:', condition.type);
@@ -147,22 +160,23 @@ export function useConditionEffects(contentRef: React.RefObject<HTMLElement>, ht
         try {
           const condition = JSON.parse(conditionAttr.replace(/&quot;/g, '"')) as Condition;
           const headerText = element.textContent || 'unknown';
+          const headerLevel = parseInt(element.tagName.substring(1), 10);
           
-          console.log('[DocsUnlocked] Evaluating header modifier:', { header: headerText, condition });
+          console.log('[DocsUnlocked] Evaluating header modifier:', JSON.stringify({ header: headerText, level: headerLevel, condition }, null, 2));
           
           const result: ConditionResult = await conditionRegistry.evaluate(condition);
           
-          console.log('[DocsUnlocked] Header modifier result:', { 
+          console.log('[DocsUnlocked] Header modifier result:', JSON.stringify({ 
             header: headerText,
             type: condition.type, 
             shouldShow: result.shouldShow, 
             isValid: result.isValid
-          });
+          }, null, 2));
           
           // If condition check failed (invalid condition), show error indicator
           if (!result.isValid) {
             const errorMessage = result.error || 'Invalid condition reference';
-            console.warn('[DocsUnlocked] Invalid header condition:', condition, 'Error:', errorMessage);
+            console.warn('[DocsUnlocked] Invalid header condition:', JSON.stringify(condition, null, 2), 'Error:', errorMessage);
             const errorIcon = `
               <span class="condition-error-indicator inline-flex items-center ml-1" title="${errorMessage}">
                 <svg class="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
@@ -174,10 +188,10 @@ export function useConditionEffects(contentRef: React.RefObject<HTMLElement>, ht
             continue;
           }
           
-          // If condition doesn't pass, hide the header
+          // If condition doesn't pass, hide the header AND its following content
           if (!result.shouldShow) {
-            console.log('[DocsUnlocked] Hiding header:', headerText);
-            element.style.display = 'none';
+            console.log('[DocsUnlocked] Hiding header section:', headerText);
+            hideHeaderSection(element, headerLevel);
           } else {
             console.log('[DocsUnlocked] Showing header:', headerText);
           }
@@ -190,6 +204,46 @@ export function useConditionEffects(contentRef: React.RefObject<HTMLElement>, ht
       if (headerModifierCount > 0) {
         console.log('[DocsUnlocked] Processed', headerModifierCount, 'header modifiers');
       }
+    };
+    
+    /**
+     * Hide a header and all content until the next header of same or higher level
+     */
+    const hideHeaderSection = (headerElement: HTMLElement, headerLevel: number) => {
+      // Hide the header itself
+      headerElement.style.display = 'none';
+      
+      // Hide all following siblings until we hit a header of same or higher level
+      let sibling = headerElement.nextElementSibling;
+      while (sibling) {
+        const tagName = sibling.tagName.toLowerCase();
+        
+        // Check if it's a header
+        if (/^h[1-6]$/.test(tagName)) {
+          const siblingLevel = parseInt(tagName.substring(1), 10);
+          // Stop if we hit a header of same or higher level (lower number)
+          if (siblingLevel <= headerLevel) {
+            break;
+          }
+        }
+        
+        // Hide this element
+        (sibling as HTMLElement).style.display = 'none';
+        sibling = sibling.nextElementSibling;
+      }
+    };
+    
+    /**
+     * Unescape HTML entities in content
+     */
+    const unescapeContent = (content: string): string => {
+      return content
+        .replace(/&#10;/g, '\n')
+        .replace(/&#39;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&gt;/g, '>')
+        .replace(/&lt;/g, '<')
+        .replace(/&amp;/g, '&');
     };
     
     // Process after a short delay to ensure DOM is ready

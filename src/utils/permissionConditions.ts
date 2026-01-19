@@ -127,13 +127,20 @@ async function checkCustomPermission(permission: string): Promise<boolean> {
 async function checkPermissionSet(permissionSet: string): Promise<boolean> {
   const cacheKey = `permission-set:${permissionSet}`;
   const cached = getCachedPermission(cacheKey);
-  if (cached !== null) return cached;
+  if (cached !== null) {
+    console.log(`[DocsUnlocked] Using cached permission set result for "${permissionSet}":`, cached);
+    return cached;
+  }
   
   try {
-    // Permission sets need to be checked via Apex or UserInfo
-    // For now, we'll use a callback if available, otherwise return false
-    if (typeof (window as any).DOCS_CHECK_PERMISSION_SET === 'function') {
-      const hasPermissionSet = await (window as any).DOCS_CHECK_PERMISSION_SET(permissionSet);
+    // Check if Apex bridge function is available
+    const checkFunction = (window as any).DOCS_CHECK_PERMISSION_SET;
+    console.log(`[DocsUnlocked] DOCS_CHECK_PERMISSION_SET available:`, typeof checkFunction === 'function');
+    
+    if (typeof checkFunction === 'function') {
+      console.log(`[DocsUnlocked] Calling Apex to check permission set: "${permissionSet}"`);
+      const hasPermissionSet = await checkFunction(permissionSet);
+      console.log(`[DocsUnlocked] Apex returned for permission set "${permissionSet}":`, hasPermissionSet);
       setCachedPermission(cacheKey, hasPermissionSet);
       return hasPermissionSet;
     }
@@ -353,10 +360,17 @@ function parsePermissionLogicalOperator(attributes: Record<string, string>): Log
     const values = attributes['all'].split(',').map(v => v.trim()).filter(v => v);
     const conditions: PermissionCondition[] = [];
     for (const val of values) {
-      // Try to infer type from common patterns
+      // Infer permission type from common patterns
+      // Permission sets typically have underscores and start with capital letters (e.g., Docs_Unlocked_Admin)
+      // Custom permissions typically have double underscores (e.g., Feature__Enabled)
+      // Standard permissions are typically PascalCase without underscores (e.g., CustomizeApplication)
       if (val.includes('__')) {
         conditions.push({ type: 'permission', permissionType: 'custom-permission', value: val });
+      } else if (val.includes('_') && /^[A-Z]/.test(val)) {
+        // Likely a permission set (e.g., Docs_Unlocked_Admin)
+        conditions.push({ type: 'permission', permissionType: 'permission-set', value: val });
       } else {
+        // Likely a standard permission (e.g., CustomizeApplication, ViewSetup)
         conditions.push({ type: 'permission', permissionType: 'permission', value: val });
       }
     }
@@ -367,9 +381,14 @@ function parsePermissionLogicalOperator(attributes: Record<string, string>): Log
     const values = attributes['any'].split(',').map(v => v.trim()).filter(v => v);
     const conditions: PermissionCondition[] = [];
     for (const val of values) {
+      // Same inference logic as 'all'
       if (val.includes('__')) {
         conditions.push({ type: 'permission', permissionType: 'custom-permission', value: val });
+      } else if (val.includes('_') && /^[A-Z]/.test(val)) {
+        // Likely a permission set
+        conditions.push({ type: 'permission', permissionType: 'permission-set', value: val });
       } else {
+        // Likely a standard permission
         conditions.push({ type: 'permission', permissionType: 'permission', value: val });
       }
     }
