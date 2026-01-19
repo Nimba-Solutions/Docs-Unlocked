@@ -1,3 +1,10 @@
 <template>
     <div class="docs-container" lwc:dom="manual"></div>
+    
+    <!-- Inline flow embed component -->
+    <c-docs-flow-embed
+        if:true={hasActiveFlow}
+        flow-api-name={activeFlowName}
+        container-id={activeFlowContainerId}
+    ></c-docs-flow-embed>
 </template>

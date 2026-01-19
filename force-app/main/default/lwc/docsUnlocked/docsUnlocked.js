@@ -1,4 +1,4 @@
-import { LightningElement, api } from 'lwc';
+import { LightningElement, api, track } from 'lwc';
 import { loadScript } from 'lightning/platformResourceLoader';
 import { NavigationMixin } from 'lightning/navigation';
 import getTreeAsJson from '@salesforce/apex/StaticResourceTree.getTreeAsJson';
@@ -15,6 +15,13 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
     @api displayHeader = false; // LWC requires boolean defaults to false, but we'll treat undefined/null as true
     @api headerLabel = 'Documentation'; // Default header label
     @api displayFooter = false; // LWC requires boolean defaults to false, but we'll treat undefined/null as true
+
+    // Flow embed state
+    @track hasActiveFlow = false;
+    @track activeFlowName = '';
+    @track activeFlowContainerId = '';
+    @track activeFlowInputs = [];
+    _activeFlowCallback = null;
 
     renderedCallback() {
         // Wait for DOM to be ready
@@ -122,10 +129,12 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
             };
             
             // Expose flow rendering method
-            // This creates an interactive flow launcher in the documentation
-            window.DOCS_RENDER_FLOW = (containerId, flowName, inputVariables, statusCallback) => {
+            // This creates an interactive flow launcher or inline embed in the documentation
+            // mode: 'launcher' (default) - shows a card with Launch button
+            // mode: 'inline' - embeds the flow directly
+            window.DOCS_RENDER_FLOW = (containerId, flowName, inputVariables, statusCallback, mode = 'launcher') => {
                 try {
-                    console.log('[DocsUnlocked LWC] Rendering flow: ' + flowName + ' in container: ' + containerId);
+                    console.log('[DocsUnlocked LWC] Rendering flow: ' + flowName + ' in container: ' + containerId + ' mode: ' + mode);
                     
                     // Find the container element
                     const container = this.template.querySelector('#' + containerId) || 
@@ -140,12 +149,20 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
                         return null;
                     }
                     
-                    // Create the flow launcher UI
-                    this.createFlowLauncher(container, flowName, inputVariables, statusCallback);
+                    if (mode === 'inline') {
+                        // Inline mode: embed the flow directly using the child component
+                        this.showInlineFlow(container, containerId, flowName, inputVariables, statusCallback);
+                    } else {
+                        // Launcher mode: create the flow launcher UI
+                        this.createFlowLauncher(container, flowName, inputVariables, statusCallback);
+                    }
                     
                     // Return cleanup function
                     return () => {
                         console.log('[DocsUnlocked LWC] Cleaning up flow: ' + flowName);
+                        if (mode === 'inline') {
+                            this.hideInlineFlow();
+                        }
                     };
                 } catch (error) {
                     console.error('[DocsUnlocked LWC] Error rendering flow: ' + (error?.message || String(error)));
@@ -391,5 +408,72 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
         });
         
         return params.join('&');
+    }
+
+    /**
+     * Show inline flow embedded at the container location
+     */
+    showInlineFlow(container, containerId, flowName, inputVariables, statusCallback) {
+        console.log('[DocsUnlocked LWC] Showing inline flow: ' + flowName);
+        
+        // Store the callback
+        this._activeFlowCallback = statusCallback;
+        
+        // Set the flow properties - this will trigger the template to show the flow component
+        this.activeFlowName = flowName;
+        this.activeFlowContainerId = containerId;
+        this.activeFlowInputs = inputVariables || [];
+        this.hasActiveFlow = true;
+        
+        // After render, configure and show the flow component
+        // Use a promise to wait for the next render cycle
+        Promise.resolve().then(() => {
+            const flowEmbed = this.template.querySelector('c-docs-flow-embed');
+            if (flowEmbed) {
+                flowEmbed.setInputVariables(inputVariables || []);
+                flowEmbed.show(container, (event) => {
+                    this.handleInlineFlowStatus(event);
+                });
+            } else {
+                console.error('[DocsUnlocked LWC] Flow embed component not found');
+                if (statusCallback) {
+                    statusCallback({ status: 'ERROR', flowName: flowName, errorMessage: 'Flow embed component not found' });
+                }
+            }
+        });
+    }
+
+    /**
+     * Hide the inline flow
+     */
+    hideInlineFlow() {
+        console.log('[DocsUnlocked LWC] Hiding inline flow');
+        
+        const flowEmbed = this.template.querySelector('c-docs-flow-embed');
+        if (flowEmbed) {
+            flowEmbed.hide();
+        }
+        
+        this.hasActiveFlow = false;
+        this.activeFlowName = '';
+        this.activeFlowContainerId = '';
+        this.activeFlowInputs = [];
+        this._activeFlowCallback = null;
+    }
+
+    /**
+     * Handle status events from the inline flow
+     */
+    handleInlineFlowStatus(event) {
+        console.log('[DocsUnlocked LWC] Inline flow status: ' + event.status);
+        
+        if (this._activeFlowCallback) {
+            this._activeFlowCallback(event);
+        }
+        
+        // Auto-hide on close
+        if (event.status === 'CLOSED') {
+            this.hideInlineFlow();
+        }
     }
 }

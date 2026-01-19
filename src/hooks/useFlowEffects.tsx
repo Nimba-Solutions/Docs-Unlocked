@@ -48,6 +48,7 @@ export const useFlowEffects = (
                 const element = placeholder as HTMLElement;
                 const flowName = element.getAttribute('data-flow-name');
                 const inputsJson = element.getAttribute('data-flow-inputs');
+                const mode = element.getAttribute('data-flow-mode') || 'inline';
 
                 if (!flowName) {
                     console.warn('[DocsUnlocked] Flow placeholder missing flow name');
@@ -67,7 +68,7 @@ export const useFlowEffects = (
 
                 const inputVariables = convertToFlowInputVariables(inputs);
 
-                console.log(`[DocsUnlocked] Rendering flow: ${flowName}`, { inputs: inputVariables });
+                console.log(`[DocsUnlocked] Rendering flow: ${flowName}`, JSON.stringify({ inputs: inputVariables, mode }));
 
                 // Check if we're running in Salesforce with the LWC bridge
                 const renderFlow = (window as any).DOCS_RENDER_FLOW;
@@ -77,11 +78,11 @@ export const useFlowEffects = (
                     try {
                         const flowContainerId = `flow-container-${index}-${Date.now()}`;
                         element.id = flowContainerId;
-                        element.className = 'flow-container';
+                        element.className = `flow-container flow-mode-${mode}`;
 
                         // Create flow status handler
                         const statusHandler = (event: FlowStatusEvent) => {
-                            console.log(`[DocsUnlocked] Flow status: ${event.status}`, event);
+                            console.log(`[DocsUnlocked] Flow status: ${event.status}`, JSON.stringify(event));
                             
                             if (event.status === 'FINISHED' || event.status === 'FINISHED_SCREEN') {
                                 // Flow completed - could show completion message
@@ -95,8 +96,8 @@ export const useFlowEffects = (
                             }
                         };
 
-                        // Call LWC to render the flow
-                        const cleanup = renderFlow(flowContainerId, flowName, inputVariables, statusHandler);
+                        // Call LWC to render the flow with mode
+                        const cleanup = renderFlow(flowContainerId, flowName, inputVariables, statusHandler, mode);
                         
                         if (typeof cleanup === 'function') {
                             cleanupFunctions.push(cleanup);
@@ -107,7 +108,7 @@ export const useFlowEffects = (
                     }
                 } else {
                     // Not running in Salesforce - show preview/placeholder
-                    renderFlowPreview(element, flowName, inputVariables);
+                    renderFlowPreview(element, flowName, inputVariables, mode);
                 }
             });
         }, 100);
@@ -126,13 +127,19 @@ export const useFlowEffects = (
 function renderFlowPreview(
     element: HTMLElement, 
     flowName: string, 
-    inputs: Array<{ name: string; type: string; value: unknown }>
+    inputs: Array<{ name: string; type: string; value: unknown }>,
+    mode: string = 'launcher'
 ): void {
-    element.className = 'flow-preview';
+    element.className = `flow-preview flow-mode-${mode}`;
+    
+    const modeLabel = mode === 'inline' ? 'Inline Embed' : 'Launcher';
+    const modeColor = mode === 'inline' ? 'from-emerald-50 to-teal-50 border-emerald-200' : 'from-blue-50 to-indigo-50 border-blue-200';
+    const iconColor = mode === 'inline' ? 'bg-emerald-500' : 'bg-blue-500';
+    
     element.innerHTML = `
-        <div class="flow-preview-container bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 my-4 shadow-sm">
+        <div class="flow-preview-container bg-gradient-to-br ${modeColor} border rounded-lg p-6 my-4 shadow-sm">
             <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shadow-md">
+                <div class="w-10 h-10 ${iconColor} rounded-lg flex items-center justify-center shadow-md">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
@@ -141,6 +148,7 @@ function renderFlowPreview(
                     <h4 class="text-lg font-semibold text-gray-900 m-0">Salesforce Screen Flow</h4>
                     <p class="text-sm text-gray-600 m-0">${escapeHtml(flowName)}</p>
                 </div>
+                <span class="ml-auto px-2 py-1 text-xs font-medium rounded ${mode === 'inline' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">${modeLabel}</span>
             </div>
             ${inputs.length > 0 ? `
                 <div class="mb-4">
@@ -171,7 +179,7 @@ function renderFlowPreview(
                 <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                 </svg>
-                <span>This flow will be interactive when viewed in Salesforce</span>
+                <span>${mode === 'inline' ? 'This flow will be embedded inline when viewed in Salesforce' : 'This flow will show a launcher card when viewed in Salesforce'}</span>
             </div>
         </div>
     `;

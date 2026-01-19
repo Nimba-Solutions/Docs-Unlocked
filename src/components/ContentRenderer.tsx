@@ -69,14 +69,7 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
       // Step 0.5: Process flow blocks (:::flow)
       const flowBlocks = parseFlowBlocks(processedContent);
       if (flowBlocks.length > 0) {
-        console.log(`[DocsUnlocked] Parsed ${flowBlocks.length} flow blocks:`, flowBlocks.map(b => b.flowName));
-      } else {
-        // Debug: Check if there are any :::flow patterns in content
-        const hasFlowPattern = processedContent.includes(':::flow');
-        if (hasFlowPattern) {
-          console.log('[DocsUnlocked] Found :::flow text but no blocks parsed. Content sample:', 
-            processedContent.substring(processedContent.indexOf(':::flow'), processedContent.indexOf(':::flow') + 100));
-        }
+        console.log(`[DocsUnlocked] Parsed ${flowBlocks.length} flow blocks`);
       }
       processedContent = replaceFlowBlocksWithPlaceholders(processedContent, flowBlocks);
       
@@ -117,7 +110,7 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
       // Step 7: Sanitize HTML (allow condition-related and flow-related attributes)
       return DOMPurify.sanitize(htmlWithIds, {
         ADD_TAGS: ['video', 'source', 'iframe'],
-        ADD_ATTR: ['controls', 'aria-label', 'id', 'frameborder', 'allow', 'allowfullscreen', 'style', 'data-condition', 'data-content', 'data-else-content', 'data-condition-check', 'data-permission-check', 'data-flow-name', 'data-flow-inputs', 'class', 'title']
+        ADD_ATTR: ['controls', 'aria-label', 'id', 'frameborder', 'allow', 'allowfullscreen', 'style', 'data-condition', 'data-content', 'data-else-content', 'data-condition-check', 'data-permission-check', 'data-flow-name', 'data-flow-inputs', 'data-flow-mode', 'class', 'title']
       });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);

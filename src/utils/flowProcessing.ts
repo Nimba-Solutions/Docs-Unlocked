@@ -22,11 +22,14 @@ export interface FlowInput {
     value: string;
 }
 
+export type FlowMode = 'launcher' | 'inline';
+
 export interface FlowBlock {
     start: number;
     end: number;
     flowName: string;
     inputs: FlowInput[];
+    mode: FlowMode;
     originalMatch: string;
 }
 
@@ -39,31 +42,19 @@ export function parseFlowBlocks(content: string): FlowBlock[] {
     const codeBlockRanges = findCodeBlockRanges(content);
 
     // Match :::flow blocks - captures the opening line attributes and optional body content
-    // Pattern: :::flow <attributes>\n<optional body>\n:::
-    const flowBlockRegex = /^:::flow\s+([^\n]+)\n([\s\S]*?)^:::\s*$/gm;
+    // Pattern: :::flow <attributes>\n<optional body>:::
+    // Handle both Unix (\n) and Windows (\r\n) line endings
+    // The body and its trailing newline are both optional (for empty body case)
+    const flowBlockRegex = /:::flow\s+([^\r\n]+)\r?\n([\s\S]*?)(?:\r?\n)?:::/g;
 
-    // Debug: log if we find the pattern text
+    // Debug: log what we're searching for
     if (content.includes(':::flow')) {
-        console.log('[DocsUnlocked] parseFlowBlocks: Content contains :::flow');
-        // Try to find a simple match first
-        const simpleTest = content.match(/:::flow\s+name=/);
-        console.log('[DocsUnlocked] parseFlowBlocks: Simple pattern test:', simpleTest ? 'FOUND' : 'NOT FOUND');
-
-        // Debug: test the full regex
-        const testRegex = /^:::flow\s+([^\n]+)\n([\s\S]*?)^:::\s*$/gm;
-        const testMatch = testRegex.exec(content);
-        console.log('[DocsUnlocked] parseFlowBlocks: Full regex test:', testMatch ? 'MATCHED' : 'NO MATCH');
-        if (!testMatch) {
-            // Try alternate regex without the $ anchor
-            const altRegex = /^:::flow\s+([^\n]+)\n([\s\S]*?)^:::/gm;
-            const altMatch = altRegex.exec(content);
-            console.log('[DocsUnlocked] parseFlowBlocks: Alt regex test (no $):', altMatch ? 'MATCHED' : 'NO MATCH');
-        }
+        console.log('[DocsUnlocked] parseFlowBlocks: Content contains :::flow, searching...');
     }
 
     let match;
     while ((match = flowBlockRegex.exec(content)) !== null) {
-        console.log('[DocsUnlocked] parseFlowBlocks: Found match at index', match.index);
+        console.log('[DocsUnlocked] parseFlowBlocks: Found match:', match[1]);
         const matchStart = match.index;
         const matchEnd = match.index + match[0].length;
 
@@ -85,7 +76,13 @@ export function parseFlowBlocks(content: string): FlowBlock[] {
         const flowName = nameMatch[1];
         const inputs: FlowInput[] = [];
 
-        // Parse inline attributes (excluding name)
+        // Parse mode attribute (default: 'inline')
+        const modeMatch = attributeLine.match(/mode=["']([^"']+)["']/);
+        const mode: FlowMode = (modeMatch && (modeMatch[1] === 'inline' || modeMatch[1] === 'launcher'))
+            ? modeMatch[1] as FlowMode
+            : 'inline';
+
+        // Parse inline attributes (excluding name and mode)
         const inlineInputs = parseInlineAttributes(attributeLine);
         inputs.push(...inlineInputs);
 
@@ -100,6 +97,7 @@ export function parseFlowBlocks(content: string): FlowBlock[] {
             end: matchEnd,
             flowName,
             inputs,
+            mode,
             originalMatch: match[0]
         });
     }
@@ -114,14 +112,15 @@ export function parseFlowBlocks(content: string): FlowBlock[] {
  */
 function parseInlineAttributes(attrLine: string): FlowInput[] {
     const inputs: FlowInput[] = [];
-    // Match: name:Type="value" or name="value" (excluding the 'name' attribute itself)
-    const attrRegex = /(?<!^)(\w+)(?::(\w+))?=["']([^"']+)["']/g;
+    // Match: name:Type="value" or name="value"
+    // Use word boundary \b to ensure we match complete attribute names
+    const attrRegex = /\b(\w+)(?::(\w+))?=["']([^"']+)["']/g;
 
     let match;
     while ((match = attrRegex.exec(attrLine)) !== null) {
         const inputName = match[1];
-        // Skip the 'name' attribute as it's the flow name
-        if (inputName.toLowerCase() === 'name') continue;
+        // Skip reserved attributes (name, mode)
+        if (inputName.toLowerCase() === 'name' || inputName.toLowerCase() === 'mode') continue;
 
         const typeAnnotation = match[2] || 'String';
         const value = match[3];
@@ -218,7 +217,7 @@ export function replaceFlowBlocksWithPlaceholders(content: string, blocks: FlowB
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
 
-        const placeholder = `<div class="flow-placeholder" data-flow-name="${escapeForAttribute(block.flowName)}" data-flow-inputs="${inputsJson}"></div>`;
+        const placeholder = `<div class="flow-placeholder" data-flow-name="${escapeForAttribute(block.flowName)}" data-flow-inputs="${inputsJson}" data-flow-mode="${block.mode}"></div>`;
 
         result = result.substring(0, block.start) + placeholder + result.substring(block.end);
     }
