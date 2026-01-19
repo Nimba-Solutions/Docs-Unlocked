@@ -18,10 +18,8 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
 
     // Flow embed state
     @track hasActiveFlow = false;
-    @track activeFlowName = '';
-    @track activeFlowContainerId = '';
-    @track activeFlowInputs = [];
     _activeFlowCallback = null;
+    _activeFlowIframe = null;
 
     renderedCallback() {
         // Wait for DOM to be ready
@@ -411,36 +409,50 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
     }
 
     /**
-     * Show inline flow embedded at the container location
+     * Show inline flow embedded at the container location using iframe
      */
     showInlineFlow(container, containerId, flowName, inputVariables, statusCallback) {
         console.log('[DocsUnlocked LWC] Showing inline flow: ' + flowName);
         
-        // Store the callback
-        this._activeFlowCallback = statusCallback;
+        // Build the flow URL with input parameters
+        const queryString = this.buildFlowQueryString(inputVariables || []);
+        const flowUrl = '/flow/' + flowName + (queryString ? '?' + queryString : '');
         
-        // Set the flow properties - this will trigger the template to show the flow component
-        this.activeFlowName = flowName;
-        this.activeFlowContainerId = containerId;
-        this.activeFlowInputs = inputVariables || [];
-        this.hasActiveFlow = true;
+        console.log('[DocsUnlocked LWC] Flow URL: ' + flowUrl);
         
-        // After render, configure and show the flow component
-        // Use a promise to wait for the next render cycle
-        Promise.resolve().then(() => {
-            const flowEmbed = this.template.querySelector('c-docs-flow-embed');
-            if (flowEmbed) {
-                flowEmbed.setInputVariables(inputVariables || []);
-                flowEmbed.show(container, (event) => {
-                    this.handleInlineFlowStatus(event);
-                });
-            } else {
-                console.error('[DocsUnlocked LWC] Flow embed component not found');
-                if (statusCallback) {
-                    statusCallback({ status: 'ERROR', flowName: flowName, errorMessage: 'Flow embed component not found' });
-                }
+        // Clear the container and insert an iframe
+        container.innerHTML = '';
+        container.className = 'flow-inline-container';
+        
+        // Create iframe element
+        const iframe = document.createElement('iframe');
+        iframe.src = flowUrl;
+        iframe.style.cssText = 'width: 100%; min-height: 400px; border: 1px solid #d8dde6; border-radius: 0.5rem; background: white;';
+        iframe.title = flowName;
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('allowfullscreen', 'true');
+        
+        // Handle iframe load
+        iframe.onload = () => {
+            console.log('[DocsUnlocked LWC] Flow iframe loaded');
+            if (statusCallback) {
+                statusCallback({ status: 'STARTED', flowName: flowName });
             }
-        });
+        };
+        
+        iframe.onerror = (error) => {
+            console.error('[DocsUnlocked LWC] Flow iframe error: ' + error);
+            if (statusCallback) {
+                statusCallback({ status: 'ERROR', flowName: flowName, errorMessage: 'Failed to load flow' });
+            }
+        };
+        
+        container.appendChild(iframe);
+        
+        // Store reference for cleanup
+        this._activeFlowIframe = iframe;
+        this._activeFlowCallback = statusCallback;
+        this.hasActiveFlow = true;
     }
 
     /**
@@ -449,31 +461,13 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
     hideInlineFlow() {
         console.log('[DocsUnlocked LWC] Hiding inline flow');
         
-        const flowEmbed = this.template.querySelector('c-docs-flow-embed');
-        if (flowEmbed) {
-            flowEmbed.hide();
+        if (this._activeFlowIframe) {
+            this._activeFlowIframe.remove();
+            this._activeFlowIframe = null;
         }
         
         this.hasActiveFlow = false;
-        this.activeFlowName = '';
-        this.activeFlowContainerId = '';
-        this.activeFlowInputs = [];
         this._activeFlowCallback = null;
     }
 
-    /**
-     * Handle status events from the inline flow
-     */
-    handleInlineFlowStatus(event) {
-        console.log('[DocsUnlocked LWC] Inline flow status: ' + event.status);
-        
-        if (this._activeFlowCallback) {
-            this._activeFlowCallback(event);
-        }
-        
-        // Auto-hide on close
-        if (event.status === 'CLOSED') {
-            this.hideInlineFlow();
-        }
-    }
 }
