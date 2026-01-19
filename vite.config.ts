@@ -1,13 +1,33 @@
-import { defineConfig } from 'vite'
+import { defineConfig, Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
+
+// Plugin to fix IIFE global context for Salesforce Locker Service
+// Locker Service runs code in strict mode where 'this' at top level is undefined
+function fixLockerServiceGlobal(): Plugin {
+    return {
+        name: 'fix-locker-service-global',
+        generateBundle(options, bundle) {
+            for (const fileName in bundle) {
+                const chunk = bundle[fileName];
+                if (chunk.type === 'chunk' && fileName.endsWith('.js')) {
+                    // Replace 'this.DocsUnlocked' with 'window.DocsUnlocked' in the IIFE wrapper
+                    chunk.code = chunk.code.replace(
+                        /\}\)\(this\.DocsUnlocked\s*=\s*this\.DocsUnlocked\s*\|\|\s*\{\}\);/g,
+                        '})(window.DocsUnlocked=window.DocsUnlocked||{});'
+                    );
+                }
+            }
+        }
+    };
+}
 
 export default defineConfig(({ command, mode }) => {
     const isSalesforceBuild = mode === 'salesforce';
 
     if (isSalesforceBuild) {
         return {
-            plugins: [react()],
+            plugins: [react(), fixLockerServiceGlobal()],
             define: {
                 // Polyfill process.env for browser
                 'process.env': JSON.stringify({ NODE_ENV: 'production' }),
