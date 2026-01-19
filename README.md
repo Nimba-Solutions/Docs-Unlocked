@@ -10,15 +10,15 @@ Docs Unlocked provides a beautiful, searchable documentation experience with min
 
 ## Key Features
 
-- 📝 **Markdown Support** - Write documentation using simple markdown syntax
-- 🔍 **Full-Content Search** - Search across all documentation pages instantly (Ctrl+K / Cmd+K)
-- 🤖 **File Based Routing** - Automatically generates navigation from your file structure
-- 🔐 **Conditional Visibility** - Show or hide content based on Salesforce permissions
-- 🔀 **Screen Flow Support** - Embed Screen Flows directly in your documentation
+- 📝 **[Markdown Support](/public/content/01.getting-started/02.basic-usage.md)** - Write documentation using simple markdown syntax
+- 🔍 **[Full-Content Search](/public/content/01.getting-started/01.introduction.md#navigation)** - Search across all documentation pages instantly (Ctrl+K / Cmd+K)
+- 🤖 **[File Based Routing](/public/content/01.getting-started/02.basic-usage.md#directory-structure)** - Automatically generates navigation from your file structure
+- 🔐 **[Conditional Visibility](/public/content/03.advanced-topics/01.conditional-visibility.md)** - Show or hide content based on Salesforce permissions
+- 🔀 **[Screen Flow Support](/public/content/03.advanced-topics/02.embedded-flows.md)** - Embed Screen Flows directly in your documentation
+- 🎨 **[Rich Content Support](/public/content/01.getting-started/02.basic-usage.md#media)** - Embed images, videos, and probably other stuff
+- 🎯 **[Anchor Links](/public/content/01.getting-started/02.basic-usage.md#anchor-links)** - Deep linking to specific sections within pages
 - 📱 **Responsive Design** - Works beautifully on desktop, tablet, and mobile
 - ⚡ **Fast & Lightweight** - Optimized for Salesforce performance
-- 🎨 **Rich Content Support** - Embed images, videos, and probably other stuff
-- 🎯 **Anchor Links** - Deep linking to specific sections within pages
 
 
 ## How It Works
