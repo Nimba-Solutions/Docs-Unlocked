@@ -128,11 +128,12 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
             
             // Expose flow rendering method
             // This creates an interactive flow launcher or inline embed in the documentation
-            // mode: 'launcher' (default) - shows a card with Launch button
-            // mode: 'inline' - embeds the flow directly
-            window.DOCS_RENDER_FLOW = (containerId, flowName, inputVariables, statusCallback, mode = 'launcher') => {
+            // mode: 'launcher' - shows a card with Launch button
+            // mode: 'inline' (default) - embeds the flow directly
+            // dimensions: { width, height } - size of inline embed (default: 100% x 400px)
+            window.DOCS_RENDER_FLOW = (containerId, flowName, inputVariables, statusCallback, mode = 'inline', dimensions = { width: '100%', height: '400px' }) => {
                 try {
-                    console.log('[DocsUnlocked LWC] Rendering flow: ' + flowName + ' in container: ' + containerId + ' mode: ' + mode);
+                    console.log('[DocsUnlocked LWC] Rendering flow: ' + flowName + ' in container: ' + containerId + ' mode: ' + mode + ' dimensions: ' + JSON.stringify(dimensions));
                     
                     // Find the container element
                     const container = this.template.querySelector('#' + containerId) || 
@@ -148,8 +149,8 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
                     }
                     
                     if (mode === 'inline') {
-                        // Inline mode: embed the flow directly using the child component
-                        this.showInlineFlow(container, containerId, flowName, inputVariables, statusCallback);
+                        // Inline mode: embed the flow directly using iframe
+                        this.showInlineFlow(container, containerId, flowName, inputVariables, statusCallback, dimensions);
                     } else {
                         // Launcher mode: create the flow launcher UI
                         this.createFlowLauncher(container, flowName, inputVariables, statusCallback);
@@ -410,9 +411,15 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
 
     /**
      * Show inline flow embedded at the container location using iframe
+     * @param {HTMLElement} container - Container element
+     * @param {string} containerId - Container ID
+     * @param {string} flowName - Flow API name
+     * @param {Array} inputVariables - Input variables for the flow
+     * @param {Function} statusCallback - Callback for status updates
+     * @param {Object} dimensions - { width, height } for the iframe
      */
-    showInlineFlow(container, containerId, flowName, inputVariables, statusCallback) {
-        console.log('[DocsUnlocked LWC] Showing inline flow: ' + flowName);
+    showInlineFlow(container, containerId, flowName, inputVariables, statusCallback, dimensions = { width: '100%', height: '400px' }) {
+        console.log('[DocsUnlocked LWC] Showing inline flow: ' + flowName + ' with dimensions: ' + JSON.stringify(dimensions));
         
         // Build the flow URL with input parameters
         const queryString = this.buildFlowQueryString(inputVariables || []);
@@ -424,17 +431,68 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
         container.innerHTML = '';
         container.className = 'flow-inline-container';
         
-        // Create iframe element
+        // Create wrapper for iframe + resize handle
+        const wrapper = document.createElement('div');
+        wrapper.className = 'flow-iframe-wrapper';
+        wrapper.style.cssText = 'position: relative; width: ' + dimensions.width + '; margin: 1rem 0;';
+        
+        // Create iframe element with specified dimensions
         const iframe = document.createElement('iframe');
         iframe.src = flowUrl;
-        iframe.style.cssText = 'width: 100%; min-height: 400px; border: 1px solid #d8dde6; border-radius: 0.5rem; background: white;';
+        iframe.style.cssText = 'width: 100%; height: ' + dimensions.height + '; min-height: 150px; border: 1px solid #d8dde6; border-radius: 0.5rem 0.5rem 0 0; background: white; overflow: hidden; display: block;';
         iframe.title = flowName;
         iframe.setAttribute('frameborder', '0');
         iframe.setAttribute('allowfullscreen', 'true');
         
+        // Create resize handle for manual adjustment
+        const resizeHandle = document.createElement('div');
+        resizeHandle.className = 'flow-resize-handle';
+        resizeHandle.style.cssText = 'width: 100%; height: 12px; background: linear-gradient(to bottom, #e5e7eb, #d1d5db); border: 1px solid #d8dde6; border-top: none; border-radius: 0 0 0.5rem 0.5rem; cursor: ns-resize; display: flex; align-items: center; justify-content: center;';
+        resizeHandle.innerHTML = '<div style="width: 40px; height: 4px; background: #9ca3af; border-radius: 2px;"></div>';
+        resizeHandle.title = 'Drag to resize';
+        
+        // Create invisible overlay to capture mouse events during drag
+        // This prevents the iframe from stealing mouse events when dragging upward
+        const dragOverlay = document.createElement('div');
+        dragOverlay.className = 'flow-drag-overlay';
+        dragOverlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1000; display: none; cursor: ns-resize;';
+        
+        // Resize handle drag logic
+        let isResizing = false;
+        let startY = 0;
+        let startHeight = 0;
+        
+        resizeHandle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            startY = e.clientY;
+            startHeight = iframe.offsetHeight;
+            document.body.style.cursor = 'ns-resize';
+            document.body.style.userSelect = 'none';
+            // Show overlay to block iframe from capturing mouse events
+            dragOverlay.style.display = 'block';
+            e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            const deltaY = e.clientY - startY;
+            const newHeight = Math.max(150, startHeight + deltaY);
+            iframe.style.height = newHeight + 'px';
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+                // Hide overlay when done dragging
+                dragOverlay.style.display = 'none';
+            }
+        });
+        
         // Handle iframe load
         iframe.onload = () => {
-            console.log('[DocsUnlocked LWC] Flow iframe loaded');
+            console.log('[DocsUnlocked LWC] Flow iframe loaded with dimensions: ' + dimensions.width + ' x ' + dimensions.height);
             if (statusCallback) {
                 statusCallback({ status: 'STARTED', flowName: flowName });
             }
@@ -447,7 +505,11 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
             }
         };
         
-        container.appendChild(iframe);
+        // Assemble wrapper with iframe, overlay, and resize handle
+        wrapper.appendChild(iframe);
+        wrapper.appendChild(dragOverlay);
+        wrapper.appendChild(resizeHandle);
+        container.appendChild(wrapper);
         
         // Store reference for cleanup
         this._activeFlowIframe = iframe;

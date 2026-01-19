@@ -24,12 +24,18 @@ export interface FlowInput {
 
 export type FlowMode = 'launcher' | 'inline';
 
+export interface FlowDimensions {
+    width: string;
+    height: string;
+}
+
 export interface FlowBlock {
     start: number;
     end: number;
     flowName: string;
     inputs: FlowInput[];
     mode: FlowMode;
+    dimensions: FlowDimensions;
     originalMatch: string;
 }
 
@@ -82,7 +88,15 @@ export function parseFlowBlocks(content: string): FlowBlock[] {
             ? modeMatch[1] as FlowMode
             : 'inline';
 
-        // Parse inline attributes (excluding name and mode)
+        // Parse dimension attributes (width/height with defaults)
+        const widthMatch = attributeLine.match(/width=["']([^"']+)["']/);
+        const heightMatch = attributeLine.match(/height=["']([^"']+)["']/);
+        const dimensions: FlowDimensions = {
+            width: widthMatch ? widthMatch[1] : '100%',
+            height: heightMatch ? heightMatch[1] : '400px'
+        };
+
+        // Parse inline attributes (excluding name, mode, width, height)
         const inlineInputs = parseInlineAttributes(attributeLine);
         inputs.push(...inlineInputs);
 
@@ -98,6 +112,7 @@ export function parseFlowBlocks(content: string): FlowBlock[] {
             flowName,
             inputs,
             mode,
+            dimensions,
             originalMatch: match[0]
         });
     }
@@ -119,8 +134,9 @@ function parseInlineAttributes(attrLine: string): FlowInput[] {
     let match;
     while ((match = attrRegex.exec(attrLine)) !== null) {
         const inputName = match[1];
-        // Skip reserved attributes (name, mode)
-        if (inputName.toLowerCase() === 'name' || inputName.toLowerCase() === 'mode') continue;
+        // Skip reserved attributes (name, mode, width, height)
+        const reserved = ['name', 'mode', 'width', 'height'];
+        if (reserved.includes(inputName.toLowerCase())) continue;
 
         const typeAnnotation = match[2] || 'String';
         const value = match[3];
@@ -217,7 +233,7 @@ export function replaceFlowBlocksWithPlaceholders(content: string, blocks: FlowB
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
 
-        const placeholder = `<div class="flow-placeholder" data-flow-name="${escapeForAttribute(block.flowName)}" data-flow-inputs="${inputsJson}" data-flow-mode="${block.mode}"></div>`;
+        const placeholder = `<div class="flow-placeholder" data-flow-name="${escapeForAttribute(block.flowName)}" data-flow-inputs="${inputsJson}" data-flow-mode="${block.mode}" data-flow-width="${escapeForAttribute(block.dimensions.width)}" data-flow-height="${escapeForAttribute(block.dimensions.height)}"></div>`;
 
         result = result.substring(0, block.start) + placeholder + result.substring(block.end);
     }

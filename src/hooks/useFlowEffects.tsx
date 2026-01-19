@@ -49,6 +49,8 @@ export const useFlowEffects = (
                 const flowName = element.getAttribute('data-flow-name');
                 const inputsJson = element.getAttribute('data-flow-inputs');
                 const mode = element.getAttribute('data-flow-mode') || 'inline';
+                const width = element.getAttribute('data-flow-width') || '100%';
+                const height = element.getAttribute('data-flow-height') || '400px';
 
                 if (!flowName) {
                     console.warn('[DocsUnlocked] Flow placeholder missing flow name');
@@ -68,7 +70,7 @@ export const useFlowEffects = (
 
                 const inputVariables = convertToFlowInputVariables(inputs);
 
-                console.log(`[DocsUnlocked] Rendering flow: ${flowName}`, JSON.stringify({ inputs: inputVariables, mode }));
+                        console.log(`[DocsUnlocked] Rendering flow: ${flowName}`, JSON.stringify({ inputs: inputVariables, mode, width, height }));
 
                 // Check if we're running in Salesforce with the LWC bridge
                 const renderFlow = (window as any).DOCS_RENDER_FLOW;
@@ -96,8 +98,8 @@ export const useFlowEffects = (
                             }
                         };
 
-                        // Call LWC to render the flow with mode
-                        const cleanup = renderFlow(flowContainerId, flowName, inputVariables, statusHandler, mode);
+                        // Call LWC to render the flow with mode and dimensions
+                        const cleanup = renderFlow(flowContainerId, flowName, inputVariables, statusHandler, mode, { width, height });
                         
                         if (typeof cleanup === 'function') {
                             cleanupFunctions.push(cleanup);
@@ -108,7 +110,7 @@ export const useFlowEffects = (
                     }
                 } else {
                     // Not running in Salesforce - show preview/placeholder
-                    renderFlowPreview(element, flowName, inputVariables, mode);
+                    renderFlowPreview(element, flowName, inputVariables, mode, { width, height });
                 }
             });
         }, 100);
@@ -128,13 +130,15 @@ function renderFlowPreview(
     element: HTMLElement, 
     flowName: string, 
     inputs: Array<{ name: string; type: string; value: unknown }>,
-    mode: string = 'launcher'
+    mode: string = 'launcher',
+    dimensions: { width: string; height: string } = { width: '100%', height: '400px' }
 ): void {
     element.className = `flow-preview flow-mode-${mode}`;
     
     const modeLabel = mode === 'inline' ? 'Inline Embed' : 'Launcher';
     const modeColor = mode === 'inline' ? 'from-emerald-50 to-teal-50 border-emerald-200' : 'from-blue-50 to-indigo-50 border-blue-200';
     const iconColor = mode === 'inline' ? 'bg-emerald-500' : 'bg-blue-500';
+    const dimensionsText = `${dimensions.width} × ${dimensions.height}`;
     
     element.innerHTML = `
         <div class="flow-preview-container bg-gradient-to-br ${modeColor} border rounded-lg p-6 my-4 shadow-sm">
@@ -148,7 +152,10 @@ function renderFlowPreview(
                     <h4 class="text-lg font-semibold text-gray-900 m-0">Salesforce Screen Flow</h4>
                     <p class="text-sm text-gray-600 m-0">${escapeHtml(flowName)}</p>
                 </div>
-                <span class="ml-auto px-2 py-1 text-xs font-medium rounded ${mode === 'inline' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">${modeLabel}</span>
+                <div class="ml-auto flex items-center gap-2">
+                    <span class="px-2 py-1 text-xs font-medium rounded bg-gray-100 text-gray-600">${dimensionsText}</span>
+                    <span class="px-2 py-1 text-xs font-medium rounded ${mode === 'inline' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">${modeLabel}</span>
+                </div>
             </div>
             ${inputs.length > 0 ? `
                 <div class="mb-4">
