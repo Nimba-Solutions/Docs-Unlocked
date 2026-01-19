@@ -34,7 +34,8 @@ export const useFlowEffects = (
 
         const cleanupFunctions: Array<() => void> = [];
 
-        // Small delay to ensure DOM is fully updated
+        // Delay to ensure DOM is fully updated and scroll-to-top animation completes
+        // DocsApp scrolls to top at 150ms with smooth animation, so we wait longer
         const timeoutId = setTimeout(() => {
             if (!contentRef.current) return;
 
@@ -78,6 +79,13 @@ export const useFlowEffects = (
                 if (typeof renderFlow === 'function') {
                     // Running in Salesforce - use LWC to render the flow
                     try {
+                        // Store scroll position before rendering to prevent auto-scroll
+                        const scrollContainer = element.closest('.docs-main-content') || 
+                                               element.closest('[data-scroll-container]') ||
+                                               element.closest('main');
+                        const savedScrollTop = scrollContainer?.scrollTop ?? 0;
+                        const savedWindowScrollY = window.scrollY;
+                        
                         const flowContainerId = `flow-container-${index}-${Date.now()}`;
                         element.id = flowContainerId;
                         element.className = `flow-container flow-mode-${mode}`;
@@ -101,6 +109,15 @@ export const useFlowEffects = (
                         // Call LWC to render the flow with mode and dimensions
                         const cleanup = renderFlow(flowContainerId, flowName, inputVariables, statusHandler, mode, { width, height });
                         
+                        // Restore scroll position after flow render to prevent auto-scroll
+                        // This ensures the view doesn't jump when the iframe loads
+                        requestAnimationFrame(() => {
+                            if (scrollContainer) {
+                                scrollContainer.scrollTop = savedScrollTop;
+                            }
+                            window.scrollTo(0, savedWindowScrollY);
+                        });
+                        
                         if (typeof cleanup === 'function') {
                             cleanupFunctions.push(cleanup);
                         }
@@ -113,7 +130,7 @@ export const useFlowEffects = (
                     renderFlowPreview(element, flowName, inputVariables, mode, { width, height });
                 }
             });
-        }, 100);
+        }, 500);
 
         return () => {
             clearTimeout(timeoutId);
