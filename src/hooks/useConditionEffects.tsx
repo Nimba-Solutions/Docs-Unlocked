@@ -6,6 +6,7 @@
 import React, { useEffect } from 'react';
 import { marked } from 'marked';
 import { Condition, conditionRegistry, ConditionResult } from '../utils/conditions';
+import { processCallouts, processNavCardsPlaceholders } from '../utils/markdownProcessing';
 
 /**
  * Process condition block placeholders in the DOM
@@ -101,8 +102,11 @@ export function useConditionEffects(contentRef: React.RefObject<HTMLElement>, ht
           
           console.log('[DocsUnlocked] Unescaped content preview:', unescapedContent.substring(0, 100));
           
+          // Process markdown extensions (callouts, navcards) before parsing
+          const processedContent = processMarkdownExtensions(unescapedContent.trim());
+          
           // Parse markdown to HTML
-          const parsedHtml = marked.parse(unescapedContent.trim()) as string;
+          const parsedHtml = marked.parse(processedContent) as string;
           
           console.log('[DocsUnlocked] Parsed HTML preview:', parsedHtml.substring(0, 200));
           
@@ -118,8 +122,11 @@ export function useConditionEffects(contentRef: React.RefObject<HTMLElement>, ht
             
             console.log('[DocsUnlocked] Unescaped else content preview:', unescapedElseContent.substring(0, 100));
             
+            // Process markdown extensions (callouts, navcards) before parsing
+            const processedElseContent = processMarkdownExtensions(unescapedElseContent.trim());
+            
             // Parse markdown to HTML
-            const parsedElseHtml = marked.parse(unescapedElseContent.trim()) as string;
+            const parsedElseHtml = marked.parse(processedElseContent) as string;
             
             console.log('[DocsUnlocked] Parsed else HTML preview:', parsedElseHtml.substring(0, 200));
             
@@ -244,6 +251,16 @@ export function useConditionEffects(contentRef: React.RefObject<HTMLElement>, ht
         .replace(/&gt;/g, '>')
         .replace(/&lt;/g, '<')
         .replace(/&amp;/g, '&');
+    };
+    
+    /**
+     * Process markdown extensions (callouts, navcards) before parsing
+     */
+    const processMarkdownExtensions = (content: string): string => {
+      let processed = content;
+      processed = processNavCardsPlaceholders(processed);
+      processed = processCallouts(processed);
+      return processed;
     };
     
     // Process after a short delay to ensure DOM is ready
