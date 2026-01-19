@@ -8,6 +8,7 @@ import { processImages, processVideos } from '../utils/mediaProcessing';
 import { extractTOCAndAddIds } from '../utils/tocExtraction';
 import { parseFrontmatter } from '../utils/frontmatter';
 import { processConditionBlocks, replaceConditionBlocksWithPlaceholders } from '../utils/conditionProcessing';
+import { parseFlowBlocks, replaceFlowBlocksWithPlaceholders } from '../utils/flowProcessing';
 import { findHeaderModifiers, removeHeaderModifiers } from '../utils/headerConditionModifiers';
 import '../utils/permissionConditions'; // Import to register permission conditions
 import { 
@@ -18,6 +19,7 @@ import {
   useSearchHighlight 
 } from '../hooks/useContentEffects';
 import { useConditionEffects } from '../hooks/useConditionEffects';
+import { useFlowEffects } from '../hooks/useFlowEffects';
 
 interface ContentRendererProps {
   content: string;
@@ -64,6 +66,20 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
       const headerModifiers = findHeaderModifiers(processedContent);
       processedContent = removeHeaderModifiers(processedContent);
       
+      // Step 0.5: Process flow blocks (:::flow)
+      const flowBlocks = parseFlowBlocks(processedContent);
+      if (flowBlocks.length > 0) {
+        console.log(`[DocsUnlocked] Parsed ${flowBlocks.length} flow blocks:`, flowBlocks.map(b => b.flowName));
+      } else {
+        // Debug: Check if there are any :::flow patterns in content
+        const hasFlowPattern = processedContent.includes(':::flow');
+        if (hasFlowPattern) {
+          console.log('[DocsUnlocked] Found :::flow text but no blocks parsed. Content sample:', 
+            processedContent.substring(processedContent.indexOf(':::flow'), processedContent.indexOf(':::flow') + 100));
+        }
+      }
+      processedContent = replaceFlowBlocksWithPlaceholders(processedContent, flowBlocks);
+      
       // Step 1: Process markdown extensions (callouts, navcards placeholders)
       processedContent = processNavCardsPlaceholders(processedContent);
       processedContent = processCallouts(processedContent);
@@ -98,10 +114,10 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
       // Step 6: Extract TOC and add IDs to headers
       const htmlWithIds = extractTOCAndAddIds(wrappedHtml, onTOCChange);
       
-      // Step 7: Sanitize HTML (allow condition-related attributes)
+      // Step 7: Sanitize HTML (allow condition-related and flow-related attributes)
       return DOMPurify.sanitize(htmlWithIds, {
         ADD_TAGS: ['video', 'source', 'iframe'],
-        ADD_ATTR: ['controls', 'aria-label', 'id', 'frameborder', 'allow', 'allowfullscreen', 'style', 'data-condition', 'data-content', 'data-else-content', 'data-condition-check', 'data-permission-check', 'class', 'title']
+        ADD_ATTR: ['controls', 'aria-label', 'id', 'frameborder', 'allow', 'allowfullscreen', 'style', 'data-condition', 'data-content', 'data-else-content', 'data-condition-check', 'data-permission-check', 'data-flow-name', 'data-flow-inputs', 'class', 'title']
       });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -117,6 +133,7 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
   useLightningLinks(contentRef, html);
   useSearchHighlight(contentRef, html, highlightQuery);
   useConditionEffects(contentRef, html);
+  useFlowEffects(contentRef, html);
 
   return (
     <div 

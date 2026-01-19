@@ -37,3 +37,30 @@ export interface SearchResult {
   snippet: string;
   searchQuery?: string;
 }
+
+/**
+ * Flow input variable type for Salesforce Screen Flows
+ */
+export interface FlowInputVariable {
+  name: string;
+  type: 'String' | 'Number' | 'Boolean' | 'Date' | 'DateTime' | 'SObject' | 'Apex';
+  value: unknown;
+}
+
+/**
+ * Flow status event from Salesforce
+ */
+export interface FlowStatusEvent {
+  status: 'STARTED' | 'PAUSED' | 'FINISHED' | 'FINISHED_SCREEN' | 'ERROR';
+  flowName: string;
+  outputVariables?: Record<string, unknown>;
+  errorMessage?: string;
+}
+
+/**
+ * Embedded flow configuration parsed from :::flow blocks
+ */
+export interface EmbeddedFlow {
+  flowName: string;
+  inputs: FlowInputVariable[];
+}

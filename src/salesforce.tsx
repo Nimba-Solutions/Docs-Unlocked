@@ -10,6 +10,7 @@ export * from './types';
 export * from './utils/markdown';
 export * from './utils/navigation';
 export * from './utils/logger';
+export * from './utils/flowProcessing';
 
 // Import and configure marked.js (same as before)
 import { marked } from 'marked';
