@@ -297,7 +297,7 @@ Please ensure the \`${G}\` ZIP StaticResource is deployed with all content files
             Check browser console for details.
           </p>
         </div>
-      `),i}};try{typeof window<"u"&&(window.initDocsApp=B_,window.DocsUnlocked||(window.DocsUnlocked={}),window.DocsUnlocked.initDocsApp=B_)}catch{}ke.use({gfm:!0,breaks:!0}),je.ContentRenderer=TT,je.DocsApp=hT,je.NavCard=fT,je.NavigationLinks=v_,je.SearchModal=Zf,je.Sidebar=Xf,je.buildNavigationFromDiscovered=Qf,je.extractTitle=Kf,je.flattenNavigation=Wf,je.initDocsApp=B_,je.normalizeDisplayPath=Ki,je.parseNavCards=_T,je.safeError=ri,je.safeLog=ea,je.safeStringify=co,je.wrapCodeBlocks=dT,Object.defineProperty(je,Symbol.toStringTag,{value:"Module"})})(this.DocsUnlocked=this.DocsUnlocked||{});
+      `),i}};try{typeof window<"u"&&(window.initDocsApp=B_,window.DocsUnlocked||(window.DocsUnlocked={}),window.DocsUnlocked.initDocsApp=B_)}catch{}ke.use({gfm:!0,breaks:!0}),je.ContentRenderer=TT,je.DocsApp=hT,je.NavCard=fT,je.NavigationLinks=v_,je.SearchModal=Zf,je.Sidebar=Xf,je.buildNavigationFromDiscovered=Qf,je.extractTitle=Kf,je.flattenNavigation=Wf,je.initDocsApp=B_,je.normalizeDisplayPath=Ki,je.parseNavCards=_T,je.safeError=ri,je.safeLog=ea,je.safeStringify=co,je.wrapCodeBlocks=dT,Object.defineProperty(je,Symbol.toStringTag,{value:"Module"})})(window.DocsUnlocked=window.DocsUnlocked||{});
 
     } catch (e) {
         var errorMsg = e instanceof Error ? e.message : (typeof e === 'string' ? e : JSON.stringify(e));
