@@ -13,6 +13,7 @@ Docs Unlocked provides a beautiful, searchable documentation experience with min
 - 📝 **Markdown Support** - Write documentation using simple markdown syntax
 - 🔍 **Full-Content Search** - Search across all documentation pages instantly (Ctrl+K / Cmd+K)
 - 🤖 **File Based Routing** - Automatically generates navigation from your file structure
+- 🔐 **Conditional Visibility** - Show or hide content based on Salesforce permissions
 - 📱 **Responsive Design** - Works beautifully on desktop, tablet, and mobile
 - ⚡ **Fast & Lightweight** - Optimized for Salesforce performance
 - 🎨 **Rich Content Support** - Embed images, videos, and probably other stuff
