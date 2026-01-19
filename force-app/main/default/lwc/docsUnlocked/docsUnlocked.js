@@ -1,6 +1,12 @@
 import { LightningElement, api } from 'lwc';
 import { loadScript } from 'lightning/platformResourceLoader';
 import getTreeAsJson from '@salesforce/apex/StaticResourceTree.getTreeAsJson';
+import hasPermission from '@salesforce/apex/PermissionChecker.hasPermission';
+import hasCustomPermission from '@salesforce/apex/PermissionChecker.hasCustomPermission';
+import hasPermissionSet from '@salesforce/apex/PermissionChecker.hasPermissionSet';
+import hasProfile from '@salesforce/apex/PermissionChecker.hasProfile';
+import hasObjectAccess from '@salesforce/apex/PermissionChecker.hasObjectAccess';
+import hasFieldAccess from '@salesforce/apex/PermissionChecker.hasFieldAccess';
 import DOCS_UNLOCKED from '@salesforce/resourceUrl/docsUnlocked';
 
 export default class DocsUnlocked extends LightningElement {
@@ -50,6 +56,67 @@ export default class DocsUnlocked extends LightningElement {
                 } catch (error) {
                     console.error('[DocsUnlocked LWC] Error calling getTreeAsJson: ' + (error?.message || String(error)));
                     throw error;
+                }
+            };
+            
+            // Expose permission checking methods from Apex
+            window.DOCS_CHECK_PERMISSION = async (permissionName) => {
+                try {
+                    const result = await hasPermission({ permissionName: permissionName });
+                    return result;
+                } catch (error) {
+                    console.error('[DocsUnlocked LWC] Error checking permission: ' + (error?.message || String(error)));
+                    return false;
+                }
+            };
+            
+            window.DOCS_CHECK_CUSTOM_PERMISSION = async (permissionName) => {
+                try {
+                    const result = await hasCustomPermission({ permissionName: permissionName });
+                    return result;
+                } catch (error) {
+                    console.error('[DocsUnlocked LWC] Error checking custom permission: ' + (error?.message || String(error)));
+                    return false;
+                }
+            };
+            
+            window.DOCS_CHECK_PERMISSION_SET = async (permissionSetName) => {
+                try {
+                    const result = await hasPermissionSet({ permissionSetName: permissionSetName });
+                    return result;
+                } catch (error) {
+                    console.error('[DocsUnlocked LWC] Error checking permission set: ' + (error?.message || String(error)));
+                    return false;
+                }
+            };
+            
+            window.DOCS_CHECK_PROFILE = async (profileName) => {
+                try {
+                    const result = await hasProfile({ profileName: profileName });
+                    return result;
+                } catch (error) {
+                    console.error('[DocsUnlocked LWC] Error checking profile: ' + (error?.message || String(error)));
+                    return false;
+                }
+            };
+            
+            window.DOCS_CHECK_OBJECT_ACCESS = async (objectName, accessType) => {
+                try {
+                    const result = await hasObjectAccess({ objectName: objectName, accessType: accessType });
+                    return result;
+                } catch (error) {
+                    console.error('[DocsUnlocked LWC] Error checking object access: ' + (error?.message || String(error)));
+                    return false;
+                }
+            };
+            
+            window.DOCS_CHECK_FIELD_ACCESS = async (fieldName) => {
+                try {
+                    const result = await hasFieldAccess({ fieldName: fieldName });
+                    return result;
+                } catch (error) {
+                    console.error('[DocsUnlocked LWC] Error checking field access: ' + (error?.message || String(error)));
+                    return false;
                 }
             };
             

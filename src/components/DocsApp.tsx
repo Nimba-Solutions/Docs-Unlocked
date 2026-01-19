@@ -498,7 +498,7 @@ export const DocsApp: React.FC = () => {
           displayHeader={displayHeader}
           discoveredFiles={discoveredFiles}
         />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto docs-main-content">
           <article ref={articleRef} className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-6 lg:pt-8 lg:pb-8">
             {contentLoading ? (
               <div className="flex items-center justify-center py-12">
