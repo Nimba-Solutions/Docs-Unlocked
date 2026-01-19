@@ -24,15 +24,13 @@ Docs Unlocked provides a beautiful, searchable documentation experience with min
 Docs Unlocked consists of two main components:
 
 1. **Lightning Web Component** - The Salesforce component that displays your documentation
-2. **Content Files** - Your markdown files organized in folders, stored in a ZIP StaticResource
-
-Navigation is automatically generated from your file structure. You can also provide a `manifest.yaml` file for full control ([learn more](/public/content/01.getting-started/02.basic-usage.md#automatic-vs-manual-navigation)).
+2. **Content Files** - Your markdown files organized in folders, stored in a ZIP StaticResource ([learn more](/public/content/01.getting-started/02.basic-usage.md#automatic-vs-manual-navigation)).
 
 ## Quick Start
 
 ### 1. Organize Your Content
 
-Create markdown files organized in folders. Use numeric prefixes (like `01.getting-started`) for automatic ordering:
+Create markdown files organized in folders:
 
 ```plaintext
 content/
@@ -50,7 +48,7 @@ For more details on file organization, see the [directory structure guide](/publ
 Package your `content/` folder (and optional `media/` folder) into a ZIP file. See [packaging instructions](/public/content/01.getting-started/02.basic-usage.md#packaging-your-content) for details.
 
 > [!IMPORTANT]
-> Static Resources have a maximum file size of 5mb, so while you technically can include media directly, we *strongly* recommend you serve rich content from remote sources. see [Basic Usage > Media](/public/content/01.getting-started/02.basic-usage.md#Media) for more information.
+> StaticResources have a maximum file size of 5mb, so while you technically can include media directly, we *strongly* recommend you serve rich content from remote sources. see [Basic Usage > Media](/public/content/01.getting-started/02.basic-usage.md#Media) for more information.
 
 ### 3. Upload to Salesforce
 
@@ -66,16 +64,15 @@ Package your `content/` folder (and optional `media/` folder) into a ZIP file. S
 1. Open Lightning App Builder
 2. Add the "Docs Unlocked" component to your page
 3. Set **Content Resource Name** to match your StaticResource name
-4. Save and activate
+4. Configure your header, footer, etc
+5. Save and activate
 
 That's it! Your documentation is now live.
 
 > [!TIP]
-> Docs Unlocked automatically generates navigation from your file structure. Sections and pages will be sorted alphabetically by default, and numeric prefixes (like `01.getting-started`) can be specified for more control. Page titles are extracted from the first H1 header in each markdown file, and a full table of contents is generated from your H1-H4 headers within each page. For more details, see [Basic Usage](/public/content/01.getting-started/02.basic-usage.md).
+> Docs Unlocked automatically generates navigation from your file structure. Page titles are extracted from the first H1 header in each markdown file, and a full table of contents is generated from your H1-H4 headers for each page. Sections and pages will be sorted alphabetically by default, but this can be controlled granularly through numeric prefixes or by including a `manifest.yml` file with your content. For more details, see [Basic Usage](/public/content/01.getting-started/02.basic-usage.md).
 
 ## Navigation
-
-Navigation is automatically generated from your content:
 
 - **Sidebar** - Shows all sections and pages
 - **Search** - Press `Ctrl+K` (or `Cmd+K` on Mac) to search all content
