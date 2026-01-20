@@ -17,7 +17,7 @@ Docs Unlocked provides a beautiful, searchable documentation experience with min
 - ⚡ **Fast & Lightweight** - Optimized for Salesforce performance
 
 ### Advanced Features
-- 🤖 **[File Based Routing](/public/content/01.getting-started/02.basic-usage.md#directory-structure)** - Automatically generates navigation from your file structure
+- 🤖 **[File Based Routing](/public/content/01.getting-started/02.basic-usage.md#directory-structure)** - Automatically generate navigation from your file structure
 - 🔐 **[Conditional Visibility](/public/content/03.advanced-topics/01.conditional-visibility.md)** - Show or hide content based on Salesforce permissions
 - 🔀 **[Screen Flow Support](/public/content/03.advanced-topics/02.embedded-flows.md)** - Embed Screen Flows directly in your documentation
 - 🎨 **[Rich Content Support](/public/content/01.getting-started/02.basic-usage.md#media)** - Embed images, videos, and probably other stuff
