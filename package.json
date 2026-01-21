@@ -17,6 +17,7 @@
         "js-yaml": "^4.1.1",
         "lucide-react": "^0.363.0",
         "marked": "^17.0.1",
+        "mermaid": "^11.12.2",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-router-dom": "^7.12.0"
