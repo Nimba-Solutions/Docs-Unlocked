@@ -75,10 +75,22 @@ export const useMermaidEffects = (
 
                 const element = placeholder as HTMLElement;
                 const diagramId = element.getAttribute('data-mermaid-id');
+                let definition: string | null = null;
+                
+                // Try data attribute first
                 const encodedDefinition = element.getAttribute('data-mermaid-definition');
+                if (encodedDefinition) {
+                    definition = unescapeFromDataAttribute(encodedDefinition);
+                } else {
+                    // Fallback: read from hidden <pre> element if data attribute was stripped by DOMPurify
+                    const preElement = element.querySelector('.mermaid-source');
+                    if (preElement && preElement.textContent) {
+                        definition = preElement.textContent;
+                    }
+                }
 
-                if (!diagramId || !encodedDefinition) {
-                    console.warn('[DocsUnlocked] Mermaid placeholder missing required attributes - diagramId:', diagramId, 'hasDefinition:', !!encodedDefinition);
+                if (!diagramId || !definition) {
+                    console.warn('[DocsUnlocked] Mermaid placeholder missing required attributes - diagramId:', diagramId, 'hasDefinition:', !!definition);
                     renderMermaidError(element, 'Missing diagram definition');
                     continue;
                 }
@@ -87,8 +99,6 @@ export const useMermaidEffects = (
                 if (renderedDiagramsRef.current.has(diagramId)) {
                     continue;
                 }
-
-                const definition = unescapeFromDataAttribute(encodedDefinition);
                 const diagramType = detectDiagramType(definition);
 
                 try {
