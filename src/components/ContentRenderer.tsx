@@ -3,6 +3,7 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { TOCItem } from '../types';
 import { parseNavCards, wrapCodeBlocks } from '../utils/markdown';
+import { parseMermaidBlocks, replaceMermaidBlocksWithPlaceholders } from '../utils/mermaidProcessing';
 import { processCallouts, processNavCardsPlaceholders, injectNavCardsPlaceholders } from '../utils/markdownProcessing';
 import { processImages, processVideos } from '../utils/mediaProcessing';
 import { extractTOCAndAddIds } from '../utils/tocExtraction';
@@ -20,6 +21,7 @@ import {
 } from '../hooks/useContentEffects';
 import { useConditionEffects } from '../hooks/useConditionEffects';
 import { useFlowEffects } from '../hooks/useFlowEffects';
+import { useMermaidEffects } from '../hooks/useMermaidEffects';
 
 interface ContentRendererProps {
   content: string;
@@ -73,6 +75,10 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
       }
       processedContent = replaceFlowBlocksWithPlaceholders(processedContent, flowBlocks);
       
+      // Step 0.6: Process mermaid code blocks (```mermaid)
+      const mermaidBlocks = parseMermaidBlocks(processedContent);
+      processedContent = replaceMermaidBlocksWithPlaceholders(processedContent, mermaidBlocks);
+      
       // Step 1: Process markdown extensions (callouts, navcards placeholders)
       processedContent = processNavCardsPlaceholders(processedContent);
       processedContent = processCallouts(processedContent);
@@ -107,10 +113,10 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
       // Step 6: Extract TOC and add IDs to headers
       const htmlWithIds = extractTOCAndAddIds(wrappedHtml, onTOCChange);
       
-      // Step 7: Sanitize HTML (allow condition-related and flow-related attributes)
+      // Step 7: Sanitize HTML (allow condition-related, flow-related, and mermaid-related attributes)
       return DOMPurify.sanitize(htmlWithIds, {
         ADD_TAGS: ['video', 'source', 'iframe'],
-        ADD_ATTR: ['controls', 'aria-label', 'id', 'frameborder', 'allow', 'allowfullscreen', 'style', 'data-condition', 'data-content', 'data-else-content', 'data-condition-check', 'data-permission-check', 'data-flow-name', 'data-flow-inputs', 'data-flow-mode', 'data-flow-width', 'data-flow-height', 'class', 'title']
+        ADD_ATTR: ['controls', 'aria-label', 'id', 'frameborder', 'allow', 'allowfullscreen', 'style', 'data-condition', 'data-content', 'data-else-content', 'data-condition-check', 'data-permission-check', 'data-flow-name', 'data-flow-inputs', 'data-flow-mode', 'data-flow-width', 'data-flow-height', 'data-mermaid-id', 'data-mermaid-definition', 'class', 'title']
       });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -127,6 +133,7 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
   useSearchHighlight(contentRef, html, highlightQuery);
   useConditionEffects(contentRef, html);
   useFlowEffects(contentRef, html);
+  useMermaidEffects(contentRef, html);
 
   return (
     <div 
