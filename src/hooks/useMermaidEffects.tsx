@@ -274,7 +274,9 @@ function parseErDiagram(definition: string): Map<string, ErEntity> {
     
     // Then, parse entity attribute blocks
     // Pattern: EntityName { type attr1 type attr2 ... }
-    const entityBlockPattern = /([A-Za-z0-9_]+)\s*\{([^}]+)\}/g;
+    // IMPORTANT: Use multiline flag and require line start to avoid matching
+    // "o{" from relationship syntax like "||--o{ Contact"
+    const entityBlockPattern = /^\s*([A-Za-z][A-Za-z0-9_]*)\s*\{([^}]+)\}/gm;
     let blockMatch;
     while ((blockMatch = entityBlockPattern.exec(definition)) !== null) {
         const entityName = blockMatch[1];
