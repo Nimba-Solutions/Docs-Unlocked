@@ -367,9 +367,24 @@ async function renderMermaidDiagram(
                         }
                         
                         if (labelText) {
+                            // Get the label group's transform to calculate proper text position
+                            // The label group is offset from node center, so we need to compensate
+                            const transform = labelGroup.getAttribute('transform');
+                            let offsetX = 0;
+                            let offsetY = 0;
+                            
+                            if (transform) {
+                                const match = transform.match(/translate\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)/);
+                                if (match) {
+                                    // Negate the transform to center the text in the node
+                                    offsetX = -parseFloat(match[1]);
+                                    offsetY = -parseFloat(match[2]);
+                                }
+                            }
+                            
                             const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                            textEl.setAttribute('x', '0');
-                            textEl.setAttribute('y', '0');
+                            textEl.setAttribute('x', String(offsetX));
+                            textEl.setAttribute('y', String(offsetY));
                             textEl.setAttribute('text-anchor', 'middle');
                             textEl.setAttribute('dominant-baseline', 'middle');
                             textEl.setAttribute('fill', '#333');
@@ -407,9 +422,22 @@ async function renderMermaidDiagram(
                             }
                             
                             if (labelText) {
+                                // Get the label group's transform to calculate proper text position
+                                const transform = labelGroup.getAttribute('transform');
+                                let offsetX = 0;
+                                let offsetY = 0;
+                                
+                                if (transform) {
+                                    const match = transform.match(/translate\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)/);
+                                    if (match) {
+                                        offsetX = -parseFloat(match[1]);
+                                        offsetY = -parseFloat(match[2]);
+                                    }
+                                }
+                                
                                 const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                                textEl.setAttribute('x', '0');
-                                textEl.setAttribute('y', '0');
+                                textEl.setAttribute('x', String(offsetX));
+                                textEl.setAttribute('y', String(offsetY));
                                 textEl.setAttribute('text-anchor', 'middle');
                                 textEl.setAttribute('dominant-baseline', 'middle');
                                 textEl.setAttribute('fill', '#333');
@@ -520,9 +548,22 @@ async function renderMermaidDiagram(
                     }
                     
                     if (labelText) {
+                        // Get the label group's transform to calculate proper text position
+                        const transform = labelGroup.getAttribute('transform');
+                        let offsetX = 0;
+                        let offsetY = 0;
+                        
+                        if (transform) {
+                            const match = transform.match(/translate\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)/);
+                            if (match) {
+                                offsetX = -parseFloat(match[1]);
+                                offsetY = -parseFloat(match[2]);
+                            }
+                        }
+                        
                         const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                        textEl.setAttribute('x', '0');
-                        textEl.setAttribute('y', '0');
+                        textEl.setAttribute('x', String(offsetX));
+                        textEl.setAttribute('y', String(offsetY));
                         textEl.setAttribute('text-anchor', 'middle');
                         textEl.setAttribute('dominant-baseline', 'middle');
                         textEl.setAttribute('fill', '#333');
