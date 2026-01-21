@@ -77,20 +77,26 @@ export const useMermaidEffects = (
                 const diagramId = element.getAttribute('data-mermaid-id');
                 let definition: string | null = null;
                 
-                // Try data attribute first
-                const encodedDefinition = element.getAttribute('data-mermaid-definition');
-                if (encodedDefinition) {
-                    definition = unescapeFromDataAttribute(encodedDefinition);
-                } else {
-                    // Fallback: read from hidden <pre> element if data attribute was stripped by DOMPurify
-                    const preElement = element.querySelector('.mermaid-source');
-                    if (preElement && preElement.textContent) {
-                        definition = preElement.textContent;
+                // Try base64 attribute first (most reliable, survives DOMPurify)
+                const base64Definition = element.getAttribute('data-mermaid-base64');
+                if (base64Definition) {
+                    try {
+                        definition = decodeURIComponent(escape(atob(base64Definition)));
+                    } catch (e) {
+                        console.warn('[DocsUnlocked] Failed to decode base64 mermaid definition');
+                    }
+                }
+                
+                // Fallback to escaped data attribute
+                if (!definition) {
+                    const encodedDefinition = element.getAttribute('data-mermaid-definition');
+                    if (encodedDefinition) {
+                        definition = unescapeFromDataAttribute(encodedDefinition);
                     }
                 }
 
                 if (!diagramId || !definition) {
-                    console.warn('[DocsUnlocked] Mermaid placeholder missing required attributes - diagramId:', diagramId, 'hasDefinition:', !!definition);
+                    console.warn('[DocsUnlocked] Mermaid placeholder missing definition - diagramId: ' + diagramId);
                     renderMermaidError(element, 'Missing diagram definition');
                     continue;
                 }
@@ -105,10 +111,11 @@ export const useMermaidEffects = (
                     await renderMermaidDiagram(element, diagramId, definition, diagramType);
                     renderedDiagramsRef.current.add(diagramId);
                 } catch (error) {
-                    console.error('[DocsUnlocked] Error rendering mermaid diagram:', error);
+                    const errorMsg = error instanceof Error ? error.message : String(error);
+                    console.error('[DocsUnlocked] Error rendering mermaid diagram: ' + errorMsg);
                     renderMermaidError(
                         element, 
-                        error instanceof Error ? error.message : 'Failed to render diagram',
+                        errorMsg,
                         definition
                     );
                 }

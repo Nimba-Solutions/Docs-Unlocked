@@ -116,7 +116,7 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
       // Step 7: Sanitize HTML (allow condition-related, flow-related, and mermaid-related attributes)
       return DOMPurify.sanitize(htmlWithIds, {
         ADD_TAGS: ['video', 'source', 'iframe'],
-        ADD_ATTR: ['controls', 'aria-label', 'id', 'frameborder', 'allow', 'allowfullscreen', 'style', 'data-condition', 'data-content', 'data-else-content', 'data-condition-check', 'data-permission-check', 'data-flow-name', 'data-flow-inputs', 'data-flow-mode', 'data-flow-width', 'data-flow-height', 'data-mermaid-id', 'data-mermaid-definition', 'class', 'title']
+        ADD_ATTR: ['controls', 'aria-label', 'id', 'frameborder', 'allow', 'allowfullscreen', 'style', 'data-condition', 'data-content', 'data-else-content', 'data-condition-check', 'data-permission-check', 'data-flow-name', 'data-flow-inputs', 'data-flow-mode', 'data-flow-width', 'data-flow-height', 'data-mermaid-id', 'data-mermaid-definition', 'data-mermaid-base64', 'class', 'title']
       });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);

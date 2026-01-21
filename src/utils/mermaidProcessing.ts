@@ -157,8 +157,9 @@ export function replaceMermaidBlocksWithPlaceholders(
         const diagramId = `mermaid-${generateUniqueId()}`;
 
         // Create placeholder div that will be preserved through markdown parsing
-        // Using pre-formatted HTML that marked.js will pass through
-        const placeholder = `<div class="mermaid-placeholder" data-mermaid-id="${diagramId}" data-mermaid-definition="${escapedDefinition}"><pre class="mermaid-source" style="display:none;">${escapeHtml(block.definition)}</pre></div>`;
+        // Use base64 encoding in the hidden element to avoid HTML entity issues
+        const base64Definition = btoa(unescape(encodeURIComponent(block.definition)));
+        const placeholder = `<div class="mermaid-placeholder" data-mermaid-id="${diagramId}" data-mermaid-definition="${escapedDefinition}" data-mermaid-base64="${base64Definition}"></div>`;
 
         result = result.substring(0, block.start) + placeholder + result.substring(block.end);
     }
@@ -179,18 +180,6 @@ function escapeForDataAttribute(content: string): string {
         .replace(/'/g, '&#39;')
         .replace(/\n/g, '&#10;')
         .replace(/\r/g, '&#13;');
-}
-
-/**
- * Escape HTML special characters
- */
-function escapeHtml(content: string): string {
-    return content
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
 }
 
 /**
