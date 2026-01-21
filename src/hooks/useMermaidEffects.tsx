@@ -23,13 +23,17 @@ function initializeMermaid(): void {
         startOnLoad: false,
         theme: 'default',
         securityLevel: 'loose',
-        fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        fontFamily: 'sans-serif',
         logLevel: 'error' as any,
         flowchart: {
-            htmlLabels: false, // Use SVG text instead of foreignObject for Locker Service compatibility
-            curve: 'basis'
+            htmlLabels: true,
+            curve: 'basis',
+            padding: 15
         },
         sequence: {
+            useMaxWidth: true
+        },
+        er: {
             useMaxWidth: true
         }
     });
@@ -164,20 +168,39 @@ async function renderMermaidDiagram(
             svgElement.style.maxWidth = '100%';
             svgElement.style.height = 'auto';
             
-            // Ensure all text elements are visible (fix for Locker Service CSS issues)
-            const textElements = svgElement.querySelectorAll('text, tspan, .nodeLabel, .label, .edgeLabel');
-            textElements.forEach((textEl) => {
-                const el = textEl as HTMLElement;
-                if (!el.style.fill || el.style.fill === 'none') {
-                    el.style.fill = '#333';
-                }
-                el.style.fontFamily = 'ui-sans-serif, system-ui, sans-serif';
-            });
-            
-            // Also check for foreignObject text (shouldn't exist with htmlLabels:false but just in case)
+            // Fix foreignObject elements (used for node labels with htmlLabels:true)
             const foreignObjects = svgElement.querySelectorAll('foreignObject');
             foreignObjects.forEach((fo) => {
-                (fo as SVGForeignObjectElement).style.overflow = 'visible';
+                const foEl = fo as SVGForeignObjectElement;
+                foEl.style.overflow = 'visible';
+                
+                // Fix all divs inside foreignObject
+                const divs = foEl.querySelectorAll('div');
+                divs.forEach((div) => {
+                    div.style.display = 'flex';
+                    div.style.alignItems = 'center';
+                    div.style.justifyContent = 'center';
+                    div.style.color = '#333';
+                    div.style.fontSize = '14px';
+                    div.style.fontFamily = 'sans-serif';
+                });
+                
+                // Fix spans inside foreignObject
+                const spans = foEl.querySelectorAll('span');
+                spans.forEach((span) => {
+                    span.style.color = '#333';
+                    span.style.display = 'inline';
+                    span.style.visibility = 'visible';
+                });
+            });
+            
+            // Ensure all SVG text elements are visible
+            const textElements = svgElement.querySelectorAll('text, tspan');
+            textElements.forEach((textEl) => {
+                const el = textEl as SVGTextElement;
+                el.style.fill = '#333';
+                el.style.fontFamily = 'sans-serif';
+                el.style.visibility = 'visible';
             });
         }
 
