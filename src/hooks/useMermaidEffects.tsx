@@ -22,12 +22,15 @@ function initializeMermaid(): void {
     mermaid.initialize({
         startOnLoad: false,
         theme: 'default',
-        securityLevel: 'loose', // Required for some diagram features
+        securityLevel: 'loose',
         fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         logLevel: 'error' as any,
         flowchart: {
-            htmlLabels: true,
+            htmlLabels: false, // Use SVG text instead of foreignObject for Locker Service compatibility
             curve: 'basis'
+        },
+        sequence: {
+            useMaxWidth: true
         }
     });
 

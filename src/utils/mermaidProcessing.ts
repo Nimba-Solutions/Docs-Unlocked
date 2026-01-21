@@ -157,9 +157,10 @@ export function replaceMermaidBlocksWithPlaceholders(
         const diagramId = `mermaid-${generateUniqueId()}`;
 
         // Create placeholder div that will be preserved through markdown parsing
-        // Use base64 encoding in the hidden element to avoid HTML entity issues
+        // Use base64 encoding to avoid HTML entity issues
+        // Wrap with newlines to ensure markdown parsing continues correctly after the block
         const base64Definition = btoa(unescape(encodeURIComponent(block.definition)));
-        const placeholder = `<div class="mermaid-placeholder" data-mermaid-id="${diagramId}" data-mermaid-definition="${escapedDefinition}" data-mermaid-base64="${base64Definition}"></div>`;
+        const placeholder = `\n\n<div class="mermaid-placeholder" data-mermaid-id="${diagramId}" data-mermaid-definition="${escapedDefinition}" data-mermaid-base64="${base64Definition}"></div>\n\n`;
 
         result = result.substring(0, block.start) + placeholder + result.substring(block.end);
     }
