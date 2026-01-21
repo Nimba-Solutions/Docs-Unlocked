@@ -51,3 +51,6 @@ $RECYCLE.BIN/
 .idea
 .project
 .settings
+
+# Local files
+dumps/

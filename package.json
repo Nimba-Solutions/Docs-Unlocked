@@ -6,8 +6,8 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build",
-        "build:sf": "tsc && vite build --mode salesforce && node scripts/inline-css.js && node scripts/copy-to-staticresource.js && node scripts/create-content-staticresource.js",
-        "build:sf-no-manifest": "tsc && vite build --mode salesforce && node scripts/inline-css.js && node scripts/copy-to-staticresource.js && node scripts/create-content-staticresource.js --no-manifest",
+        "build:sf-manifest": "tsc && vite build --mode salesforce && node scripts/inline-css.js && node scripts/copy-to-staticresource.js && node scripts/create-content-staticresource.js",
+        "build:sf": "tsc && vite build --mode salesforce && node scripts/inline-css.js && node scripts/copy-to-staticresource.js && node scripts/create-content-staticresource.js --no-manifest",
         "preview": "vite preview"
     },
     "dependencies": {
@@ -17,6 +17,7 @@
         "js-yaml": "^4.1.1",
         "lucide-react": "^0.363.0",
         "marked": "^17.0.1",
+        "mermaid": "^11.12.2",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-router-dom": "^7.12.0"
