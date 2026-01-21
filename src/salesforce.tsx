@@ -11,6 +11,7 @@ export * from './utils/markdown';
 export * from './utils/navigation';
 export * from './utils/logger';
 export * from './utils/flowProcessing';
+export * from './utils/mermaidProcessing';
 
 // Import and configure marked.js (same as before)
 import { marked } from 'marked';
