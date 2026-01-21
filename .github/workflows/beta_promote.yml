@@ -16,7 +16,7 @@ jobs:
     with:
       cumulusci-version: "3.93.0"
       sfdx-version: "7.209.6"
-      beta-version: 04tQr000000RgnxIAC
+      # beta-version: 04t... Use this when you want to promote a specific beta version.
 
 permissions:
   actions: write
