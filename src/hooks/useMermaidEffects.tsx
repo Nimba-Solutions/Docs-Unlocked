@@ -610,8 +610,21 @@ async function renderMermaidDiagram(
                     if (labelGroup) {
                         const labelContainer = labelGroup.querySelector('g.label');
                         if (labelContainer && !labelContainer.querySelector('text')) {
+                            // Get the label-group transform to calculate the correct x position
+                            // The transform like "translate(-64, -87)" offsets the group
+                            // We need to compensate to center the text within the class header
+                            const labelGroupTransform = (labelGroup as SVGGElement).getAttribute('transform');
+                            let xOffset = 0;
+                            if (labelGroupTransform) {
+                                const match = labelGroupTransform.match(/translate\(\s*([-\d.]+)/);
+                                if (match) {
+                                    // The negative transform value needs to be negated to find center
+                                    xOffset = -parseFloat(match[1]);
+                                }
+                            }
+                            
                             const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                            textEl.setAttribute('x', '0');
+                            textEl.setAttribute('x', String(xOffset));
                             textEl.setAttribute('y', '0');
                             textEl.setAttribute('text-anchor', 'middle');
                             textEl.setAttribute('dominant-baseline', 'middle');
