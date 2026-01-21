@@ -602,7 +602,7 @@ ${t.themeCSS}`),t.fontFamily!==void 0&&(r+=`
                     ${a}
                 </div>
             </div>
-        `;const s=t.querySelector("svg");s&&(s.style.maxWidth="100%",s.style.height="auto"),console.log(`[DocsUnlocked] Rendered mermaid diagram: ${e} (${n})`)}catch(a){throw a}}function oZ(t,e,r){t.className="mermaid-error",t.innerHTML=`
+        `;const s=t.querySelector("svg");s&&(s.style.maxWidth="100%",s.style.height="auto",s.querySelectorAll("text, tspan, .nodeLabel, .label, .edgeLabel").forEach(u=>{const d=u;(!d.style.fill||d.style.fill==="none")&&(d.style.fill="#333"),d.style.fontFamily="ui-sans-serif, system-ui, sans-serif"}),s.querySelectorAll("foreignObject").forEach(u=>{u.style.overflow="visible"})),console.log(`[DocsUnlocked] Rendered mermaid diagram: ${e} (${n})`)}catch(a){throw a}}function oZ(t,e,r){t.className="mermaid-error",t.innerHTML=`
         <div class="mermaid-error-container bg-red-50 border border-red-200 rounded-lg p-4 my-4">
             <div class="flex items-start gap-3">
                 <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">

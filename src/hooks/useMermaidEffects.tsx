@@ -158,11 +158,27 @@ async function renderMermaidDiagram(
             </div>
         `;
         
-        // Make SVG responsive
+        // Make SVG responsive and fix text visibility
         const svgElement = element.querySelector('svg');
         if (svgElement) {
             svgElement.style.maxWidth = '100%';
             svgElement.style.height = 'auto';
+            
+            // Ensure all text elements are visible (fix for Locker Service CSS issues)
+            const textElements = svgElement.querySelectorAll('text, tspan, .nodeLabel, .label, .edgeLabel');
+            textElements.forEach((textEl) => {
+                const el = textEl as HTMLElement;
+                if (!el.style.fill || el.style.fill === 'none') {
+                    el.style.fill = '#333';
+                }
+                el.style.fontFamily = 'ui-sans-serif, system-ui, sans-serif';
+            });
+            
+            // Also check for foreignObject text (shouldn't exist with htmlLabels:false but just in case)
+            const foreignObjects = svgElement.querySelectorAll('foreignObject');
+            foreignObjects.forEach((fo) => {
+                (fo as SVGForeignObjectElement).style.overflow = 'visible';
+            });
         }
 
         console.log(`[DocsUnlocked] Rendered mermaid diagram: ${diagramId} (${diagramType})`);
