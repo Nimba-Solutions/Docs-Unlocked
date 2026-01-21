@@ -138,3 +138,49 @@ html {
   flex: 1;
   padding-bottom: 2rem; /* Add padding at bottom to prevent content cutoff */
 }
+
+/* =============================================================================
+   Mermaid Diagram Styles
+   
+   IMPORTANT: Be very careful with selectors here. Overly broad rules can break
+   diagram rendering (hiding lines, wrong colors, etc.)
+   ============================================================================= */
+
+/* Container styling */
+.mermaid-diagram {
+  margin: 1rem 0;
+}
+
+.mermaid-container {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+/* Make label background rects transparent - ONLY for node labels, not all rects */
+.mermaid-diagram svg .nodes .node > g.label > rect {
+  fill: transparent !important;
+  stroke: none !important;
+}
+
+/* Text visibility - be specific to avoid affecting other elements */
+.mermaid-diagram svg .nodes text,
+.mermaid-diagram svg .clusters text,
+.mermaid-diagram svg .edgeLabels text {
+  fill: #333 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  visibility: visible !important;
+}
+
+/* Gantt chart - proper sizing */
+.mermaid-diagram.mermaid-type-gantt .mermaid-container {
+  overflow-x: auto;
+  min-width: 100%;
+}
+
+.mermaid-diagram.mermaid-type-gantt svg {
+  min-width: 800px;
+  height: auto;
+}
