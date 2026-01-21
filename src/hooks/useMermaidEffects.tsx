@@ -299,6 +299,61 @@ function parseErDiagram(definition: string): Map<string, ErEntity> {
     return entities;
 }
 
+/**
+ * Parse class diagram definition to extract class names and their members
+ */
+interface ClassDiagramClass {
+    name: string;
+    members: string[];  // Combined attributes and methods
+}
+
+function parseClassDiagram(definition: string): Map<string, ClassDiagramClass> {
+    const classes = new Map<string, ClassDiagramClass>();
+    
+    // Pattern to match class blocks: class ClassName { ... }
+    // Handles multiline content
+    const classBlockPattern = /class\s+([A-Za-z][A-Za-z0-9_]*)\s*\{([^}]*)\}/g;
+    let match;
+    
+    while ((match = classBlockPattern.exec(definition)) !== null) {
+        const className = match[1];
+        const membersBlock = match[2];
+        
+        // Parse individual members (attributes and methods)
+        const members: string[] = [];
+        const lines = membersBlock.split('\n');
+        
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed && !trimmed.startsWith('%%')) {
+                // Clean up visibility markers for display
+                members.push(trimmed);
+            }
+        }
+        
+        classes.set(className, { name: className, members });
+    }
+    
+    // Also look for class names in relationships without explicit blocks
+    // Pattern: ClassName1 --> ClassName2 or ClassName1 --|> ClassName2, etc.
+    const relationshipPattern = /([A-Za-z][A-Za-z0-9_]*)\s*(?:--|>|\.\.>|--\*|--o|-->|<\|--|<\.\.|\*--|o--)\s*([A-Za-z][A-Za-z0-9_]*)/g;
+    let relMatch;
+    
+    while ((relMatch = relationshipPattern.exec(definition)) !== null) {
+        const class1 = relMatch[1];
+        const class2 = relMatch[2];
+        
+        if (!classes.has(class1)) {
+            classes.set(class1, { name: class1, members: [] });
+        }
+        if (!classes.has(class2)) {
+            classes.set(class2, { name: class2, members: [] });
+        }
+    }
+    
+    return classes;
+}
+
 
 /**
  * Render a mermaid diagram into the placeholder element
@@ -531,7 +586,103 @@ async function renderMermaidDiagram(
                 });
             }
             
-            // 4. Also try a generic approach - find any g.label missing text
+            // 4. Handle class diagrams
+            if (diagramType === 'classDiagram' || definition.trim().startsWith('classDiagram')) {
+                const classData = parseClassDiagram(definition);
+                
+                // Class diagrams have nodes with id like "classId-ClassName-N"
+                // Inside each node:
+                //   - .label-group contains the class name (may be stripped by Locker Service)
+                //   - .members-group contains attributes (g.label elements stripped of foreignObject)
+                //   - .methods-group contains methods (g.label elements stripped of foreignObject)
+                
+                const classNodes = svgElement.querySelectorAll('[id^="classId-"]');
+                classNodes.forEach((classNode) => {
+                    const nodeId = classNode.id || '';
+                    const classMatch = nodeId.match(/classId-([A-Za-z0-9_]+)-\d+/);
+                    if (!classMatch) return;
+                    
+                    const className = classMatch[1];
+                    const classInfo = classData.get(className);
+                    
+                    // Fill in class name if missing
+                    const labelGroup = classNode.querySelector('.label-group');
+                    if (labelGroup) {
+                        const labelContainer = labelGroup.querySelector('g.label');
+                        if (labelContainer && !labelContainer.querySelector('text')) {
+                            const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                            textEl.setAttribute('x', '0');
+                            textEl.setAttribute('y', '0');
+                            textEl.setAttribute('text-anchor', 'middle');
+                            textEl.setAttribute('dominant-baseline', 'middle');
+                            textEl.setAttribute('fill', '#333');
+                            textEl.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+                            textEl.setAttribute('font-size', '14');
+                            textEl.setAttribute('font-weight', 'bold');
+                            textEl.textContent = className;
+                            labelContainer.appendChild(textEl);
+                        }
+                    }
+                    
+                    if (!classInfo) return;
+                    
+                    // Separate members into attributes (no parentheses) and methods (have parentheses)
+                    const attributes: string[] = [];
+                    const methods: string[] = [];
+                    
+                    classInfo.members.forEach(member => {
+                        if (member.includes('(')) {
+                            methods.push(member);
+                        } else {
+                            attributes.push(member);
+                        }
+                    });
+                    
+                    // Fill in members (attributes)
+                    const membersGroup = classNode.querySelector('.members-group');
+                    if (membersGroup) {
+                        const memberLabels = membersGroup.querySelectorAll('g.label');
+                        attributes.forEach((attr, idx) => {
+                            const label = memberLabels[idx];
+                            if (label && !label.querySelector('text')) {
+                                const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                                textEl.setAttribute('x', '0');
+                                textEl.setAttribute('y', '0');
+                                textEl.setAttribute('text-anchor', 'start');
+                                textEl.setAttribute('dominant-baseline', 'middle');
+                                textEl.setAttribute('fill', '#9370DB');
+                                textEl.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+                                textEl.setAttribute('font-size', '10');
+                                textEl.textContent = attr;
+                                label.appendChild(textEl);
+                            }
+                        });
+                    }
+                    
+                    // Fill in methods
+                    const methodsGroup = classNode.querySelector('.methods-group');
+                    if (methodsGroup) {
+                        const methodLabels = methodsGroup.querySelectorAll('g.label');
+                        methods.forEach((method, idx) => {
+                            const label = methodLabels[idx];
+                            if (label && !label.querySelector('text')) {
+                                const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                                textEl.setAttribute('x', '0');
+                                textEl.setAttribute('y', '0');
+                                textEl.setAttribute('text-anchor', 'start');
+                                textEl.setAttribute('dominant-baseline', 'middle');
+                                textEl.setAttribute('fill', '#9370DB');
+                                textEl.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+                                textEl.setAttribute('font-size', '10');
+                                textEl.textContent = method;
+                                label.appendChild(textEl);
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // 5. Also try a generic approach - find any g.label missing text
             const allLabelGroups = svgElement.querySelectorAll('g.label');
             allLabelGroups.forEach((labelGroup, index) => {
                 const existingText = labelGroup.querySelector('text');
