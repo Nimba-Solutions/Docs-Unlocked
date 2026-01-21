@@ -15,6 +15,11 @@ let isInitialized = false;
 /**
  * Initialize mermaid with configuration
  * Only runs once per page load
+ * 
+ * IMPORTANT: htmlLabels MUST be false for Salesforce Locker Service compatibility.
+ * When htmlLabels is true, Mermaid uses foreignObject with HTML div/span elements
+ * for labels, but Locker Service strips or blocks this HTML content.
+ * With htmlLabels: false, Mermaid uses native SVG <text> elements which work correctly.
  */
 function initializeMermaid(): void {
     if (isInitialized) return;
@@ -23,23 +28,53 @@ function initializeMermaid(): void {
         startOnLoad: false,
         theme: 'default',
         securityLevel: 'loose',
-        fontFamily: 'sans-serif',
+        fontFamily: 'Arial, Helvetica, sans-serif',
         logLevel: 'error' as any,
+        // Flowcharts - MUST use htmlLabels: false for Salesforce
         flowchart: {
-            htmlLabels: true,
+            htmlLabels: false,  // Use SVG text, not foreignObject HTML
             curve: 'basis',
-            padding: 15
-        },
-        sequence: {
+            padding: 15,
+            nodeSpacing: 50,
+            rankSpacing: 50,
             useMaxWidth: true
         },
+        // Sequence diagrams - these already use SVG text by default
+        sequence: {
+            useMaxWidth: true,
+            actorFontFamily: 'Arial, Helvetica, sans-serif',
+            messageFontFamily: 'Arial, Helvetica, sans-serif',
+            noteFontFamily: 'Arial, Helvetica, sans-serif'
+        },
+        // State diagrams - use SVG text
+        state: {
+            useMaxWidth: true
+        },
+        // ER diagrams - use SVG text
         er: {
             useMaxWidth: true
+        },
+        // Gantt charts - increase size and ensure labels show
+        gantt: {
+            useMaxWidth: false,  // Allow chart to be larger
+            leftPadding: 100,
+            gridLineStartPadding: 35,
+            barHeight: 30,
+            barGap: 8,
+            topPadding: 50,
+            sectionFontSize: 14,
+            numberSectionStyles: 4,
+            axisFormat: '%Y-%m-%d'
+        },
+        // Pie charts - already work, but ensure font settings
+        pie: {
+            useMaxWidth: true,
+            textPosition: 0.75
         }
     });
 
     isInitialized = true;
-    console.log('[DocsUnlocked] Mermaid initialized');
+    console.log('[DocsUnlocked] Mermaid initialized with htmlLabels:false for Locker Service compatibility');
 }
 
 /**
@@ -137,6 +172,76 @@ export const useMermaidEffects = (
 };
 
 /**
+ * DO NOT heavily modify the SVG - just extract text content from foreignObjects
+ * before Salesforce strips them, and return a map of node IDs to labels.
+ * 
+ * The SVG itself passes through unchanged - we add labels via DOM after render.
+ */
+function extractForeignObjectLabels(svgString: string): Map<string, string> {
+    const labels = new Map<string, string>();
+    
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svgString, 'image/svg+xml');
+        const svg = doc.documentElement;
+        
+        // Find all foreignObject elements and extract their text + parent node info
+        const foreignObjects = svg.querySelectorAll('foreignObject');
+        
+        foreignObjects.forEach((fo) => {
+            // Extract text content
+            let textContent = '';
+            const divs = fo.querySelectorAll('div, span, p');
+            if (divs.length > 0) {
+                divs.forEach((div) => {
+                    const text = div.textContent?.trim();
+                    if (text) {
+                        textContent += (textContent ? ' ' : '') + text;
+                    }
+                });
+            } else {
+                textContent = fo.textContent?.trim() || '';
+            }
+            
+            if (textContent) {
+                // Find the parent node to get its ID
+                const parentNode = fo.closest('.node');
+                if (parentNode && parentNode.id) {
+                    labels.set(parentNode.id, textContent);
+                }
+            }
+        });
+    } catch (e) {
+        console.warn('[DocsUnlocked] Failed to extract foreignObject labels');
+    }
+    
+    return labels;
+}
+
+/**
+ * Extract node labels from a Mermaid definition
+ * Returns a map of nodeId -> label text
+ */
+function extractLabelsFromDefinition(definition: string): Map<string, string> {
+    const labels = new Map<string, string>();
+    
+    // Match patterns like: A[Label] or B(Label) or C{Label} or D([Label]) or E[[Label]] etc
+    // Also handles: A[Label Text] --> B[Other Label]
+    const nodePattern = /([A-Za-z0-9_]+)\s*(\[{1,2}|\({1,2}|\{{1,2}|>\[|\[\(|\[\/)([^\]\)\}]+)(\]{1,2}|\){1,2}|\}{1,2}|\]>|\)\]|\/\])/g;
+    
+    let match;
+    while ((match = nodePattern.exec(definition)) !== null) {
+        const nodeId = match[1];
+        const label = match[3].trim();
+        if (label) {
+            labels.set(nodeId, label);
+        }
+    }
+    
+    return labels;
+}
+
+/**
  * Render a mermaid diagram into the placeholder element
  */
 async function renderMermaidDiagram(
@@ -152,7 +257,15 @@ async function renderMermaidDiagram(
         // Use mermaid's render API
         const { svg } = await mermaid.render(renderId, definition);
         
-        // Update element with rendered SVG
+        // Extract labels from foreignObjects BEFORE Salesforce strips them
+        // We don't modify the SVG - just capture the labels for later
+        const foreignObjectLabels = extractForeignObjectLabels(svg);
+        
+        // Also extract labels from the definition syntax as backup
+        const definitionLabels = extractLabelsFromDefinition(definition);
+        
+        // Update element with the UNMODIFIED SVG
+        // Let Mermaid's styling stay intact
         element.className = `mermaid-diagram mermaid-type-${diagramType}`;
         element.innerHTML = `
             <div class="mermaid-container bg-white border border-gray-200 rounded-lg p-4 my-4 overflow-x-auto">
@@ -162,45 +275,57 @@ async function renderMermaidDiagram(
             </div>
         `;
         
-        // Make SVG responsive and fix text visibility
+        // Now work with the DOM-inserted SVG
         const svgElement = element.querySelector('svg');
         if (svgElement) {
             svgElement.style.maxWidth = '100%';
             svgElement.style.height = 'auto';
             
-            // Fix foreignObject elements (used for node labels with htmlLabels:true)
-            const foreignObjects = svgElement.querySelectorAll('foreignObject');
-            foreignObjects.forEach((fo) => {
-                const foEl = fo as SVGForeignObjectElement;
-                foEl.style.overflow = 'visible';
-                
-                // Fix all divs inside foreignObject
-                const divs = foEl.querySelectorAll('div');
-                divs.forEach((div) => {
-                    div.style.display = 'flex';
-                    div.style.alignItems = 'center';
-                    div.style.justifyContent = 'center';
-                    div.style.color = '#333';
-                    div.style.fontSize = '14px';
-                    div.style.fontFamily = 'sans-serif';
-                });
-                
-                // Fix spans inside foreignObject
-                const spans = foEl.querySelectorAll('span');
-                spans.forEach((span) => {
-                    span.style.color = '#333';
-                    span.style.display = 'inline';
-                    span.style.visibility = 'visible';
-                });
-            });
+            // For Gantt charts, set a minimum width to prevent compression
+            if (diagramType === 'gantt') {
+                svgElement.style.minWidth = '800px';
+            }
             
-            // Ensure all SVG text elements are visible
-            const textElements = svgElement.querySelectorAll('text, tspan');
-            textElements.forEach((textEl) => {
-                const el = textEl as SVGTextElement;
-                el.style.fill = '#333';
-                el.style.fontFamily = 'sans-serif';
-                el.style.visibility = 'visible';
+            // Find nodes that are missing their labels (foreignObject was stripped)
+            // and add SVG text elements with the extracted labels
+            const nodes = svgElement.querySelectorAll('.node');
+            nodes.forEach((node) => {
+                const nodeId = node.id;
+                const labelGroup = node.querySelector('g.label');
+                
+                if (labelGroup) {
+                    // Check if there's already visible text
+                    const existingText = labelGroup.querySelector('text');
+                    const hasForeignObject = labelGroup.querySelector('foreignObject');
+                    
+                    // If no text and no foreignObject (it was stripped), add text
+                    if (!existingText && !hasForeignObject) {
+                        // Get label from foreignObject extraction or definition
+                        let labelText = foreignObjectLabels.get(nodeId);
+                        
+                        if (!labelText) {
+                            // Try extracting from definition by node ID
+                            const nodeIdMatch = nodeId.match(/flowchart-([A-Za-z0-9_]+)-\d+/);
+                            if (nodeIdMatch) {
+                                labelText = definitionLabels.get(nodeIdMatch[1]);
+                            }
+                        }
+                        
+                        if (labelText) {
+                            // Create SVG text element
+                            const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                            textEl.setAttribute('x', '0');
+                            textEl.setAttribute('y', '0');
+                            textEl.setAttribute('text-anchor', 'middle');
+                            textEl.setAttribute('dominant-baseline', 'middle');
+                            textEl.setAttribute('fill', '#333');
+                            textEl.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+                            textEl.setAttribute('font-size', '14');
+                            textEl.textContent = labelText;
+                            labelGroup.appendChild(textEl);
+                        }
+                    }
+                }
             });
         }
 
