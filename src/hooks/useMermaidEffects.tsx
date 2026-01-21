@@ -172,8 +172,8 @@ export const useMermaidEffects = (
 };
 
 /**
- * DO NOT heavily modify the SVG - just extract text content from foreignObjects
- * before Salesforce strips them, and return a map of node IDs to labels.
+ * Extract text content from foreignObjects before Salesforce strips them.
+ * Returns a map keyed by parent element ID or a generated key.
  * 
  * The SVG itself passes through unchanged - we add labels via DOM after render.
  */
@@ -185,9 +185,10 @@ function extractForeignObjectLabels(svgString: string): Map<string, string> {
         const doc = parser.parseFromString(svgString, 'image/svg+xml');
         const svg = doc.documentElement;
         
-        // Find all foreignObject elements and extract their text + parent node info
+        // Find all foreignObject elements and extract their text + parent info
         const foreignObjects = svg.querySelectorAll('foreignObject');
         
+        let foIndex = 0;
         foreignObjects.forEach((fo) => {
             // Extract text content
             let textContent = '';
@@ -204,12 +205,16 @@ function extractForeignObjectLabels(svgString: string): Map<string, string> {
             }
             
             if (textContent) {
-                // Find the parent node to get its ID
-                const parentNode = fo.closest('.node');
-                if (parentNode && parentNode.id) {
-                    labels.set(parentNode.id, textContent);
+                // Try to find parent with ID (flowchart nodes, state nodes, etc.)
+                const parentWithId = fo.closest('[id]');
+                if (parentWithId && parentWithId.id) {
+                    labels.set(parentWithId.id, textContent);
+                } else {
+                    // Use index-based key as fallback
+                    labels.set(`fo-${foIndex}`, textContent);
                 }
             }
+            foIndex++;
         });
     } catch (e) {
         console.warn('[DocsUnlocked] Failed to extract foreignObject labels');
@@ -240,6 +245,58 @@ function extractLabelsFromDefinition(definition: string): Map<string, string> {
     
     return labels;
 }
+
+/**
+ * Parse ER diagram definition to extract entity names and their attributes
+ */
+interface ErEntity {
+    name: string;
+    attributes: Array<{ type: string; name: string }>;
+}
+
+function parseErDiagram(definition: string): Map<string, ErEntity> {
+    const entities = new Map<string, ErEntity>();
+    
+    // First, find all entity names from relationships
+    // Pattern: EntityA ||--o{ EntityB : relationship
+    const relationshipPattern = /([A-Za-z0-9_]+)\s*\|.*\|\s*([A-Za-z0-9_]+)\s*:/g;
+    let relMatch;
+    while ((relMatch = relationshipPattern.exec(definition)) !== null) {
+        const entity1 = relMatch[1];
+        const entity2 = relMatch[2];
+        if (!entities.has(entity1)) {
+            entities.set(entity1, { name: entity1, attributes: [] });
+        }
+        if (!entities.has(entity2)) {
+            entities.set(entity2, { name: entity2, attributes: [] });
+        }
+    }
+    
+    // Then, parse entity attribute blocks
+    // Pattern: EntityName { type attr1 type attr2 ... }
+    const entityBlockPattern = /([A-Za-z0-9_]+)\s*\{([^}]+)\}/g;
+    let blockMatch;
+    while ((blockMatch = entityBlockPattern.exec(definition)) !== null) {
+        const entityName = blockMatch[1];
+        const attributesBlock = blockMatch[2];
+        
+        // Parse individual attributes: "type name" on each line
+        const attrPattern = /([A-Za-z0-9_]+)\s+([A-Za-z0-9_]+)/g;
+        const attributes: Array<{ type: string; name: string }> = [];
+        let attrMatch;
+        while ((attrMatch = attrPattern.exec(attributesBlock)) !== null) {
+            attributes.push({
+                type: attrMatch[1],
+                name: attrMatch[2]
+            });
+        }
+        
+        entities.set(entityName, { name: entityName, attributes });
+    }
+    
+    return entities;
+}
+
 
 /**
  * Render a mermaid diagram into the placeholder element
@@ -286,25 +343,23 @@ async function renderMermaidDiagram(
                 svgElement.style.minWidth = '800px';
             }
             
-            // Find nodes that are missing their labels (foreignObject was stripped)
+            // Find elements that are missing their labels (foreignObject was stripped)
             // and add SVG text elements with the extracted labels
+            
+            // 1. Handle flowchart nodes
             const nodes = svgElement.querySelectorAll('.node');
             nodes.forEach((node) => {
                 const nodeId = node.id;
                 const labelGroup = node.querySelector('g.label');
                 
                 if (labelGroup) {
-                    // Check if there's already visible text
                     const existingText = labelGroup.querySelector('text');
                     const hasForeignObject = labelGroup.querySelector('foreignObject');
                     
-                    // If no text and no foreignObject (it was stripped), add text
                     if (!existingText && !hasForeignObject) {
-                        // Get label from foreignObject extraction or definition
                         let labelText = foreignObjectLabels.get(nodeId);
                         
                         if (!labelText) {
-                            // Try extracting from definition by node ID
                             const nodeIdMatch = nodeId.match(/flowchart-([A-Za-z0-9_]+)-\d+/);
                             if (nodeIdMatch) {
                                 labelText = definitionLabels.get(nodeIdMatch[1]);
@@ -312,7 +367,6 @@ async function renderMermaidDiagram(
                         }
                         
                         if (labelText) {
-                            // Create SVG text element
                             const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
                             textEl.setAttribute('x', '0');
                             textEl.setAttribute('y', '0');
@@ -324,6 +378,158 @@ async function renderMermaidDiagram(
                             textEl.textContent = labelText;
                             labelGroup.appendChild(textEl);
                         }
+                    }
+                }
+            });
+            
+            // 2. Handle state diagram states
+            if (diagramType === 'state') {
+                const stateNodes = svgElement.querySelectorAll('[id^="state-"], .statediagram-state, .stateGroup');
+                stateNodes.forEach((stateNode) => {
+                    const stateId = stateNode.id || (stateNode as Element).getAttribute('id');
+                    if (!stateId) return;
+                    
+                    const labelGroup = stateNode.querySelector('g.label');
+                    
+                    if (labelGroup) {
+                        const existingText = labelGroup.querySelector('text');
+                        const hasForeignObject = labelGroup.querySelector('foreignObject');
+                        
+                        if (!existingText && !hasForeignObject) {
+                            let labelText = foreignObjectLabels.get(stateId);
+                            
+                            // Try to extract state name from ID (e.g., "state-Draft-0" -> "Draft")
+                            if (!labelText) {
+                                const stateMatch = stateId.match(/state-([A-Za-z0-9_]+)/);
+                                if (stateMatch) {
+                                    labelText = stateMatch[1];
+                                }
+                            }
+                            
+                            if (labelText) {
+                                const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                                textEl.setAttribute('x', '0');
+                                textEl.setAttribute('y', '0');
+                                textEl.setAttribute('text-anchor', 'middle');
+                                textEl.setAttribute('dominant-baseline', 'middle');
+                                textEl.setAttribute('fill', '#333');
+                                textEl.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+                                textEl.setAttribute('font-size', '14');
+                                textEl.textContent = labelText;
+                                labelGroup.appendChild(textEl);
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // 3. Handle ER diagram entities
+            if (diagramType === 'er') {
+                const erEntities = parseErDiagram(definition);
+                
+                // Find all entity nodes in the SVG
+                const entityNodes = svgElement.querySelectorAll('[id^="entity-"]');
+                entityNodes.forEach((entityNode) => {
+                    const entityId = entityNode.id;
+                    const entityMatch = entityId.match(/entity-([A-Za-z0-9_]+)-\d+/);
+                    if (!entityMatch) return;
+                    
+                    const entityName = entityMatch[1];
+                    const entityData = erEntities.get(entityName);
+                    
+                    // Fill in entity name label
+                    const nameLabel = entityNode.querySelector('g.label.name');
+                    if (nameLabel && !nameLabel.querySelector('text')) {
+                        const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        textEl.setAttribute('text-anchor', 'middle');
+                        textEl.setAttribute('dominant-baseline', 'middle');
+                        textEl.setAttribute('fill', '#333');
+                        textEl.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+                        textEl.setAttribute('font-size', '14');
+                        textEl.setAttribute('font-weight', 'bold');
+                        textEl.textContent = entityName;
+                        nameLabel.appendChild(textEl);
+                    }
+                    
+                    // Fill in attribute labels if entity has attributes
+                    if (entityData && entityData.attributes.length > 0) {
+                        const attrTypes = entityNode.querySelectorAll('g.label.attribute-type');
+                        const attrNames = entityNode.querySelectorAll('g.label.attribute-name');
+                        
+                        entityData.attributes.forEach((attr, idx) => {
+                            // Fill attribute type
+                            if (attrTypes[idx] && !attrTypes[idx].querySelector('text')) {
+                                const typeText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                                typeText.setAttribute('text-anchor', 'start');
+                                typeText.setAttribute('dominant-baseline', 'middle');
+                                typeText.setAttribute('fill', '#333');
+                                typeText.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+                                typeText.setAttribute('font-size', '12');
+                                typeText.textContent = attr.type;
+                                attrTypes[idx].appendChild(typeText);
+                            }
+                            
+                            // Fill attribute name
+                            if (attrNames[idx] && !attrNames[idx].querySelector('text')) {
+                                const nameText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                                nameText.setAttribute('text-anchor', 'start');
+                                nameText.setAttribute('dominant-baseline', 'middle');
+                                nameText.setAttribute('fill', '#333');
+                                nameText.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+                                nameText.setAttribute('font-size', '12');
+                                nameText.textContent = attr.name;
+                                attrNames[idx].appendChild(nameText);
+                            }
+                        });
+                    }
+                    
+                    // For simple entities without attributes, add entity name if missing
+                    const simpleLabel = entityNode.querySelector('g.label:not(.name):not(.attribute-type):not(.attribute-name):not(.attribute-keys):not(.attribute-comment)');
+                    if (simpleLabel && !entityNode.querySelector('text.er.entityLabel')) {
+                        const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        textEl.setAttribute('x', '0');
+                        textEl.setAttribute('y', '0');
+                        textEl.setAttribute('text-anchor', 'middle');
+                        textEl.setAttribute('dominant-baseline', 'middle');
+                        textEl.setAttribute('fill', '#333');
+                        textEl.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+                        textEl.setAttribute('font-size', '12');
+                        textEl.setAttribute('class', 'er entityLabel');
+                        textEl.textContent = entityName;
+                        entityNode.appendChild(textEl);
+                    }
+                });
+            }
+            
+            // 4. Also try a generic approach - find any g.label missing text
+            const allLabelGroups = svgElement.querySelectorAll('g.label');
+            allLabelGroups.forEach((labelGroup, index) => {
+                const existingText = labelGroup.querySelector('text');
+                const hasForeignObject = labelGroup.querySelector('foreignObject');
+                
+                if (!existingText && !hasForeignObject) {
+                    // Try to find label from our extracted map using parent ID
+                    const parentWithId = labelGroup.closest('[id]');
+                    const parentId = parentWithId?.id;
+                    
+                    let labelText = parentId ? foreignObjectLabels.get(parentId) : undefined;
+                    
+                    // Fallback to index-based lookup
+                    if (!labelText) {
+                        labelText = foreignObjectLabels.get(`fo-${index}`);
+                    }
+                    
+                    if (labelText) {
+                        const textEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        textEl.setAttribute('x', '0');
+                        textEl.setAttribute('y', '0');
+                        textEl.setAttribute('text-anchor', 'middle');
+                        textEl.setAttribute('dominant-baseline', 'middle');
+                        textEl.setAttribute('fill', '#333');
+                        textEl.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+                        textEl.setAttribute('font-size', '14');
+                        textEl.textContent = labelText;
+                        labelGroup.appendChild(textEl);
                     }
                 }
             });
