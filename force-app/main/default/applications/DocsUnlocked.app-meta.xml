@@ -13,6 +13,7 @@
     <label>Docs Unlocked</label>
     <navType>Standard</navType>
     <tabs>Home</tabs>
+    <tabs>DocsUnlockedAdmin</tabs>
     <uiType>Lightning</uiType>
     <utilityBar>Docs_Unlocked_UtilityBar</utilityBar>
 </CustomApplication>

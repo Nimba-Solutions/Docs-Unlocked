@@ -26,6 +26,35 @@ export const DocsApp: React.FC = () => {
   const displayHeader = (window as any).DOCS_DISPLAY_HEADER === true; // Default to false
   const headerLabel = (window as any).DOCS_HEADER_LABEL || 'Documentation';
   const displayFooter = (window as any).DOCS_DISPLAY_FOOTER !== false; // Default to true
+  
+  // Version selector state - updated when LWC sets the data
+  const [versionSelector, setVersionSelector] = useState<{
+    enabled: boolean;
+    options?: { label: string; value: string }[];
+    currentRef?: string;
+    onChange?: (ref: string) => void;
+  }>({ enabled: false });
+
+  // Listen for version selector updates from LWC
+  useEffect(() => {
+    // Check if already set
+    const existing = (window as any).DOCS_VERSION_SELECTOR;
+    console.log('[DocsUnlocked React] useEffect - checking DOCS_VERSION_SELECTOR:', existing);
+    if (existing?.enabled) {
+      console.log('[DocsUnlocked React] Found existing version selector, setting state');
+      setVersionSelector(existing);
+    }
+
+    // Register callback for LWC to update version selector
+    (window as any).DOCS_UPDATE_VERSION_SELECTOR = (selector: typeof versionSelector) => {
+      console.log('[DocsUnlocked React] DOCS_UPDATE_VERSION_SELECTOR called with:', selector);
+      setVersionSelector(selector);
+    };
+
+    return () => {
+      delete (window as any).DOCS_UPDATE_VERSION_SELECTOR;
+    };
+  }, []);
 
   // Force container height for scrolling to work in Lightning App Pages
   useEffect(() => {
@@ -226,7 +255,6 @@ export const DocsApp: React.FC = () => {
         
         // Use the actual path from discovered files - we already know it!
         const existingFile = discoveredFiles.get(currentPath);
-        let response: Response;
         let text = '';
         let foundPath = '';
         
@@ -234,6 +262,50 @@ export const DocsApp: React.FC = () => {
           console.error(`[DocsUnlocked] File not found in manifest for displayPath: ${currentPath}`);
           console.error(`[DocsUnlocked] Available files:`, Array.from(discoveredFiles.keys()));
           throw new Error(`File not found in manifest: ${currentPath}`);
+        }
+        
+        // Check for preloaded content (from Git source via docsUnlockedGit wrapper)
+        const preloadedContent = (window as any).DOCS_PRELOADED_CONTENT;
+        if (preloadedContent?.files) {
+          // Try multiple path variations to find the preloaded content
+          const pathVariations = [
+            currentPath,                                    // /getting-started/introduction
+            currentPath.replace(/^\//, ''),                 // getting-started/introduction
+            existingFile.path,                              // 01.getting-started/01.introduction
+            existingFile.path + '.md',                      // 01.getting-started/01.introduction.md
+            existingFile.displayPath,                       // /getting-started/introduction
+          ].filter(Boolean);
+          
+          for (const pathVariant of pathVariations) {
+            if (preloadedContent.files[pathVariant]) {
+              text = preloadedContent.files[pathVariant];
+              foundPath = pathVariant;
+              console.log(`[DocsUnlocked] Loaded preloaded content for: ${pathVariant} (${text.length} chars)`);
+              break;
+            }
+          }
+          
+          if (text) {
+            // Successfully loaded from preloaded content - skip fetch
+            setContent(text);
+            setContentLoading(false);
+            
+            // Update title if needed
+            if (!existingFile.title) {
+              const title = extractTitle(text) || currentPath.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || currentPath;
+              setDiscoveredFiles(prev => {
+                const newMap = new Map(prev);
+                const file = newMap.get(currentPath);
+                if (file) {
+                  newMap.set(currentPath, { ...file, title });
+                }
+                return newMap;
+              });
+            }
+            return;
+          }
+          
+          console.log(`[DocsUnlocked] Preloaded content not found for ${currentPath}, falling back to fetch`);
         }
         
         // Use the path from manifest (should have prefixes like "02.core-concepts/01.basic-usage")
@@ -246,7 +318,7 @@ export const DocsApp: React.FC = () => {
         
         // Add cache-busting query parameter to force fresh fetch
         const cacheBustUrl = `${url}?t=${Date.now()}`;
-        response = await fetch(cacheBustUrl, {
+        const response = await fetch(cacheBustUrl, {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache'
@@ -471,15 +543,26 @@ export const DocsApp: React.FC = () => {
       
       {/* ROW2: Header - Only visible when enabled */}
       {displayHeader && (
-        <header className="h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />
-              <span className="text-xl font-bold text-gray-900">{headerLabel}</span>
-            </div>
+        <header className="h-14 bg-white border-b border-gray-200 px-4 flex items-center justify-between">
+          {/* Left side: Version selector */}
+          <div className="flex items-center">
+            {versionSelector.enabled && versionSelector.options ? (
+              <select
+                value={versionSelector.currentRef || 'main'}
+                onChange={(e) => versionSelector.onChange?.(e.target.value)}
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {versionSelector.options.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            ) : (
+              <span className="text-lg font-semibold text-gray-900">{headerLabel}</span>
+            )}
           </div>
-          <div className="flex items-center gap-3">
-            <button className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+          {/* Right side: GitHub button */}
+          <div className="flex items-center">
+            <button className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
               <Github className="w-4 h-4" />
               <span>GitHub</span>
             </button>
