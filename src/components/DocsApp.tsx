@@ -226,7 +226,6 @@ export const DocsApp: React.FC = () => {
         
         // Use the actual path from discovered files - we already know it!
         const existingFile = discoveredFiles.get(currentPath);
-        let response: Response;
         let text = '';
         let foundPath = '';
         
@@ -234,6 +233,50 @@ export const DocsApp: React.FC = () => {
           console.error(`[DocsUnlocked] File not found in manifest for displayPath: ${currentPath}`);
           console.error(`[DocsUnlocked] Available files:`, Array.from(discoveredFiles.keys()));
           throw new Error(`File not found in manifest: ${currentPath}`);
+        }
+        
+        // Check for preloaded content (from Git source via docsUnlockedGit wrapper)
+        const preloadedContent = (window as any).DOCS_PRELOADED_CONTENT;
+        if (preloadedContent?.files) {
+          // Try multiple path variations to find the preloaded content
+          const pathVariations = [
+            currentPath,                                    // /getting-started/introduction
+            currentPath.replace(/^\//, ''),                 // getting-started/introduction
+            existingFile.path,                              // 01.getting-started/01.introduction
+            existingFile.path + '.md',                      // 01.getting-started/01.introduction.md
+            existingFile.displayPath,                       // /getting-started/introduction
+          ].filter(Boolean);
+          
+          for (const pathVariant of pathVariations) {
+            if (preloadedContent.files[pathVariant]) {
+              text = preloadedContent.files[pathVariant];
+              foundPath = pathVariant;
+              console.log(`[DocsUnlocked] Loaded preloaded content for: ${pathVariant} (${text.length} chars)`);
+              break;
+            }
+          }
+          
+          if (text) {
+            // Successfully loaded from preloaded content - skip fetch
+            setContent(text);
+            setContentLoading(false);
+            
+            // Update title if needed
+            if (!existingFile.title) {
+              const title = extractTitle(text) || currentPath.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || currentPath;
+              setDiscoveredFiles(prev => {
+                const newMap = new Map(prev);
+                const file = newMap.get(currentPath);
+                if (file) {
+                  newMap.set(currentPath, { ...file, title });
+                }
+                return newMap;
+              });
+            }
+            return;
+          }
+          
+          console.log(`[DocsUnlocked] Preloaded content not found for ${currentPath}, falling back to fetch`);
         }
         
         // Use the path from manifest (should have prefixes like "02.core-concepts/01.basic-usage")
@@ -246,7 +289,7 @@ export const DocsApp: React.FC = () => {
         
         // Add cache-busting query parameter to force fresh fetch
         const cacheBustUrl = `${url}?t=${Date.now()}`;
-        response = await fetch(cacheBustUrl, {
+        const response = await fetch(cacheBustUrl, {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache'

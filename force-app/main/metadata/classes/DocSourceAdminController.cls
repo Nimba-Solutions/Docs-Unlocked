@@ -9,51 +9,74 @@ public with sharing class DocSourceAdminController {
     // =========================================================================
     
     /**
-     * @description Checks if GitHub credentials are configured
-     * @return Boolean True if credentials are configured
-     */
-    @AuraEnabled(cacheable=false)
-    public static Boolean isGitHubConfigured() {
-        try {
-            return GitHubService.isConfigured();
-        } catch (Exception e) {
-            return false;
-        }
-    }
-    
-    /**
-     * @description Saves the GitHub Personal Access Token
-     * @param token The GitHub PAT
-     */
-    @AuraEnabled
-    public static void saveGitHubToken(String token) {
-        try {
-            GitHubService.setAccessToken(token);
-        } catch (Exception e) {
-            throw new AuraHandledException('Failed to save GitHub token: ' + e.getMessage());
-        }
-    }
-    
-    /**
-     * @description Tests the GitHub connection by fetching user info
+     * @description Tests a credential by trying to list repositories
+     * @param credentialName The credential name to test
+     * @param token The token to test (will be saved temporarily)
      * @return ConnectionTestResult The result of the connection test
      */
     @AuraEnabled
-    public static ConnectionTestResult testGitHubConnection() {
+    public static ConnectionTestResult testCredential(String credentialName, String token) {
         ConnectionTestResult result = new ConnectionTestResult();
         
         try {
+            if (String.isBlank(credentialName)) {
+                result.success = false;
+                result.message = 'Credential name is required';
+                return result;
+            }
+            if (String.isBlank(token)) {
+                result.success = false;
+                result.message = 'Token is required';
+                return result;
+            }
+            
+            // Save the token first
+            String extCredName = 'GitHub_' + credentialName;
+            ExternalCredentialService.setPAT(extCredName, 'Principal', token);
+            
             // Try to list repos - this validates the token works
-            List<GitHubService.Repository> repos = GitHubService.listRepositories();
+            List<GitHubService.Repository> repos = GitHubService.listRepositoriesWithCredential(extCredName);
             result.success = true;
-            result.message = 'Successfully connected! Found ' + repos.size() + ' accessible repositories.';
+            result.message = 'Connected! Found ' + repos.size() + ' repositories.';
             result.repoCount = repos.size();
         } catch (Exception e) {
             result.success = false;
-            result.message = 'Connection failed: ' + e.getMessage();
+            result.message = 'Failed: ' + e.getMessage();
         }
         
         return result;
+    }
+    
+    /**
+     * @description Gets repositories for a specific credential
+     * @param credentialName The credential name
+     * @return List of repositories
+     */
+    @AuraEnabled
+    public static List<GitHubService.Repository> getRepositoriesForCredential(String credentialName) {
+        try {
+            String extCredName = 'GitHub_' + credentialName;
+            return GitHubService.listRepositoriesWithCredential(extCredName);
+        } catch (Exception e) {
+            throw new AuraHandledException('Failed to load repositories: ' + e.getMessage());
+        }
+    }
+    
+    /**
+     * @description Gets branches for a specific credential and repo
+     * @param credentialName The credential name
+     * @param owner The repo owner
+     * @param repo The repo name
+     * @return List of branches
+     */
+    @AuraEnabled
+    public static List<GitHubService.Branch> getBranchesForCredential(String credentialName, String owner, String repo) {
+        try {
+            String extCredName = 'GitHub_' + credentialName;
+            return GitHubService.getBranchesWithCredential(extCredName, owner, repo);
+        } catch (Exception e) {
+            throw new AuraHandledException('Failed to load branches: ' + e.getMessage());
+        }
     }
     
     // =========================================================================
@@ -68,8 +91,8 @@ public with sharing class DocSourceAdminController {
     public static List<DocSourceWrapper> getDocSources() {
         try {
             List<Doc_Source__c> sources = [
-                SELECT Id, Name, App_Identifier__c, Provider__c, Repository_Owner__c, 
-                       Repository_Name__c, Content_Path__c, Default_Ref__c, 
+                SELECT Id, Name, App_Identifier__c, Credential_Name__c, Provider__c, 
+                       Repository_Owner__c, Repository_Name__c, Content_Path__c, Default_Ref__c, 
                        Is_Active__c, Allow_Version_Switching__c, Description__c,
                        CreatedDate, LastModifiedDate
                 FROM Doc_Source__c
@@ -89,50 +112,87 @@ public with sharing class DocSourceAdminController {
     
     /**
      * @description Saves a Doc Source record (insert or update)
-     * @param sourceData The doc source data as JSON
+     * @param sourceData The doc source data
      * @return DocSourceWrapper The saved doc source
      */
     @AuraEnabled
     public static DocSourceWrapper saveDocSource(Map<String, Object> sourceData) {
         try {
-            Doc_Source__c source;
-            
-            // Check if this is an update or insert
-            String recordId = (String) sourceData.get('id');
-            if (String.isNotBlank(recordId)) {
-                source = [SELECT Id FROM Doc_Source__c WHERE Id = :recordId LIMIT 1];
-            } else {
-                source = new Doc_Source__c();
-            }
-            
-            // Map fields
-            source.Name = (String) sourceData.get('name');
-            source.App_Identifier__c = (String) sourceData.get('appIdentifier');
-            source.Provider__c = (String) sourceData.get('provider');
-            source.Repository_Owner__c = (String) sourceData.get('repositoryOwner');
-            source.Repository_Name__c = (String) sourceData.get('repositoryName');
-            source.Content_Path__c = (String) sourceData.get('contentPath');
-            source.Default_Ref__c = (String) sourceData.get('defaultRef');
-            source.Is_Active__c = sourceData.get('isActive') == true;
-            source.Allow_Version_Switching__c = sourceData.get('allowVersionSwitching') == true;
-            source.Description__c = (String) sourceData.get('description');
-            
+            Doc_Source__c source = mapToDocSource(sourceData);
             upsert source;
-            
-            // Re-query to get all fields
-            source = [
-                SELECT Id, Name, App_Identifier__c, Provider__c, Repository_Owner__c, 
-                       Repository_Name__c, Content_Path__c, Default_Ref__c, 
-                       Is_Active__c, Allow_Version_Switching__c, Description__c,
-                       CreatedDate, LastModifiedDate
-                FROM Doc_Source__c
-                WHERE Id = :source.Id
-            ];
-            
-            return new DocSourceWrapper(source);
+            return requeryAndWrap(source.Id);
         } catch (Exception e) {
             throw new AuraHandledException('Failed to save doc source: ' + e.getMessage());
         }
+    }
+    
+    /**
+     * @description Saves a Doc Source record with a token
+     * @param sourceData The doc source data
+     * @param token The GitHub token to save (can be null/blank if not updating token)
+     * @return DocSourceWrapper The saved doc source
+     */
+    @AuraEnabled
+    public static DocSourceWrapper saveDocSourceWithToken(Map<String, Object> sourceData, String token) {
+        try {
+            String credentialName = (String) sourceData.get('credentialName');
+            
+            // Save the token if provided
+            if (String.isNotBlank(credentialName) && String.isNotBlank(token)) {
+                String extCredName = 'GitHub_' + credentialName;
+                ExternalCredentialService.setPAT(extCredName, 'Principal', token);
+            }
+            
+            // Save the doc source
+            Doc_Source__c source = mapToDocSource(sourceData);
+            upsert source;
+            return requeryAndWrap(source.Id);
+        } catch (Exception e) {
+            throw new AuraHandledException('Failed to save doc source: ' + e.getMessage());
+        }
+    }
+    
+    /**
+     * @description Maps sourceData to Doc_Source__c
+     */
+    private static Doc_Source__c mapToDocSource(Map<String, Object> sourceData) {
+        Doc_Source__c source;
+        
+        String recordId = (String) sourceData.get('id');
+        if (String.isNotBlank(recordId)) {
+            source = [SELECT Id FROM Doc_Source__c WHERE Id = :recordId LIMIT 1];
+        } else {
+            source = new Doc_Source__c();
+        }
+        
+        source.Name = (String) sourceData.get('name');
+        source.App_Identifier__c = (String) sourceData.get('appIdentifier');
+        source.Credential_Name__c = (String) sourceData.get('credentialName');
+        source.Provider__c = (String) sourceData.get('provider');
+        source.Repository_Owner__c = (String) sourceData.get('repositoryOwner');
+        source.Repository_Name__c = (String) sourceData.get('repositoryName');
+        source.Content_Path__c = (String) sourceData.get('contentPath');
+        source.Default_Ref__c = (String) sourceData.get('defaultRef');
+        source.Is_Active__c = sourceData.get('isActive') == true;
+        source.Allow_Version_Switching__c = sourceData.get('allowVersionSwitching') == true;
+        source.Description__c = (String) sourceData.get('description');
+        
+        return source;
+    }
+    
+    /**
+     * @description Re-queries and wraps a Doc_Source__c
+     */
+    private static DocSourceWrapper requeryAndWrap(Id sourceId) {
+        Doc_Source__c source = [
+            SELECT Id, Name, App_Identifier__c, Credential_Name__c, Provider__c, 
+                   Repository_Owner__c, Repository_Name__c, Content_Path__c, Default_Ref__c, 
+                   Is_Active__c, Allow_Version_Switching__c, Description__c,
+                   CreatedDate, LastModifiedDate
+            FROM Doc_Source__c
+            WHERE Id = :sourceId
+        ];
+        return new DocSourceWrapper(source);
     }
     
     /**
@@ -159,6 +219,7 @@ public with sharing class DocSourceAdminController {
         
         try {
             String provider = (String) sourceData.get('provider');
+            String credentialName = (String) sourceData.get('credentialName');
             String owner = (String) sourceData.get('repositoryOwner');
             String repo = (String) sourceData.get('repositoryName');
             String contentPath = (String) sourceData.get('contentPath');
@@ -170,8 +231,16 @@ public with sharing class DocSourceAdminController {
                 return result;
             }
             
+            if (String.isBlank(credentialName)) {
+                result.valid = false;
+                result.message = 'Credential name is required.';
+                return result;
+            }
+            
+            String extCredName = 'GitHub_' + credentialName;
+            
             // Test that we can access the repo
-            List<GitHubService.Branch> branches = GitHubService.getBranches(owner, repo);
+            List<GitHubService.Branch> branches = GitHubService.getBranchesWithCredential(extCredName, owner, repo);
             
             // Verify the default ref exists
             Boolean refExists = false;
@@ -184,7 +253,7 @@ public with sharing class DocSourceAdminController {
             
             if (!refExists) {
                 // Check tags
-                List<GitHubService.Branch> tags = GitHubService.getTags(owner, repo);
+                List<GitHubService.Branch> tags = GitHubService.getTagsWithCredential(extCredName, owner, repo);
                 for (GitHubService.Branch tag : tags) {
                     if (tag.name == defaultRef) {
                         refExists = true;
@@ -203,7 +272,7 @@ public with sharing class DocSourceAdminController {
             // Test that we can access the content path
             if (String.isNotBlank(contentPath)) {
                 try {
-                    List<GitHubService.TreeItem> tree = GitHubService.getTree(owner, repo, defaultRef, true);
+                    List<GitHubService.TreeItem> tree = GitHubService.getTreeWithCredential(extCredName, owner, repo, defaultRef, true);
                     List<GitHubService.TreeItem> filtered = GitHubService.filterTreeByPath(tree, contentPath);
                     List<GitHubService.TreeItem> mdFiles = GitHubService.filterMarkdownFiles(filtered);
                     
@@ -267,6 +336,7 @@ public with sharing class DocSourceAdminController {
         @AuraEnabled public Id id { get; set; }
         @AuraEnabled public String name { get; set; }
         @AuraEnabled public String appIdentifier { get; set; }
+        @AuraEnabled public String credentialName { get; set; }
         @AuraEnabled public String provider { get; set; }
         @AuraEnabled public String repositoryOwner { get; set; }
         @AuraEnabled public String repositoryName { get; set; }
@@ -284,6 +354,7 @@ public with sharing class DocSourceAdminController {
             this.id = source.Id;
             this.name = source.Name;
             this.appIdentifier = source.App_Identifier__c;
+            this.credentialName = source.Credential_Name__c;
             this.provider = source.Provider__c;
             this.repositoryOwner = source.Repository_Owner__c;
             this.repositoryName = source.Repository_Name__c;

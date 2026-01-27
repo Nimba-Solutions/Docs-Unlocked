@@ -12,6 +12,7 @@ private class GitHubControllerTest {
         Doc_Source__c source = new Doc_Source__c(
             Name = 'Test Docs',
             App_Identifier__c = 'test_docs',
+            Credential_Name__c = 'test_cred',
             Provider__c = 'GitHub',
             Repository_Owner__c = 'myorg',
             Repository_Name__c = 'documentation',
@@ -27,6 +28,7 @@ private class GitHubControllerTest {
         Doc_Source__c inactiveSource = new Doc_Source__c(
             Name = 'Inactive Docs',
             App_Identifier__c = 'inactive_docs',
+            Credential_Name__c = 'inactive_cred',
             Provider__c = 'GitHub',
             Repository_Owner__c = 'myorg',
             Repository_Name__c = 'old-docs',

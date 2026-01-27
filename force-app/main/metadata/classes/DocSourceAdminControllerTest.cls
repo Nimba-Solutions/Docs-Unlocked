@@ -9,6 +9,7 @@ private class DocSourceAdminControllerTest {
         Doc_Source__c source = new Doc_Source__c(
             Name = 'Test Docs',
             App_Identifier__c = 'test_docs',
+            Credential_Name__c = 'test_cred',
             Provider__c = 'GitHub',
             Repository_Owner__c = 'myorg',
             Repository_Name__c = 'documentation',
@@ -22,58 +23,16 @@ private class DocSourceAdminControllerTest {
     }
     
     /**
-     * @description Test isGitHubConfigured when token is set
+     * @description Test testCredential success
      */
     @isTest
-    static void testIsGitHubConfigured_True() {
-        GitHubService.testAccessToken = 'test-token';
-        
-        Test.startTest();
-        Boolean isConfigured = DocSourceAdminController.isGitHubConfigured();
-        Test.stopTest();
-        
-        System.assertEquals(true, isConfigured, 'Should return true when token is set');
-    }
-    
-    /**
-     * @description Test isGitHubConfigured when no token
-     */
-    @isTest
-    static void testIsGitHubConfigured_False() {
-        GitHubService.testAccessToken = null;
-        ExternalCredentialService.testCredentialValues = new Map<String, String>();
-        
-        Test.startTest();
-        Boolean isConfigured = DocSourceAdminController.isGitHubConfigured();
-        Test.stopTest();
-        
-        System.assertEquals(false, isConfigured, 'Should return false when no token');
-    }
-    
-    /**
-     * @description Test saveGitHubToken
-     */
-    @isTest
-    static void testSaveGitHubToken() {
-        Test.startTest();
-        DocSourceAdminController.saveGitHubToken('ghp_testtoken');
-        String savedToken = ExternalCredentialService.getPAT(GitHubService.EXTERNAL_CREDENTIAL_NAME, GitHubService.PRINCIPAL_NAME);
-        Test.stopTest();
-        
-        System.assertEquals('ghp_testtoken', savedToken, 'Token should be saved');
-    }
-    
-    /**
-     * @description Test testGitHubConnection success
-     */
-    @isTest
-    static void testTestGitHubConnection_Success() {
+    static void testTestCredential_Success() {
         GitHubService.testAccessToken = 'test-token';
         GitHubService.testHttpStatusCode = 200;
         GitHubService.testHttpResponse = '[{"id": 1, "name": "repo1", "full_name": "org/repo1", "default_branch": "main", "private": false, "owner": {"login": "org"}}]';
         
         Test.startTest();
-        DocSourceAdminController.ConnectionTestResult result = DocSourceAdminController.testGitHubConnection();
+        DocSourceAdminController.ConnectionTestResult result = DocSourceAdminController.testCredential('test_cred', 'ghp_testtoken');
         Test.stopTest();
         
         System.assertEquals(true, result.success, 'Should succeed');
@@ -81,20 +40,55 @@ private class DocSourceAdminControllerTest {
     }
     
     /**
-     * @description Test testGitHubConnection failure
+     * @description Test testCredential with blank values
      */
     @isTest
-    static void testTestGitHubConnection_Failure() {
-        GitHubService.testAccessToken = 'test-token';
-        GitHubService.testHttpStatusCode = 401;
-        GitHubService.testHttpResponse = '{"message": "Bad credentials"}';
-        
+    static void testTestCredential_BlankValues() {
         Test.startTest();
-        DocSourceAdminController.ConnectionTestResult result = DocSourceAdminController.testGitHubConnection();
+        DocSourceAdminController.ConnectionTestResult result1 = DocSourceAdminController.testCredential('', 'token');
+        DocSourceAdminController.ConnectionTestResult result2 = DocSourceAdminController.testCredential('cred', '');
         Test.stopTest();
         
-        System.assertEquals(false, result.success, 'Should fail');
-        System.assert(result.message.contains('failed'), 'Should indicate failure');
+        System.assertEquals(false, result1.success, 'Should fail with blank credential name');
+        System.assertEquals(false, result2.success, 'Should fail with blank token');
+    }
+    
+    /**
+     * @description Test getRepositoriesForCredential
+     */
+    @isTest
+    static void testGetRepositoriesForCredential() {
+        GitHubService.testAccessToken = 'test-token';
+        GitHubService.testHttpStatusCode = 200;
+        GitHubService.testHttpResponse = '[{"id": 1, "name": "repo1", "full_name": "org/repo1", "default_branch": "main", "private": false, "owner": {"login": "org"}}]';
+        ExternalCredentialService.testCredentialValues = new Map<String, String>{
+            'GitHub_test_cred.Principal.token' => 'test-token'
+        };
+        
+        Test.startTest();
+        List<GitHubService.Repository> repos = DocSourceAdminController.getRepositoriesForCredential('test_cred');
+        Test.stopTest();
+        
+        System.assertEquals(1, repos.size(), 'Should return 1 repo');
+    }
+    
+    /**
+     * @description Test getBranchesForCredential
+     */
+    @isTest
+    static void testGetBranchesForCredential() {
+        GitHubService.testAccessToken = 'test-token';
+        GitHubService.testHttpStatusCode = 200;
+        GitHubService.testHttpResponse = '[{"name": "main", "commit": {"sha": "abc123"}}]';
+        ExternalCredentialService.testCredentialValues = new Map<String, String>{
+            'GitHub_test_cred.Principal.token' => 'test-token'
+        };
+        
+        Test.startTest();
+        List<GitHubService.Branch> branches = DocSourceAdminController.getBranchesForCredential('test_cred', 'org', 'repo');
+        Test.stopTest();
+        
+        System.assertEquals(1, branches.size(), 'Should return 1 branch');
     }
     
     /**
@@ -108,6 +102,7 @@ private class DocSourceAdminControllerTest {
         
         System.assertEquals(1, sources.size(), 'Should return 1 source');
         System.assertEquals('test_docs', sources[0].appIdentifier, 'App identifier should match');
+        System.assertEquals('test_cred', sources[0].credentialName, 'Credential name should match');
         System.assertEquals('GitHub', sources[0].provider, 'Provider should match');
     }
     
@@ -119,6 +114,7 @@ private class DocSourceAdminControllerTest {
         Map<String, Object> sourceData = new Map<String, Object>{
             'name' => 'New Docs',
             'appIdentifier' => 'new_docs',
+            'credentialName' => 'new_cred',
             'provider' => 'GitHub',
             'repositoryOwner' => 'neworg',
             'repositoryName' => 'new-repo',
@@ -135,10 +131,36 @@ private class DocSourceAdminControllerTest {
         
         System.assertNotEquals(null, result.id, 'Should have an ID');
         System.assertEquals('new_docs', result.appIdentifier, 'App identifier should match');
+        System.assertEquals('new_cred', result.credentialName, 'Credential name should match');
+    }
+    
+    /**
+     * @description Test saveDocSourceWithToken
+     */
+    @isTest
+    static void testSaveDocSourceWithToken() {
+        Map<String, Object> sourceData = new Map<String, Object>{
+            'name' => 'Token Docs',
+            'appIdentifier' => 'token_docs',
+            'credentialName' => 'token_cred',
+            'provider' => 'GitHub',
+            'repositoryOwner' => 'tokenorg',
+            'repositoryName' => 'token-repo',
+            'contentPath' => '',
+            'defaultRef' => 'main',
+            'isActive' => true,
+            'allowVersionSwitching' => false,
+            'description' => ''
+        };
         
-        // Verify in database
-        List<Doc_Source__c> sources = [SELECT Id FROM Doc_Source__c WHERE App_Identifier__c = 'new_docs'];
-        System.assertEquals(1, sources.size(), 'Should be saved in database');
+        Test.startTest();
+        DocSourceAdminController.DocSourceWrapper result = DocSourceAdminController.saveDocSourceWithToken(sourceData, 'ghp_testtoken');
+        Test.stopTest();
+        
+        System.assertNotEquals(null, result.id, 'Should have an ID');
+        // Verify token was saved
+        String savedToken = ExternalCredentialService.getPAT('GitHub_token_cred', 'Principal');
+        System.assertEquals('ghp_testtoken', savedToken, 'Token should be saved');
     }
     
     /**
@@ -152,6 +174,7 @@ private class DocSourceAdminControllerTest {
             'id' => existing.Id,
             'name' => 'Updated Docs',
             'appIdentifier' => 'test_docs',
+            'credentialName' => 'updated_cred',
             'provider' => 'GitHub',
             'repositoryOwner' => 'updatedorg',
             'repositoryName' => 'updated-repo',
@@ -168,6 +191,7 @@ private class DocSourceAdminControllerTest {
         
         System.assertEquals(existing.Id, result.id, 'ID should match');
         System.assertEquals('updatedorg', result.repositoryOwner, 'Owner should be updated');
+        System.assertEquals('updated_cred', result.credentialName, 'Credential name should be updated');
     }
     
     /**
@@ -192,6 +216,7 @@ private class DocSourceAdminControllerTest {
     static void testValidateDocSource_UnsupportedProvider() {
         Map<String, Object> sourceData = new Map<String, Object>{
             'provider' => 'GitLab',
+            'credentialName' => 'test',
             'repositoryOwner' => 'org',
             'repositoryName' => 'repo',
             'contentPath' => 'docs/',
@@ -207,6 +232,28 @@ private class DocSourceAdminControllerTest {
     }
     
     /**
+     * @description Test validateDocSource - missing credential
+     */
+    @isTest
+    static void testValidateDocSource_MissingCredential() {
+        Map<String, Object> sourceData = new Map<String, Object>{
+            'provider' => 'GitHub',
+            'credentialName' => '',
+            'repositoryOwner' => 'org',
+            'repositoryName' => 'repo',
+            'contentPath' => 'docs/',
+            'defaultRef' => 'main'
+        };
+        
+        Test.startTest();
+        DocSourceAdminController.ValidationResult result = DocSourceAdminController.validateDocSource(sourceData);
+        Test.stopTest();
+        
+        System.assertEquals(false, result.valid, 'Should be invalid');
+        System.assert(result.message.contains('Credential'), 'Should mention credential');
+    }
+    
+    /**
      * @description Test validateDocSource - success
      */
     @isTest
@@ -214,9 +261,13 @@ private class DocSourceAdminControllerTest {
         GitHubService.testAccessToken = 'test-token';
         GitHubService.testHttpStatusCode = 200;
         GitHubService.testHttpResponse = '[{"name": "main", "commit": {"sha": "abc"}}]';
+        ExternalCredentialService.testCredentialValues = new Map<String, String>{
+            'GitHub_test_cred.Principal.token' => 'test-token'
+        };
         
         Map<String, Object> sourceData = new Map<String, Object>{
             'provider' => 'GitHub',
+            'credentialName' => 'test_cred',
             'repositoryOwner' => 'org',
             'repositoryName' => 'repo',
             'contentPath' => '',
@@ -254,7 +305,9 @@ private class DocSourceAdminControllerTest {
         // DocSourceWrapper - empty constructor
         DocSourceAdminController.DocSourceWrapper wrapper = new DocSourceAdminController.DocSourceWrapper();
         wrapper.name = 'Test';
+        wrapper.credentialName = 'cred';
         System.assertEquals('Test', wrapper.name);
+        System.assertEquals('cred', wrapper.credentialName);
         
         Test.stopTest();
     }

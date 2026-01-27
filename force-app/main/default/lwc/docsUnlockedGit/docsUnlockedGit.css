@@ -1,0 +1,48 @@
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    min-height: 200px;
+}
+
+.loading-text {
+    margin-top: 1rem;
+    color: #706e6b;
+    font-size: 0.875rem;
+}
+
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    min-height: 200px;
+    text-align: center;
+}
+
+.error-container h2 {
+    margin-top: 1rem;
+    color: #c23934;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.error-container p {
+    margin-top: 0.5rem;
+    color: #706e6b;
+    font-size: 0.875rem;
+    max-width: 400px;
+}
+
+.version-selector {
+    padding: 0.75rem 1rem;
+    background: #f3f3f3;
+    border-bottom: 1px solid #dddbda;
+}
+
+.version-selector lightning-combobox {
+    max-width: 300px;
+}

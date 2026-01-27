@@ -129,7 +129,7 @@ public with sharing class GitHubController {
             }
             
             List<Doc_Source__c> sources = [
-                SELECT Id, Name, App_Identifier__c, Repository_Owner__c, Repository_Name__c,
+                SELECT Id, Name, App_Identifier__c, Credential_Name__c, Repository_Owner__c, Repository_Name__c,
                        Content_Path__c, Default_Ref__c, Is_Active__c, Description__c,
                        Allow_Version_Switching__c, Provider__c
                 FROM Doc_Source__c
@@ -158,7 +158,7 @@ public with sharing class GitHubController {
     public static List<GitHubConfig> getAllConfigurations() {
         try {
             List<Doc_Source__c> sources = [
-                SELECT Id, Name, App_Identifier__c, Repository_Owner__c, Repository_Name__c,
+                SELECT Id, Name, App_Identifier__c, Credential_Name__c, Repository_Owner__c, Repository_Name__c,
                        Content_Path__c, Default_Ref__c, Is_Active__c, Description__c,
                        Allow_Version_Switching__c, Provider__c
                 FROM Doc_Source__c
@@ -191,10 +191,12 @@ public with sharing class GitHubController {
                 throw new AuraHandledException('No configuration found for app: ' + appIdentifier);
             }
             
+            String extCredName = getExternalCredentialName(config);
+            
             VersionOptions options = new VersionOptions();
-            options.branches = GitHubService.getBranches(config.repositoryOwner, config.repositoryName);
-            options.tags = GitHubService.getTags(config.repositoryOwner, config.repositoryName);
-            options.releases = GitHubService.getReleases(config.repositoryOwner, config.repositoryName);
+            options.branches = GitHubService.getBranchesWithCredential(extCredName, config.repositoryOwner, config.repositoryName);
+            options.tags = GitHubService.getTagsWithCredential(extCredName, config.repositoryOwner, config.repositoryName);
+            options.releases = GitHubService.getReleasesWithCredential(extCredName, config.repositoryOwner, config.repositoryName);
             options.allowVersionSwitching = config.allowVersionSwitching;
             options.defaultRef = config.defaultRef;
             
@@ -224,9 +226,11 @@ public with sharing class GitHubController {
             }
             
             String useRef = String.isNotBlank(ref) ? ref : config.defaultRef;
+            String extCredName = getExternalCredentialName(config);
             
             // Get the content tree
-            List<GitHubService.TreeItem> tree = GitHubService.getTree(
+            List<GitHubService.TreeItem> tree = GitHubService.getTreeWithCredential(
+                extCredName,
                 config.repositoryOwner, 
                 config.repositoryName, 
                 useRef, 
@@ -263,7 +267,8 @@ public with sharing class GitHubController {
                 }
                 
                 // Fetch the actual content
-                docFile.content = GitHubService.getFileContent(
+                docFile.content = GitHubService.getFileContentWithCredential(
+                    extCredName,
                     config.repositoryOwner,
                     config.repositoryName,
                     item.path,
@@ -291,6 +296,7 @@ public with sharing class GitHubController {
         config.id = source.Id;
         config.name = source.Name;
         config.appIdentifier = source.App_Identifier__c;
+        config.credentialName = source.Credential_Name__c;
         config.repositoryOwner = source.Repository_Owner__c;
         config.repositoryName = source.Repository_Name__c;
         config.contentPath = source.Content_Path__c;
@@ -303,12 +309,20 @@ public with sharing class GitHubController {
     }
     
     /**
+     * @description Gets the external credential name for a config
+     */
+    private static String getExternalCredentialName(GitHubConfig config) {
+        return 'GitHub_' + config.credentialName;
+    }
+    
+    /**
      * @description Wrapper class for GitHub configuration
      */
     public class GitHubConfig {
         @AuraEnabled public Id id { get; set; }
         @AuraEnabled public String name { get; set; }
         @AuraEnabled public String appIdentifier { get; set; }
+        @AuraEnabled public String credentialName { get; set; }
         @AuraEnabled public String repositoryOwner { get; set; }
         @AuraEnabled public String repositoryName { get; set; }
         @AuraEnabled public String contentPath { get; set; }

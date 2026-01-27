@@ -63,6 +63,7 @@ public class ExternalCredentialService {
     
     /**
      * @description Stores credential values in an external credential (creates or updates)
+     * Creates the External Credential if it doesn't exist.
      * @param externalCredentialName The name of the external credential
      * @param principalName The name of the principal
      * @param credentialValues Map of key-value pairs to store
@@ -79,6 +80,9 @@ public class ExternalCredentialService {
             }
             return;
         }
+        
+        // Ensure the External Credential exists first
+        ensureExternalCredentialExists(externalCredentialName, principalName);
         
         ConnectApi.CredentialInput credInput = new ConnectApi.CredentialInput();
         credInput.authenticationProtocol = ConnectApi.CredentialAuthenticationProtocol.Custom;
@@ -103,6 +107,29 @@ public class ExternalCredentialService {
                 ConnectApi.NamedCredentials.createCredential(credInput);
             } else {
                 throw new CredentialException('Failed to set credential values: ' + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * @description Ensures an External Credential exists, creating it if necessary
+     * @param externalCredentialName The developer name of the external credential
+     * @param principalName The name of the principal to create
+     */
+    private static void ensureExternalCredentialExists(String externalCredentialName, String principalName) {
+        try {
+            // Check if it exists
+            ConnectApi.NamedCredentials.getExternalCredential(externalCredentialName);
+            // It exists, nothing to do
+        } catch (Exception e) {
+            // Doesn't exist - create it
+            // Check various error patterns that indicate "not found"
+            String msg = e.getMessage().toLowerCase();
+            if (msg.contains('not_found') || msg.contains('not exist') || msg.contains('doesn\'t exist') || 
+                msg.contains('invalid_input') || msg.contains('no such') || msg.contains('parameter value')) {
+                createExternalCredential(externalCredentialName, externalCredentialName, principalName);
+            } else {
+                throw new CredentialException('Failed to check external credential: ' + e.getMessage());
             }
         }
     }

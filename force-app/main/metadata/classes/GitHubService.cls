@@ -122,12 +122,48 @@ public class GitHubService {
     }
     
     /**
+     * @description Gets access token for a specific external credential
+     * @param externalCredentialName The external credential name
+     * @return String The access token
+     */
+    private static String getAccessTokenForCredential(String externalCredentialName) {
+        if (Test.isRunningTest() && testAccessToken != null) {
+            return testAccessToken;
+        }
+        
+        try {
+            String token = ExternalCredentialService.getPAT(externalCredentialName, PRINCIPAL_NAME);
+            
+            if (String.isBlank(token)) {
+                throw new GitHubException('GitHub token not found for credential: ' + externalCredentialName);
+            }
+            
+            return token;
+        } catch (GitHubException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GitHubException('Failed to retrieve GitHub credentials: ' + e.getMessage());
+        }
+    }
+    
+    /**
      * @description Makes an authenticated HTTP request to the GitHub API
      * @param endpoint The API endpoint (relative to base URL)
      * @param method The HTTP method (GET, POST, etc.)
      * @return HttpResponse The response from GitHub
      */
     private static HttpResponse makeRequest(String endpoint, String method) {
+        return makeRequestWithCredential(endpoint, method, EXTERNAL_CREDENTIAL_NAME);
+    }
+    
+    /**
+     * @description Makes an authenticated HTTP request with a specific credential
+     * @param endpoint The API endpoint (relative to base URL)
+     * @param method The HTTP method (GET, POST, etc.)
+     * @param externalCredentialName The external credential to use
+     * @return HttpResponse The response from GitHub
+     */
+    private static HttpResponse makeRequestWithCredential(String endpoint, String method, String externalCredentialName) {
         // Test mode with mock response
         if (Test.isRunningTest() && testHttpResponse != null) {
             HttpResponse mockRes = new HttpResponse();
@@ -136,7 +172,7 @@ public class GitHubService {
             return mockRes;
         }
         
-        String token = getAccessToken();
+        String token = getAccessTokenForCredential(externalCredentialName);
         
         HttpRequest req = new HttpRequest();
         req.setEndpoint(GITHUB_API_BASE + endpoint);
@@ -155,7 +191,16 @@ public class GitHubService {
      * @return List<Repository> List of repositories
      */
     public static List<Repository> listRepositories() {
-        HttpResponse res = makeRequest('/user/repos?per_page=100&sort=updated', 'GET');
+        return listRepositoriesWithCredential(EXTERNAL_CREDENTIAL_NAME);
+    }
+    
+    /**
+     * @description Lists repositories with a specific credential
+     * @param externalCredentialName The external credential to use
+     * @return List<Repository> List of repositories
+     */
+    public static List<Repository> listRepositoriesWithCredential(String externalCredentialName) {
+        HttpResponse res = makeRequestWithCredential('/user/repos?per_page=100&sort=updated', 'GET', externalCredentialName);
         
         if (res.getStatusCode() != 200) {
             throw new GitHubException('Failed to list repositories: ' + res.getStatusCode() + ' - ' + res.getBody());
@@ -190,10 +235,21 @@ public class GitHubService {
      * @return List<Branch> List of branches
      */
     public static List<Branch> getBranches(String owner, String repo) {
+        return getBranchesWithCredential(EXTERNAL_CREDENTIAL_NAME, owner, repo);
+    }
+    
+    /**
+     * @description Gets branches with a specific credential
+     * @param externalCredentialName The external credential to use
+     * @param owner The repository owner
+     * @param repo The repository name
+     * @return List<Branch> List of branches
+     */
+    public static List<Branch> getBranchesWithCredential(String externalCredentialName, String owner, String repo) {
         String endpoint = '/repos/' + EncodingUtil.urlEncode(owner, 'UTF-8') + '/' + 
             EncodingUtil.urlEncode(repo, 'UTF-8') + '/branches?per_page=100';
         
-        HttpResponse res = makeRequest(endpoint, 'GET');
+        HttpResponse res = makeRequestWithCredential(endpoint, 'GET', externalCredentialName);
         
         if (res.getStatusCode() != 200) {
             throw new GitHubException('Failed to get branches: ' + res.getStatusCode() + ' - ' + res.getBody());
@@ -223,10 +279,21 @@ public class GitHubService {
      * @return List<Release> List of releases
      */
     public static List<Release> getReleases(String owner, String repo) {
+        return getReleasesWithCredential(EXTERNAL_CREDENTIAL_NAME, owner, repo);
+    }
+    
+    /**
+     * @description Gets releases with a specific credential
+     * @param externalCredentialName The external credential to use
+     * @param owner The repository owner
+     * @param repo The repository name
+     * @return List<Release> List of releases
+     */
+    public static List<Release> getReleasesWithCredential(String externalCredentialName, String owner, String repo) {
         String endpoint = '/repos/' + EncodingUtil.urlEncode(owner, 'UTF-8') + '/' + 
             EncodingUtil.urlEncode(repo, 'UTF-8') + '/releases?per_page=100';
         
-        HttpResponse res = makeRequest(endpoint, 'GET');
+        HttpResponse res = makeRequestWithCredential(endpoint, 'GET', externalCredentialName);
         
         if (res.getStatusCode() != 200) {
             throw new GitHubException('Failed to get releases: ' + res.getStatusCode() + ' - ' + res.getBody());
@@ -262,10 +329,21 @@ public class GitHubService {
      * @return List<Branch> List of tags (using Branch wrapper since structure is similar)
      */
     public static List<Branch> getTags(String owner, String repo) {
+        return getTagsWithCredential(EXTERNAL_CREDENTIAL_NAME, owner, repo);
+    }
+    
+    /**
+     * @description Gets tags with a specific credential
+     * @param externalCredentialName The external credential to use
+     * @param owner The repository owner
+     * @param repo The repository name
+     * @return List<Branch> List of tags
+     */
+    public static List<Branch> getTagsWithCredential(String externalCredentialName, String owner, String repo) {
         String endpoint = '/repos/' + EncodingUtil.urlEncode(owner, 'UTF-8') + '/' + 
             EncodingUtil.urlEncode(repo, 'UTF-8') + '/tags?per_page=100';
         
-        HttpResponse res = makeRequest(endpoint, 'GET');
+        HttpResponse res = makeRequestWithCredential(endpoint, 'GET', externalCredentialName);
         
         if (res.getStatusCode() != 200) {
             throw new GitHubException('Failed to get tags: ' + res.getStatusCode() + ' - ' + res.getBody());
@@ -297,6 +375,19 @@ public class GitHubService {
      * @return List<TreeItem> List of tree items
      */
     public static List<TreeItem> getTree(String owner, String repo, String ref, Boolean recursive) {
+        return getTreeWithCredential(EXTERNAL_CREDENTIAL_NAME, owner, repo, ref, recursive);
+    }
+    
+    /**
+     * @description Gets the directory tree with a specific credential
+     * @param externalCredentialName The external credential to use
+     * @param owner The repository owner
+     * @param repo The repository name
+     * @param ref The git reference (branch, tag, or commit SHA)
+     * @param recursive Whether to fetch the full tree recursively
+     * @return List<TreeItem> List of tree items
+     */
+    public static List<TreeItem> getTreeWithCredential(String externalCredentialName, String owner, String repo, String ref, Boolean recursive) {
         String endpoint = '/repos/' + EncodingUtil.urlEncode(owner, 'UTF-8') + '/' + 
             EncodingUtil.urlEncode(repo, 'UTF-8') + '/git/trees/' + EncodingUtil.urlEncode(ref, 'UTF-8');
         
@@ -304,7 +395,7 @@ public class GitHubService {
             endpoint += '?recursive=1';
         }
         
-        HttpResponse res = makeRequest(endpoint, 'GET');
+        HttpResponse res = makeRequestWithCredential(endpoint, 'GET', externalCredentialName);
         
         if (res.getStatusCode() != 200) {
             throw new GitHubException('Failed to get tree: ' + res.getStatusCode() + ' - ' + res.getBody());
@@ -341,6 +432,19 @@ public class GitHubService {
      * @return List<FileContent> List of file contents (single item for file, multiple for directory)
      */
     public static List<FileContent> getContents(String owner, String repo, String path, String ref) {
+        return getContentsWithCredential(EXTERNAL_CREDENTIAL_NAME, owner, repo, path, ref);
+    }
+    
+    /**
+     * @description Gets contents with a specific credential
+     * @param externalCredentialName The external credential to use
+     * @param owner The repository owner
+     * @param repo The repository name
+     * @param path The file or directory path
+     * @param ref The git reference (branch, tag, or commit SHA)
+     * @return List<FileContent> List of file contents
+     */
+    public static List<FileContent> getContentsWithCredential(String externalCredentialName, String owner, String repo, String path, String ref) {
         String endpoint = '/repos/' + EncodingUtil.urlEncode(owner, 'UTF-8') + '/' + 
             EncodingUtil.urlEncode(repo, 'UTF-8') + '/contents/' + path;
         
@@ -348,7 +452,7 @@ public class GitHubService {
             endpoint += '?ref=' + EncodingUtil.urlEncode(ref, 'UTF-8');
         }
         
-        HttpResponse res = makeRequest(endpoint, 'GET');
+        HttpResponse res = makeRequestWithCredential(endpoint, 'GET', externalCredentialName);
         
         if (res.getStatusCode() != 200) {
             throw new GitHubException('Failed to get contents: ' + res.getStatusCode() + ' - ' + res.getBody());
@@ -380,7 +484,20 @@ public class GitHubService {
      * @return String The decoded file content
      */
     public static String getFileContent(String owner, String repo, String path, String ref) {
-        List<FileContent> contents = getContents(owner, repo, path, ref);
+        return getFileContentWithCredential(EXTERNAL_CREDENTIAL_NAME, owner, repo, path, ref);
+    }
+    
+    /**
+     * @description Gets file content with a specific credential
+     * @param externalCredentialName The external credential to use
+     * @param owner The repository owner
+     * @param repo The repository name
+     * @param path The file path
+     * @param ref The git reference (branch, tag, or commit SHA)
+     * @return String The decoded file content
+     */
+    public static String getFileContentWithCredential(String externalCredentialName, String owner, String repo, String path, String ref) {
+        List<FileContent> contents = getContentsWithCredential(externalCredentialName, owner, repo, path, ref);
         
         if (contents.isEmpty()) {
             throw new GitHubException('File not found: ' + path);

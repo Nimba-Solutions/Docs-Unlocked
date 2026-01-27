@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>62.0</apiVersion>
+    <isExposed>true</isExposed>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__Tab</target>
+        <target>lightning__RecordPage</target>
+        <target>lightning__HomePage</target>
+        <target>lightningCommunity__Page</target>
+        <target>lightningCommunity__Default</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__AppPage,lightning__RecordPage,lightning__HomePage">
+            <property name="appIdentifier" type="String" label="App Identifier" description="Unique identifier matching a Doc_Source__c record (e.g., 'my_app'). If not found, falls back to static resource." required="true" />
+            <property name="fallbackResourceName" type="String" label="Fallback Static Resource" description="Static resource to use if no Doc_Source__c is configured (default: docsContent)" default="docsContent" />
+            <property name="displayHeader" type="Boolean" label="Display Header" description="Show or hide the header" default="false" />
+            <property name="headerLabel" type="String" label="Header Label" description="Text to display in the header" default="Documentation" />
+            <property name="displayFooter" type="Boolean" label="Display Footer" description="Show or hide the footer" default="true" />
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>
