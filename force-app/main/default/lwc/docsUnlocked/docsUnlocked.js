@@ -184,11 +184,17 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
     buildManifest(files) {
         // Build the tree structure that generateManifestFromTree expects:
         // { content: { "01.section": { "01.file.md": "content/01.section/01.file.md" } } }
+        // Also handles flat structures (files directly in content folder)
         const tree = {
             content: {}
         };
 
         for (const file of files) {
+            // Only process .md files
+            if (!file.relativePath.endsWith('.md')) {
+                continue;
+            }
+
             const parts = file.relativePath.split('/');
             
             if (parts.length >= 2) {
@@ -200,14 +206,22 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
                     tree.content[sectionFolder] = {};
                 }
                 
-                // Only add .md files
-                if (fileName.endsWith('.md')) {
-                    tree.content[sectionFolder][fileName] = 'content/' + file.relativePath;
+                tree.content[sectionFolder][fileName] = 'content/' + file.relativePath;
+            } else {
+                // Flat structure: file directly in content folder
+                // e.g., "introduction.md" -> put in a "_root" section
+                const fileName = parts[0];
+                
+                if (!tree.content['_root']) {
+                    tree.content['_root'] = {};
                 }
+                
+                tree.content['_root'][fileName] = 'content/' + file.relativePath;
             }
         }
 
         console.log('[DocsUnlocked] Built tree for manifest generation:', JSON.stringify(tree));
+        console.log('[DocsUnlocked] Files received:', files.map(f => f.relativePath));
         return tree;
     }
 
