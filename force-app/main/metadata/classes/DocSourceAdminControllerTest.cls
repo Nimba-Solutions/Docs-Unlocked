@@ -98,6 +98,22 @@ private class DocSourceAdminControllerTest {
     }
     
     /**
+     * @description Test testCredential error handling
+     */
+    @isTest
+    static void testTestCredential_Error() {
+        GitHubService.testHttpStatusCode = 401;
+        GitHubService.testHttpResponse = '{"message": "Bad credentials"}';
+        GitHubService.testAccessToken = 'invalid_token';
+        
+        Test.startTest();
+        DocSourceAdminController.ConnectionTestResult result = DocSourceAdminController.testCredential('bad_cred');
+        Test.stopTest();
+        
+        System.assertEquals(false, result.success, 'Should fail with bad credentials');
+    }
+    
+    /**
      * @description Test getRepositoriesForCredential
      */
     @isTest
@@ -111,6 +127,80 @@ private class DocSourceAdminControllerTest {
         Test.stopTest();
         
         System.assertEquals(1, repos.size(), 'Should return 1 repository');
+    }
+    
+    /**
+     * @description Test getRepositoriesForCredential error handling
+     */
+    @isTest
+    static void testGetRepositoriesForCredential_Error() {
+        GitHubService.testHttpStatusCode = 500;
+        GitHubService.testHttpResponse = '{"message": "Server error"}';
+        GitHubService.testAccessToken = 'mock_token';
+        
+        Test.startTest();
+        try {
+            DocSourceAdminController.getRepositoriesForCredential('error_cred');
+            System.assert(false, 'Should have thrown AuraHandledException');
+        } catch (AuraHandledException e) {
+            System.assertNotEquals(null, e.getMessage(), 'Should have error message');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test getRepositoriesWithToken error handling
+     */
+    @isTest
+    static void testGetRepositoriesWithToken_Error() {
+        GitHubService.testHttpStatusCode = 401;
+        GitHubService.testHttpResponse = '{"message": "Bad credentials"}';
+        
+        Test.startTest();
+        try {
+            DocSourceAdminController.getRepositoriesWithToken('invalid_token');
+            System.assert(false, 'Should have thrown AuraHandledException');
+        } catch (AuraHandledException e) {
+            System.assertNotEquals(null, e.getMessage(), 'Should have error message');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test getBranchesForCredential error handling
+     */
+    @isTest
+    static void testGetBranchesForCredential_Error() {
+        GitHubService.testHttpStatusCode = 404;
+        GitHubService.testHttpResponse = '{"message": "Not found"}';
+        GitHubService.testAccessToken = 'mock_token';
+        
+        Test.startTest();
+        try {
+            DocSourceAdminController.getBranchesForCredential('mock_cred', 'org', 'nonexistent');
+            System.assert(false, 'Should have thrown AuraHandledException');
+        } catch (AuraHandledException e) {
+            System.assertNotEquals(null, e.getMessage(), 'Should have error message');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test getBranchesWithToken error handling
+     */
+    @isTest
+    static void testGetBranchesWithToken_Error() {
+        GitHubService.testHttpStatusCode = 401;
+        GitHubService.testHttpResponse = '{"message": "Bad credentials"}';
+        
+        Test.startTest();
+        try {
+            DocSourceAdminController.getBranchesWithToken('bad_token', 'org', 'repo');
+            System.assert(false, 'Should have thrown AuraHandledException');
+        } catch (AuraHandledException e) {
+            System.assertNotEquals(null, e.getMessage(), 'Should have error message');
+        }
+        Test.stopTest();
     }
     
     /**
@@ -201,6 +291,61 @@ private class DocSourceAdminControllerTest {
         } catch (AuraHandledException e) {
             // Expected in test context - Metadata deployment not supported
             System.assert(true, 'Metadata deployment throws in test context');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test saveDocSource with blank developer name
+     */
+    @isTest
+    static void testSaveDocSource_BlankDeveloperName() {
+        Map<String, Object> sourceData = new Map<String, Object>{
+            'name' => 'Test Docs',
+            'developerName' => ''
+        };
+        
+        Test.startTest();
+        try {
+            DocSourceAdminController.saveDocSource(sourceData);
+            System.assert(false, 'Should have thrown AuraHandledException');
+        } catch (AuraHandledException e) {
+            System.assertNotEquals(null, e.getMessage(), 'Should have error message');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test saveDocSource with blank label
+     */
+    @isTest
+    static void testSaveDocSource_BlankLabel() {
+        Map<String, Object> sourceData = new Map<String, Object>{
+            'name' => '',
+            'developerName' => 'test_dev'
+        };
+        
+        Test.startTest();
+        try {
+            DocSourceAdminController.saveDocSource(sourceData);
+            System.assert(false, 'Should have thrown AuraHandledException');
+        } catch (AuraHandledException e) {
+            System.assertNotEquals(null, e.getMessage(), 'Should have error message');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test deleteDocSource with non-existent record
+     */
+    @isTest
+    static void testDeleteDocSource_NotFound() {
+        Test.startTest();
+        try {
+            DocSourceAdminController.deleteDocSource('nonexistent_record_xyz');
+            System.assert(false, 'Should have thrown AuraHandledException');
+        } catch (AuraHandledException e) {
+            System.assertNotEquals(null, e.getMessage(), 'Should have error message');
         }
         Test.stopTest();
     }

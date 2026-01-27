@@ -385,33 +385,6 @@ public class GitHubService {
     }
     
     /**
-     * @description Parses branch list response (kept for compatibility)
-     * @param res The HTTP response
-     * @return List<Branch> Parsed branches
-     */
-    private static List<Branch> parseBranchResponse(HttpResponse res) {
-        if (res.getStatusCode() != 200) {
-            throw new GitHubException('Failed to get branches: ' + res.getStatusCode() + ' - ' + res.getBody());
-        }
-        
-        List<Branch> branches = new List<Branch>();
-        List<Object> branchList = (List<Object>) JSON.deserializeUntyped(res.getBody());
-        
-        for (Object branchObj : branchList) {
-            Map<String, Object> branchMap = (Map<String, Object>) branchObj;
-            Branch branch = new Branch();
-            branch.name = (String) branchMap.get('name');
-            
-            Map<String, Object> commitMap = (Map<String, Object>) branchMap.get('commit');
-            branch.sha = (String) commitMap.get('sha');
-            
-            branches.add(branch);
-        }
-        
-        return branches;
-    }
-    
-    /**
      * @description Gets releases for a repository
      * @param owner The repository owner
      * @param repo The repository name

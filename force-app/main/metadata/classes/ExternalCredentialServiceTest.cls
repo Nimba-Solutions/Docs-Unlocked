@@ -251,4 +251,48 @@ private class ExternalCredentialServiceTest {
         System.assertEquals('Test error', ex.getMessage(), 'Exception message should match');
         Test.stopTest();
     }
+    
+    /**
+     * @description Test getOAuthClientId directly
+     */
+    @isTest
+    static void testGetOAuthClientId() {
+        ExternalCredentialService.testCredentialValues = new Map<String, String>{
+            'OAuthCred.OAuthPrincipal.client_id' => 'my_oauth_client_id'
+        };
+        
+        Test.startTest();
+        String clientId = ExternalCredentialService.getOAuthClientId('OAuthCred', 'OAuthPrincipal');
+        Test.stopTest();
+        
+        System.assertEquals('my_oauth_client_id', clientId, 'Should return client ID');
+    }
+    
+    /**
+     * @description Test getOAuthClientSecret directly
+     */
+    @isTest
+    static void testGetOAuthClientSecret() {
+        ExternalCredentialService.testCredentialValues = new Map<String, String>{
+            'OAuthCred.OAuthPrincipal.client_secret' => 'my_oauth_client_secret'
+        };
+        
+        Test.startTest();
+        String clientSecret = ExternalCredentialService.getOAuthClientSecret('OAuthCred', 'OAuthPrincipal');
+        Test.stopTest();
+        
+        System.assertEquals('my_oauth_client_secret', clientSecret, 'Should return client secret');
+    }
+    
+    /**
+     * @description Test ensureExternalCredentialExists in test context
+     */
+    @isTest
+    static void testEnsureExternalCredentialExists_TestContext() {
+        Test.startTest();
+        Boolean result = ExternalCredentialService.ensureExternalCredentialExists('TestCredential', 'TestPrincipal');
+        Test.stopTest();
+        
+        System.assertEquals(false, result, 'Should return false in test context');
+    }
 }

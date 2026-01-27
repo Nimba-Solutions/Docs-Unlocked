@@ -513,4 +513,141 @@ private class GitHubServiceTest {
         }
         Test.stopTest();
     }
+    
+    /**
+     * @description Test getBranches with API error (tags endpoint fails)
+     */
+    @isTest
+    static void testGetBranches_TagsError() {
+        GitHubService.testAccessToken = 'test-token';
+        GitHubService.testHttpStatusCode = 404;
+        GitHubService.testHttpResponse = '{"message": "Not Found"}';
+        
+        Test.startTest();
+        try {
+            GitHubService.getBranches('testuser', 'nonexistent-repo');
+            System.assert(false, 'Should have thrown GitHubException');
+        } catch (GitHubService.GitHubException e) {
+            System.assert(e.getMessage().contains('Failed to get tags'), 'Error message should indicate tags failure');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test getReleases with API error
+     */
+    @isTest
+    static void testGetReleases_Error() {
+        GitHubService.testAccessToken = 'test-token';
+        GitHubService.testHttpStatusCode = 500;
+        GitHubService.testHttpResponse = '{"message": "Server Error"}';
+        
+        Test.startTest();
+        try {
+            GitHubService.getReleases('testuser', 'test-repo');
+            System.assert(false, 'Should have thrown GitHubException');
+        } catch (GitHubService.GitHubException e) {
+            System.assert(e.getMessage().contains('Failed to get releases'), 'Error message should indicate releases failure');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test getTags with API error
+     */
+    @isTest
+    static void testGetTags_Error() {
+        GitHubService.testAccessToken = 'test-token';
+        GitHubService.testHttpStatusCode = 403;
+        GitHubService.testHttpResponse = '{"message": "Forbidden"}';
+        
+        Test.startTest();
+        try {
+            GitHubService.getTags('testuser', 'test-repo');
+            System.assert(false, 'Should have thrown GitHubException');
+        } catch (GitHubService.GitHubException e) {
+            System.assert(e.getMessage().contains('Failed to get tags'), 'Error message should indicate tags failure');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test getTree with API error
+     */
+    @isTest
+    static void testGetTree_Error() {
+        GitHubService.testAccessToken = 'test-token';
+        GitHubService.testHttpStatusCode = 404;
+        GitHubService.testHttpResponse = '{"message": "Not Found"}';
+        
+        Test.startTest();
+        try {
+            GitHubService.getTree('testuser', 'test-repo', 'nonexistent-branch', true);
+            System.assert(false, 'Should have thrown GitHubException');
+        } catch (GitHubService.GitHubException e) {
+            System.assert(e.getMessage().contains('Failed to get tree'), 'Error message should indicate tree failure');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test getContents with API error
+     */
+    @isTest
+    static void testGetContents_Error() {
+        GitHubService.testAccessToken = 'test-token';
+        GitHubService.testHttpStatusCode = 404;
+        GitHubService.testHttpResponse = '{"message": "Not Found"}';
+        
+        Test.startTest();
+        try {
+            GitHubService.getContents('testuser', 'test-repo', 'nonexistent-path', 'main');
+            System.assert(false, 'Should have thrown GitHubException');
+        } catch (GitHubService.GitHubException e) {
+            System.assert(e.getMessage().contains('Failed to get contents'), 'Error message should indicate contents failure');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test getFileContent with file not found
+     */
+    @isTest
+    static void testGetFileContent_NotFound() {
+        GitHubService.testAccessToken = 'test-token';
+        GitHubService.testHttpStatusCode = 200;
+        // Return empty array (no files)
+        GitHubService.testHttpResponse = '[]';
+        
+        Test.startTest();
+        try {
+            GitHubService.getFileContent('testuser', 'test-repo', 'nonexistent.md', 'main');
+            System.assert(false, 'Should have thrown GitHubException');
+        } catch (GitHubService.GitHubException e) {
+            System.assert(e.getMessage().contains('File not found'), 'Error message should indicate file not found');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test getAccessToken when no test override and ConnectApi throws
+     */
+    @isTest
+    static void testGetAccessToken_NoOverride() {
+        // Don't set testAccessToken - this will force the real code path
+        // which will fail because ConnectApi throws in test context
+        GitHubService.testAccessToken = null;
+        
+        Test.startTest();
+        try {
+            // Calling getBranches without testAccessToken will try real credential lookup
+            GitHubService.getBranches('testuser', 'test-repo');
+            System.assert(false, 'Should have thrown exception');
+        } catch (GitHubService.GitHubException e) {
+            // This tests line 98 - the exception path
+            System.assert(e.getMessage().contains('credentials') || e.getMessage().contains('GitHub'), 
+                'Should have error about credentials');
+        }
+        Test.stopTest();
+    }
 }
