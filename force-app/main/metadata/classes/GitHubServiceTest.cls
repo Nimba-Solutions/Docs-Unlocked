@@ -351,4 +351,61 @@ private class GitHubServiceTest {
         System.assertEquals('Test error', ex.getMessage(), 'Exception message should match');
         Test.stopTest();
     }
+    
+    /**
+     * @description Test isConfigured returns true when token is set
+     */
+    @isTest
+    static void testIsConfigured_True() {
+        GitHubService.testAccessToken = 'test-token';
+        
+        Test.startTest();
+        Boolean isConfigured = GitHubService.isConfigured();
+        Test.stopTest();
+        
+        System.assertEquals(true, isConfigured, 'Should return true when test token is set');
+    }
+    
+    /**
+     * @description Test isConfigured returns false when using ExternalCredentialService check
+     */
+    @isTest
+    static void testIsConfigured_False() {
+        GitHubService.testAccessToken = null;
+        ExternalCredentialService.testCredentialValues = new Map<String, String>();
+        
+        Test.startTest();
+        Boolean isConfigured = GitHubService.isConfigured();
+        Test.stopTest();
+        
+        System.assertEquals(false, isConfigured, 'Should return false when no credentials');
+    }
+    
+    /**
+     * @description Test setAccessToken stores token via ExternalCredentialService
+     */
+    @isTest
+    static void testSetAccessToken() {
+        Test.startTest();
+        GitHubService.setAccessToken('ghp_newtoken123');
+        String token = ExternalCredentialService.getPAT(GitHubService.EXTERNAL_CREDENTIAL_NAME, GitHubService.PRINCIPAL_NAME);
+        Test.stopTest();
+        
+        System.assertEquals('ghp_newtoken123', token, 'Token should be stored');
+    }
+    
+    /**
+     * @description Test setAccessToken throws exception for blank token
+     */
+    @isTest
+    static void testSetAccessToken_Blank() {
+        Test.startTest();
+        try {
+            GitHubService.setAccessToken('');
+            System.assert(false, 'Should have thrown GitHubException');
+        } catch (GitHubService.GitHubException e) {
+            System.assert(e.getMessage().contains('cannot be blank'), 'Should indicate blank token error');
+        }
+        Test.stopTest();
+    }
 }

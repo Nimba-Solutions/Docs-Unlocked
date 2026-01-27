@@ -52,6 +52,14 @@
         <apexClass>OAuthClientCredentialsServiceTest</apexClass>
         <enabled>true</enabled>
     </classAccesses>
+    <classAccesses>
+        <apexClass>DocSourceAdminController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>DocSourceAdminControllerTest</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
     <description>Full admin access to Docs Unlocked including doc source configuration</description>
     <fieldPermissions>
         <editable>true</editable>

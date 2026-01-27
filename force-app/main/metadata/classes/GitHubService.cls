@@ -6,8 +6,8 @@
 public class GitHubService {
     
     private static final String GITHUB_API_BASE = 'https://api.github.com';
-    private static final String EXTERNAL_CREDENTIAL_NAME = 'GitHub';
-    private static final String PRINCIPAL_NAME = 'GitHubPAT';
+    public static final String EXTERNAL_CREDENTIAL_NAME = 'GitHub';
+    public static final String PRINCIPAL_NAME = 'Principal';
     
     public class GitHubException extends Exception {}
     
@@ -85,27 +85,40 @@ public class GitHubService {
         }
         
         try {
-            ConnectApi.ExternalCredential extCred = ConnectApi.NamedCredentials.getExternalCredential(EXTERNAL_CREDENTIAL_NAME);
+            String token = ExternalCredentialService.getPAT(EXTERNAL_CREDENTIAL_NAME, PRINCIPAL_NAME);
             
-            for (ConnectApi.ExternalCredentialPrincipal principal : extCred.principals) {
-                if (principal.principalName == PRINCIPAL_NAME) {
-                    ConnectApi.Credential cred = ConnectApi.NamedCredentials.getCredential(
-                        EXTERNAL_CREDENTIAL_NAME,
-                        principal.principalName,
-                        ConnectApi.CredentialPrincipalType.NamedPrincipal
-                    );
-                    
-                    if (cred.credentials != null && cred.credentials.containsKey('token')) {
-                        return cred.credentials.get('token').value;
-                    }
-                }
+            if (String.isBlank(token)) {
+                throw new GitHubException('GitHub token not found. Please configure your GitHub Personal Access Token in the Docs Unlocked setup.');
             }
             
-            throw new GitHubException('GitHub token not found in External Credential. Please configure the "' + 
-                EXTERNAL_CREDENTIAL_NAME + '" External Credential with a "token" value.');
+            return token;
+        } catch (GitHubException e) {
+            throw e;
         } catch (Exception e) {
             throw new GitHubException('Failed to retrieve GitHub credentials: ' + e.getMessage());
         }
+    }
+    
+    /**
+     * @description Checks if GitHub credentials are configured
+     * @return Boolean True if credentials are configured
+     */
+    public static Boolean isConfigured() {
+        if (Test.isRunningTest() && testAccessToken != null) {
+            return true;
+        }
+        return ExternalCredentialService.hasPAT(EXTERNAL_CREDENTIAL_NAME, PRINCIPAL_NAME);
+    }
+    
+    /**
+     * @description Sets the GitHub PAT (for admin setup)
+     * @param token The GitHub Personal Access Token
+     */
+    public static void setAccessToken(String token) {
+        if (String.isBlank(token)) {
+            throw new GitHubException('Token cannot be blank');
+        }
+        ExternalCredentialService.setPAT(EXTERNAL_CREDENTIAL_NAME, PRINCIPAL_NAME, token);
     }
     
     /**
