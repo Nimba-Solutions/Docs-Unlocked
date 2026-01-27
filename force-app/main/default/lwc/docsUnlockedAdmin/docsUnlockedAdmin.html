@@ -28,12 +28,13 @@
                                 <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
                                     <lightning-input 
                                         label="Developer Name" 
-                                        value={formData.appIdentifier}
-                                        data-field="appIdentifier"
+                                        value={formData.developerName}
+                                        data-field="developerName"
                                         onchange={handleFormChange}
                                         required
+                                        disabled={isEditing}
                                         placeholder="my_app"
-                                        field-level-help="Unique identifier used to link this config to a component">
+                                        field-level-help="Unique identifier used to link this config to a component (cannot be changed after creation)">
                                     </lightning-input>
                                 </div>
                                 <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
@@ -279,9 +280,9 @@
                                 </thead>
                                 <tbody>
                                     <template for:each={docSources} for:item="source">
-                                        <tr key={source.id}>
+                                        <tr key={source.developerName}>
                                             <td><div class="slds-truncate">{source.name}</div></td>
-                                            <td><div class="slds-truncate"><code>{source.appIdentifier}</code></div></td>
+                                            <td><div class="slds-truncate"><code>{source.developerName}</code></div></td>
                                             <td><div class="slds-truncate">{source.provider}</div></td>
                                             <td><div class="slds-truncate">{source.repositoryOwner}/{source.repositoryName}</div></td>
                                             <td>
@@ -295,16 +296,16 @@
                                             <td>
                                                 <lightning-button-icon 
                                                     icon-name="utility:edit" 
-                                                    data-id={source.id}
+                                                    data-developer-name={source.developerName}
                                                     onclick={handleEditSource}
                                                     alternative-text="Edit"
                                                     class="slds-m-right_x-small">
                                                 </lightning-button-icon>
                                                 <lightning-button-icon 
                                                     icon-name="utility:delete" 
-                                                    data-id={source.id}
+                                                    data-developer-name={source.developerName}
                                                     onclick={handleDeleteSource}
-                                                    alternative-text="Delete"
+                                                    alternative-text="Deactivate"
                                                     variant="bare-destructive">
                                                 </lightning-button-icon>
                                             </td>

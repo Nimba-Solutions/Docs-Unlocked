@@ -1,7 +1,7 @@
 /**
  * @description Controller class for GitHub integration LWC components.
  * Provides @AuraEnabled methods for fetching repositories, content, and configuration.
- * Supports multiple apps/doc sources via the Doc_Source__c custom object.
+ * Supports multiple apps/doc sources via the Docs_Source__mdt custom metadata type.
  */
 public with sharing class GitHubController {
     
@@ -117,8 +117,9 @@ public with sharing class GitHubController {
     }
     
     /**
-     * @description Gets the GitHub configuration for a specific app by its identifier
-     * @param appIdentifier The unique app identifier
+     * @description Gets the GitHub configuration for a specific app by its identifier.
+     * The appIdentifier corresponds to the DeveloperName of the Docs_Source__mdt record.
+     * @param appIdentifier The unique app identifier (DeveloperName)
      * @return GitHubConfig The configuration for the app
      */
     @AuraEnabled(cacheable=true)
@@ -128,12 +129,12 @@ public with sharing class GitHubController {
                 throw new AuraHandledException('App identifier is required');
             }
             
-            List<Doc_Source__c> sources = [
-                SELECT Id, Name, App_Identifier__c, Credential_Name__c, Repository_Owner__c, Repository_Name__c,
+            List<Docs_Source__mdt> sources = [
+                SELECT DeveloperName, MasterLabel, Credential_Name__c, Repository_Owner__c, Repository_Name__c,
                        Content_Path__c, Default_Ref__c, Is_Active__c, Description__c,
                        Allow_Version_Switching__c, Provider__c
-                FROM Doc_Source__c
-                WHERE App_Identifier__c = :appIdentifier
+                FROM Docs_Source__mdt
+                WHERE DeveloperName = :appIdentifier
                 AND Is_Active__c = true
                 LIMIT 1
             ];
@@ -157,17 +158,17 @@ public with sharing class GitHubController {
     @AuraEnabled(cacheable=true)
     public static List<GitHubConfig> getAllConfigurations() {
         try {
-            List<Doc_Source__c> sources = [
-                SELECT Id, Name, App_Identifier__c, Credential_Name__c, Repository_Owner__c, Repository_Name__c,
+            List<Docs_Source__mdt> sources = [
+                SELECT DeveloperName, MasterLabel, Credential_Name__c, Repository_Owner__c, Repository_Name__c,
                        Content_Path__c, Default_Ref__c, Is_Active__c, Description__c,
                        Allow_Version_Switching__c, Provider__c
-                FROM Doc_Source__c
+                FROM Docs_Source__mdt
                 WHERE Is_Active__c = true
-                ORDER BY Name ASC
+                ORDER BY MasterLabel ASC
             ];
             
             List<GitHubConfig> configs = new List<GitHubConfig>();
-            for (Doc_Source__c source : sources) {
+            for (Docs_Source__mdt source : sources) {
                 configs.add(mapSourceToConfig(source));
             }
             
@@ -179,7 +180,7 @@ public with sharing class GitHubController {
     
     /**
      * @description Gets all available version options (branches + tags + releases) for an app
-     * @param appIdentifier The unique app identifier
+     * @param appIdentifier The unique app identifier (DeveloperName)
      * @return VersionOptions The available versions
      */
     @AuraEnabled(cacheable=true)
@@ -211,7 +212,7 @@ public with sharing class GitHubController {
     /**
      * @description Fetches all markdown content for a configured app
      * This is used to load all docs at once for the main docs viewer
-     * @param appIdentifier The unique app identifier
+     * @param appIdentifier The unique app identifier (DeveloperName)
      * @param ref Optional git reference override (defaults to configured default)
      * @return DocsContent The full documentation content
      */
@@ -222,7 +223,7 @@ public with sharing class GitHubController {
             
             if (config == null) {
                 throw new AuraHandledException('No documentation source configured for app: ' + appIdentifier + 
-                    '. Please create a Doc_Source__c record with this App_Identifier__c.');
+                    '. Please create a Docs_Source__mdt record with this DeveloperName.');
             }
             
             String useRef = String.isNotBlank(ref) ? ref : config.defaultRef;
@@ -287,15 +288,15 @@ public with sharing class GitHubController {
     }
     
     /**
-     * @description Maps a Doc_Source__c record to a GitHubConfig wrapper
+     * @description Maps a Docs_Source__mdt record to a GitHubConfig wrapper
      * @param source The source record
      * @return GitHubConfig The mapped config
      */
-    private static GitHubConfig mapSourceToConfig(Doc_Source__c source) {
+    private static GitHubConfig mapSourceToConfig(Docs_Source__mdt source) {
         GitHubConfig config = new GitHubConfig();
-        config.id = source.Id;
-        config.name = source.Name;
-        config.appIdentifier = source.App_Identifier__c;
+        config.developerName = source.DeveloperName;
+        config.name = source.MasterLabel;
+        config.appIdentifier = source.DeveloperName; // For backwards compatibility
         config.credentialName = source.Credential_Name__c;
         config.repositoryOwner = source.Repository_Owner__c;
         config.repositoryName = source.Repository_Name__c;
@@ -319,7 +320,7 @@ public with sharing class GitHubController {
      * @description Wrapper class for GitHub configuration
      */
     public class GitHubConfig {
-        @AuraEnabled public Id id { get; set; }
+        @AuraEnabled public String developerName { get; set; }
         @AuraEnabled public String name { get; set; }
         @AuraEnabled public String appIdentifier { get; set; }
         @AuraEnabled public String credentialName { get; set; }

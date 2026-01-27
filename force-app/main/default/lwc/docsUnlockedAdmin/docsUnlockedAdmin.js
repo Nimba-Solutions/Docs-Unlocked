@@ -2,7 +2,7 @@ import { LightningElement, track, wire } from 'lwc';
 import { refreshApex } from '@salesforce/apex';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import getDocSources from '@salesforce/apex/DocSourceAdminController.getDocSources';
-import saveDocSourceWithToken from '@salesforce/apex/DocSourceAdminController.saveDocSourceWithToken';
+import saveDocSource from '@salesforce/apex/DocSourceAdminController.saveDocSource';
 import deleteDocSource from '@salesforce/apex/DocSourceAdminController.deleteDocSource';
 import validateDocSource from '@salesforce/apex/DocSourceAdminController.validateDocSource';
 import ensureCredential from '@salesforce/apex/DocSourceAdminController.ensureCredential';
@@ -10,6 +10,7 @@ import saveCredentialToken from '@salesforce/apex/DocSourceAdminController.saveC
 import testCredential from '@salesforce/apex/DocSourceAdminController.testCredential';
 import getRepositoriesForCredential from '@salesforce/apex/DocSourceAdminController.getRepositoriesForCredential';
 import getBranchesForCredential from '@salesforce/apex/DocSourceAdminController.getBranchesForCredential';
+import checkDeploymentStatus from '@salesforce/apex/DocSourceAdminController.checkDeploymentStatus';
 
 export default class DocsUnlockedAdmin extends LightningElement {
     @track isTestingToken = false;
@@ -27,6 +28,7 @@ export default class DocsUnlockedAdmin extends LightningElement {
     @track isValidating = false;
     @track validationResult = null;
     @track formData = this.getEmptyFormData();
+    @track deploymentStatus = null;
 
     @track repositories = [];
     @track branches = [];
@@ -139,12 +141,13 @@ export default class DocsUnlockedAdmin extends LightningElement {
         this.credentialVerified = false;
         this.repositories = [];
         this.branches = [];
+        this.deploymentStatus = null;
         this.showForm = true;
     }
 
     handleEditSource(event) {
-        const sourceId = event.target.dataset.id;
-        const source = this.docSources.find(s => s.id === sourceId);
+        const developerName = event.target.dataset.developerName;
+        const source = this.docSources.find(s => s.developerName === developerName);
         if (source) {
             this.formData = { ...source, token: '' };
             this.isEditing = true;
@@ -153,6 +156,7 @@ export default class DocsUnlockedAdmin extends LightningElement {
             this.credentialVerified = true;
             this.repositories = [];
             this.branches = [];
+            this.deploymentStatus = null;
             this.showForm = true;
             
             if (this.formData.repositoryOwner && this.formData.repositoryName) {
@@ -162,17 +166,20 @@ export default class DocsUnlockedAdmin extends LightningElement {
     }
 
     async handleDeleteSource(event) {
-        const sourceId = event.target.dataset.id;
-        const source = this.docSources.find(s => s.id === sourceId);
+        const developerName = event.target.dataset.developerName;
+        const source = this.docSources.find(s => s.developerName === developerName);
         if (!source) return;
 
-        if (!confirm('Delete "' + source.name + '"? This cannot be undone.')) {
+        if (!confirm('Deactivate "' + source.name + '"? This will hide it from the application.')) {
             return;
         }
 
         try {
-            await deleteDocSource({ recordId: sourceId });
-            this.showToast('Success', 'Doc source deleted', 'success');
+            const result = await deleteDocSource({ developerName: developerName });
+            this.showToast('Info', 'Deactivating doc source...', 'info');
+            
+            // Poll for deployment completion
+            await this.pollDeploymentStatus(result.jobId);
             await refreshApex(this.wiredSourcesResult);
         } catch (error) {
             this.showToast('Error', 'Failed to delete: ' + (error.body?.message || error.message), 'error');
@@ -187,6 +194,7 @@ export default class DocsUnlockedAdmin extends LightningElement {
         this.credentialVerified = false;
         this.repositories = [];
         this.branches = [];
+        this.deploymentStatus = null;
     }
 
     handleFormChange(event) {
@@ -197,7 +205,7 @@ export default class DocsUnlockedAdmin extends LightningElement {
         
         // Auto-populate Developer Name from Label (spaces -> underscores, lowercase)
         if (field === 'name' && !this.isEditing) {
-            updates.appIdentifier = value.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+            updates.developerName = value.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
         }
         
         this.formData = { ...this.formData, ...updates };
@@ -286,7 +294,7 @@ export default class DocsUnlockedAdmin extends LightningElement {
     }
 
     async handleSaveSource() {
-        const required = ['name', 'appIdentifier', 'credentialName', 'provider', 'repositoryOwner', 'repositoryName', 'defaultRef'];
+        const required = ['name', 'developerName', 'credentialName', 'provider', 'repositoryOwner', 'repositoryName', 'defaultRef'];
         for (const field of required) {
             if (!this.formData[field]) {
                 this.showToast('Error', 'Please fill in all required fields', 'error');
@@ -300,29 +308,80 @@ export default class DocsUnlockedAdmin extends LightningElement {
         }
 
         this.isSaving = true;
+        
         try {
-            await saveDocSourceWithToken({ 
-                sourceData: this.formData, 
-                token: this.formData.token || null
-            });
-            this.showToast('Success', 'Doc source saved successfully', 'success');
-            this.showForm = false;
-            this.formData = this.getEmptyFormData();
-            this.credentialVerified = false;
-            this.repositories = [];
-            this.branches = [];
-            await refreshApex(this.wiredSourcesResult);
+            // Step 1: Save credential token first (separate transaction)
+            if (this.formData.token) {
+                this.deploymentStatus = { message: 'Saving credential...', status: 'InProgress' };
+                const tokenResult = await saveCredentialToken({ 
+                    credentialName: this.formData.credentialName, 
+                    token: this.formData.token 
+                });
+                if (!tokenResult.success) {
+                    this.showToast('Error', 'Failed to save credential: ' + tokenResult.message, 'error');
+                    this.isSaving = false;
+                    this.deploymentStatus = null;
+                    return;
+                }
+            }
+            
+            // Step 2: Deploy metadata (separate transaction)
+            this.deploymentStatus = { message: 'Deploying metadata...', status: 'InProgress' };
+            const result = await saveDocSource({ sourceData: this.formData });
+            
+            if (result.success && result.jobId) {
+                // Poll for deployment completion
+                const finalStatus = await this.pollDeploymentStatus(result.jobId);
+                
+                if (finalStatus.success) {
+                    this.showToast('Success', 'Doc source saved successfully', 'success');
+                    this.showForm = false;
+                    this.formData = this.getEmptyFormData();
+                    this.credentialVerified = false;
+                    this.repositories = [];
+                    this.branches = [];
+                    await refreshApex(this.wiredSourcesResult);
+                } else {
+                    this.showToast('Error', 'Deployment failed: ' + finalStatus.message, 'error');
+                }
+            } else {
+                this.showToast('Error', result.message || 'Unknown error', 'error');
+            }
         } catch (error) {
             this.showToast('Error', 'Failed to save: ' + (error.body?.message || error.message), 'error');
         }
         this.isSaving = false;
+        this.deploymentStatus = null;
+    }
+
+    async pollDeploymentStatus(jobId) {
+        const maxAttempts = 30;
+        const pollInterval = 2000; // 2 seconds
+        
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            try {
+                const status = await checkDeploymentStatus({ jobId: jobId });
+                this.deploymentStatus = status;
+                
+                if (status.done) {
+                    return status;
+                }
+                
+                // Wait before next poll
+                await new Promise(resolve => setTimeout(resolve, pollInterval));
+            } catch (error) {
+                console.error('Error polling deployment status:', error);
+                return { done: true, success: false, message: error.body?.message || error.message };
+            }
+        }
+        
+        return { done: true, success: false, message: 'Deployment timed out' };
     }
 
     getEmptyFormData() {
         return {
-            id: null,
+            developerName: '',
             name: '',
-            appIdentifier: '',
             credentialName: '',
             provider: 'GitHub',
             repositoryOwner: '',
@@ -386,6 +445,10 @@ export default class DocsUnlockedAdmin extends LightningElement {
         return this.validationResult?.valid 
             ? 'slds-box slds-theme_success slds-m-top_medium' 
             : 'slds-box slds-theme_warning slds-m-top_medium';
+    }
+
+    get isDeploying() {
+        return this.deploymentStatus && !this.deploymentStatus.done;
     }
 
     showToast(title, message, variant) {
