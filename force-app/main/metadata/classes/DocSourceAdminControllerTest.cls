@@ -127,22 +127,25 @@ private class DocSourceAdminControllerTest {
     }
     
     /**
-     * @description Test getBranchesForCredential
+     * @description Test getBranchesForCredential (now returns main + tags)
      */
     @isTest
     static void testGetBranchesForCredential() {
         GitHubService.testAccessToken = 'test-token';
         GitHubService.testHttpStatusCode = 200;
-        GitHubService.testHttpResponse = '[{"name": "main", "commit": {"sha": "abc123"}}]';
+        // Mock tags response
+        GitHubService.testHttpResponse = '[{"name": "v1.0.0", "commit": {"sha": "abc123"}}]';
         ExternalCredentialService.testCredentialValues = new Map<String, String>{
             'GitHub_test_cred.Principal.token' => 'test-token'
         };
         
         Test.startTest();
-        List<GitHubService.Branch> branches = DocSourceAdminController.getBranchesForCredential('test_cred', 'org', 'repo');
+        List<GitHubService.Branch> refs = DocSourceAdminController.getBranchesForCredential('test_cred', 'org', 'repo');
         Test.stopTest();
         
-        System.assertEquals(1, branches.size(), 'Should return 1 branch');
+        // Should have main + 1 tag = 2 total
+        System.assertEquals(2, refs.size(), 'Should return main + 1 tag');
+        System.assertEquals('main', refs[0].name, 'First ref should be main');
     }
     
     /**
@@ -383,18 +386,21 @@ private class DocSourceAdminControllerTest {
     }
     
     /**
-     * @description Test getBranchesWithToken - uses raw token directly
+     * @description Test getBranchesWithToken - now returns main + tags
      */
     @isTest
     static void testGetBranchesWithToken() {
         GitHubService.testHttpStatusCode = 200;
-        GitHubService.testHttpResponse = '[{"name": "main", "commit": {"sha": "abc123"}}, {"name": "develop", "commit": {"sha": "def456"}}]';
+        // Mock tags response
+        GitHubService.testHttpResponse = '[{"name": "v1.0.0", "commit": {"sha": "abc123"}}, {"name": "v0.9.0", "commit": {"sha": "def456"}}]';
         
         Test.startTest();
-        List<GitHubService.Branch> branches = DocSourceAdminController.getBranchesWithToken('ghp_testtoken', 'org', 'repo');
+        List<GitHubService.Branch> refs = DocSourceAdminController.getBranchesWithToken('ghp_testtoken', 'org', 'repo');
         Test.stopTest();
         
-        System.assertEquals(2, branches.size(), 'Should return 2 branches');
-        System.assertEquals('main', branches[0].name, 'First branch name should match');
+        // Should have main + 2 tags = 3 total
+        System.assertEquals(3, refs.size(), 'Should return main + 2 tags');
+        System.assertEquals('main', refs[0].name, 'First ref should be main');
+        System.assertEquals('v1.0.0', refs[1].name, 'Second ref should be first tag');
     }
 }

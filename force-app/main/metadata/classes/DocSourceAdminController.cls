@@ -98,7 +98,9 @@ public with sharing class DocSourceAdminController {
             List<GitHubService.Repository> repos = GitHubService.listRepositoriesWithCredential(extCredName);
             
             result.success = true;
-            result.message = 'Connected! Found ' + repos.size() + ' repositories.';
+            // GitHub API returns max 100 per page, so indicate if there may be more
+            String repoCountStr = repos.size() >= 100 ? '100+' : String.valueOf(repos.size());
+            result.message = 'Connected! Found ' + repoCountStr + ' accessible repositories.';
             result.repoCount = repos.size();
         } catch (Exception e) {
             result.success = false;

@@ -12,10 +12,11 @@
     </targets>
     <targetConfigs>
         <targetConfig targets="lightning__AppPage,lightning__RecordPage,lightning__HomePage">
-            <property name="contentResourceName" type="String" label="Content Static Resource Name" description="Name of the ZIP StaticResource containing the documentation content (default: docsContent)" default="docsContent" />
-            <property name="displayHeader" type="Boolean" label="Display Header" description="Show or hide the header (default: false)" default="false" />
-            <property name="headerLabel" type="String" label="Header Label" description="Text to display in the header (default: Documentation)" default="Documentation" />
-            <property name="displayFooter" type="Boolean" label="Display Footer" description="Show or hide the footer (default: true)" default="true" />
+            <property name="docSourceName" type="String" label="Doc Source Name" description="App Identifier from Doc_Source__c record. If set, loads from Git provider. Leave blank to use static resource." default="" />
+            <property name="contentResourceName" type="String" label="Static Resource Name" description="Name of the ZIP StaticResource (used when Doc Source Name is blank)" default="docsContent" />
+            <property name="displayHeader" type="Boolean" label="Display Header" description="Show or hide the header" default="false" />
+            <property name="headerLabel" type="String" label="Header Label" description="Text to display in the header" default="Documentation" />
+            <property name="displayFooter" type="Boolean" label="Display Footer" description="Show or hide the footer" default="true" />
         </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>

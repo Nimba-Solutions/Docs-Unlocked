@@ -66,30 +66,33 @@ private class GitHubServiceTest {
     }
     
     /**
-     * @description Test getBranches method
+     * @description Test getBranches method (now returns main + tags)
      */
     @isTest
     static void testGetBranches() {
         GitHubService.testAccessToken = 'test-token';
         GitHubService.testHttpStatusCode = 200;
+        // Mock tags response (branches method now fetches tags)
         GitHubService.testHttpResponse = '[' +
             '{' +
-                '"name": "main",' +
+                '"name": "v1.0.0",' +
                 '"commit": { "sha": "abc123" }' +
             '},' +
             '{' +
-                '"name": "develop",' +
+                '"name": "v0.9.0",' +
                 '"commit": { "sha": "def456" }' +
             '}' +
         ']';
         
         Test.startTest();
-        List<GitHubService.Branch> branches = GitHubService.getBranches('testuser', 'test-repo');
+        List<GitHubService.Branch> refs = GitHubService.getBranches('testuser', 'test-repo');
         Test.stopTest();
         
-        System.assertEquals(2, branches.size(), 'Should return 2 branches');
-        System.assertEquals('main', branches[0].name, 'First branch name should match');
-        System.assertEquals('abc123', branches[0].sha, 'First branch sha should match');
+        // Should have main + 2 tags = 3 total
+        System.assertEquals(3, refs.size(), 'Should return main + 2 tags');
+        System.assertEquals('main', refs[0].name, 'First ref should be main');
+        System.assertEquals('v1.0.0', refs[1].name, 'Second ref should be first tag');
+        System.assertEquals('abc123', refs[1].sha, 'Tag sha should match');
     }
     
     /**
@@ -469,28 +472,31 @@ private class GitHubServiceTest {
     }
     
     /**
-     * @description Test getBranchesWithToken - gets branches using a raw token
+     * @description Test getBranchesWithToken - now returns main + tags
      */
     @isTest
     static void testGetBranchesWithToken() {
         GitHubService.testHttpStatusCode = 200;
+        // Mock tags response
         GitHubService.testHttpResponse = '[' +
             '{' +
-                '"name": "main",' +
+                '"name": "v2.0.0",' +
                 '"commit": { "sha": "abc123" }' +
             '},' +
             '{' +
-                '"name": "develop",' +
+                '"name": "v1.0.0",' +
                 '"commit": { "sha": "def456" }' +
             '}' +
         ']';
         
         Test.startTest();
-        List<GitHubService.Branch> branches = GitHubService.getBranchesWithToken('ghp_testtoken', 'testuser', 'test-repo');
+        List<GitHubService.Branch> refs = GitHubService.getBranchesWithToken('ghp_testtoken', 'testuser', 'test-repo');
         Test.stopTest();
         
-        System.assertEquals(2, branches.size(), 'Should return 2 branches');
-        System.assertEquals('main', branches[0].name, 'First branch name should match');
+        // Should have main + 2 tags = 3 total
+        System.assertEquals(3, refs.size(), 'Should return main + 2 tags');
+        System.assertEquals('main', refs[0].name, 'First ref should be main');
+        System.assertEquals('v2.0.0', refs[1].name, 'Second ref should be first tag');
     }
     
     /**

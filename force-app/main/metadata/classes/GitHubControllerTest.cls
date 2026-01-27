@@ -87,22 +87,25 @@ private class GitHubControllerTest {
     }
     
     /**
-     * @description Test getBranches method
+     * @description Test getBranches method (now returns main + tags)
      */
     @isTest
     static void testGetBranches() {
         GitHubService.testAccessToken = 'test-token';
         GitHubService.testHttpStatusCode = 200;
+        // Mock tags response (branches method now fetches tags)
         GitHubService.testHttpResponse = '[' +
-            '{"name": "main", "commit": {"sha": "abc"}},' +
-            '{"name": "develop", "commit": {"sha": "def"}}' +
+            '{"name": "v1.0.0", "commit": {"sha": "abc"}},' +
+            '{"name": "v0.9.0", "commit": {"sha": "def"}}' +
         ']';
         
         Test.startTest();
-        List<GitHubService.Branch> branches = GitHubController.getBranches('myorg', 'docs-repo');
+        List<GitHubService.Branch> refs = GitHubController.getBranches('myorg', 'docs-repo');
         Test.stopTest();
         
-        System.assertEquals(2, branches.size(), 'Should return 2 branches');
+        // Should have main + 2 tags = 3 total
+        System.assertEquals(3, refs.size(), 'Should return main + 2 tags');
+        System.assertEquals('main', refs[0].name, 'First ref should be main');
     }
     
     /**

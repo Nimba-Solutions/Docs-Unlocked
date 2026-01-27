@@ -1,233 +1,25 @@
 [
     {
         "Children": null,
-        "ClassName": "ExternalCredentialServiceTest",
-        "Method": "testCreateCredentialValues",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 34,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:12.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "ExternalCredentialServiceTest",
-        "Method": "testCreateExternalCredential",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 8,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:12.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "ExternalCredentialServiceTest",
-        "Method": "testGetExternalCredential",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 7,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:12.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "ExternalCredentialServiceTest",
-        "Method": "testUpdateCredentialValues",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 9,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:13.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
+        "ClassName": "DocSourceAdminControllerTest",
         "Method": "setupTestData",
         "Message": null,
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 106
+            "duration": 71
         },
-        "TestTimestamp": "2026-01-27T01:08:59.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
     },
     {
         "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetAllConfigurations",
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testDeleteDocSource",
         "Message": null,
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 20,
+            "duration": 1003,
             "TESTING_LIMITS: Number of SOQL queries": {
                 "used": 1,
                 "allowed": 100
@@ -241,11 +33,11 @@
                 "allowed": 50
             },
             "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
+                "used": 1,
                 "allowed": 10000
             },
             "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
+                "used": 10,
                 "allowed": 10000
             },
             "TESTING_LIMITS: Number of query rows": {
@@ -253,7 +45,7 @@
                 "allowed": 50000
             },
             "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
+                "used": 1,
                 "allowed": 150
             },
             "TESTING_LIMITS: Number of Mobile Apex push calls": {
@@ -269,486 +61,18 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
     },
     {
         "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetBranches",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 6,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetConfigurationByApp_Blank",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 5,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetConfigurationByApp_InactiveFiltered",
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testEnsureCredential_BlankCredentialName",
         "Message": null,
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
             "duration": 11,
             "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 1,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetConfigurationByApp_Invalid",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 20,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 1,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetConfigurationByApp_Valid",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 15,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 1,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 1,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetContentTree",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 12,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 1,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetDirectoryContents",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 9,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 1,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetDocsContentByApp_InvalidApp",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 16,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 1,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetDocsContentByApp_Valid",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 15,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 1,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 1,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetMarkdownContent",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 6,
-            "TESTING_LIMITS: Number of SOQL queries": {
                 "used": 0,
                 "allowed": 100
             },
@@ -789,480 +113,12 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
     },
     {
         "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetReleases",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 13,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetRepositories",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 5,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetRepositories_Error",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 4,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetTags",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 7,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetVersionOptionsByApp",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 13,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 1,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 1,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testGetVersionOptionsByApp_InvalidApp",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 17,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 1,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubControllerTest",
-        "Method": "testWrapperClasses",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 5,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubServiceTest",
-        "Method": "testFilterMarkdownFiles",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 19,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 1,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:10:59.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubServiceTest",
-        "Method": "testFilterTreeByPath",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 4,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:10:59.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "GitHubServiceTest",
-        "Method": "testGetBranches",
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testEnsureCredential_Success",
         "Message": null,
         "Outcome": "Pass",
         "StackTrace": null,
@@ -1309,12 +165,1052 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:11:00.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
     },
     {
         "Children": null,
-        "ClassName": "GitHubServiceTest",
-        "Method": "testGetContents_Directory",
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testGetBranchesForCredential",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 18,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 1,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testGetBranchesWithToken",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 12,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:42.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testGetDocSources",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 23,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 1,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 1,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:42.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testGetRepositoriesForCredential",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 13,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:42.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testGetRepositoriesWithToken",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 13,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:42.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testSaveCredentialToken_BlankValues",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 12,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:42.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testSaveCredentialToken_Success",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 12,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:42.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testSaveDocSourceWithToken",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 42,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 1,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 1,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 1,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 1,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:42.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testSaveDocSource_Create",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 40,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 1,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 1,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 1,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 1,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:42.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testSaveDocSource_Update",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 58,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 2,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 1,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 5,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 2,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 1,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:42.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testTestCredential_BlankCredentialName",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 11,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:42.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testTestCredential_Success",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 13,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 1,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:42.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testValidateDocSource_MissingCredential",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 11,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:42.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testValidateDocSource_Success",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 12,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:42.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testValidateDocSource_UnsupportedProvider",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 12,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:43.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "DocSourceAdminControllerTest",
+        "Method": "testWrapperClasses",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 9,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:43.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testCreateExternalCredential_NotInTestContext",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 30,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testCredentialException",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testGetCredentialValue",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testGetCredentialValue_NotFound",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testGetExternalCredential_NotInTestContext",
         "Message": null,
         "Outcome": "Pass",
         "StackTrace": null,
@@ -1361,7 +1257,1839 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:11:00.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testGetPAT_DefaultPrincipal",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testGetPAT_WithTestOverride",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testHasCredentials_False",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testHasCredentials_True",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testHasPAT_DefaultPrincipal",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testHasPAT_False",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testHasPAT_True",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testSetCredentialValues",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testSetOAuthClientCredentials",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 7,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testSetPAT",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "ExternalCredentialServiceTest",
+        "Method": "testSetPAT_DefaultPrincipal",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "setupTestData",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 139
+        },
+        "TestTimestamp": "2026-01-27T04:49:31.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetAllConfigurations",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 37,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 1,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 1,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:31.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetBranches",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 16,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:31.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetConfigurationByApp_Blank",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 11,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:31.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetConfigurationByApp_InactiveFiltered",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 26,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 1,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:31.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetConfigurationByApp_Invalid",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 34,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 1,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:31.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetConfigurationByApp_Valid",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 26,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 1,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 1,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:32.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetContentTree",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 13,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:32.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetDirectoryContents",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 12,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:32.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetDocsContentByApp_InvalidApp",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 31,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 1,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:32.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetDocsContentByApp_Valid",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 27,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 1,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 1,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:32.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetMarkdownContent",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 12,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:32.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetReleases",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 12,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:32.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetRepositories",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 12,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:32.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetRepositories_Error",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 13,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:32.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetTags",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 11,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:32.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetVersionOptionsByApp",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 25,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 1,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 1,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:32.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testGetVersionOptionsByApp_InvalidApp",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 30,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 1,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:32.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubControllerTest",
+        "Method": "testWrapperClasses",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 10,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:32.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubServiceTest",
+        "Method": "testFilterMarkdownFiles",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 24,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 2,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubServiceTest",
+        "Method": "testFilterTreeByPath",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 5,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubServiceTest",
+        "Method": "testGetBranches",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 8,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubServiceTest",
+        "Method": "testGetBranchesWithToken",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubServiceTest",
+        "Method": "testGetBranchesWithToken_BlankToken",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubServiceTest",
+        "Method": "testGetContents_Directory",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
     },
     {
         "Children": null,
@@ -1371,7 +3099,7 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 4,
+            "duration": 5,
             "TESTING_LIMITS: Number of SOQL queries": {
                 "used": 0,
                 "allowed": 100
@@ -1413,7 +3141,7 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:11:00.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
     },
     {
         "Children": null,
@@ -1423,7 +3151,7 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 5,
+            "duration": 6,
             "TESTING_LIMITS: Number of SOQL queries": {
                 "used": 0,
                 "allowed": 100
@@ -1465,7 +3193,7 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:11:00.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
     },
     {
         "Children": null,
@@ -1475,7 +3203,7 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 5,
+            "duration": 7,
             "TESTING_LIMITS: Number of SOQL queries": {
                 "used": 0,
                 "allowed": 100
@@ -1517,7 +3245,7 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:11:00.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
     },
     {
         "Children": null,
@@ -1527,7 +3255,7 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 5,
+            "duration": 7,
             "TESTING_LIMITS: Number of SOQL queries": {
                 "used": 0,
                 "allowed": 100
@@ -1569,7 +3297,7 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:11:00.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
     },
     {
         "Children": null,
@@ -1579,7 +3307,7 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 5,
+            "duration": 6,
             "TESTING_LIMITS: Number of SOQL queries": {
                 "used": 0,
                 "allowed": 100
@@ -1621,7 +3349,7 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:11:00.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
     },
     {
         "Children": null,
@@ -1673,12 +3401,64 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:11:00.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
     },
     {
         "Children": null,
         "ClassName": "GitHubServiceTest",
-        "Method": "testListRepositories",
+        "Method": "testIsConfigured_False",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 8,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 1,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubServiceTest",
+        "Method": "testIsConfigured_True",
         "Message": null,
         "Outcome": "Pass",
         "StackTrace": null,
@@ -1725,7 +3505,59 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:11:00.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubServiceTest",
+        "Method": "testListRepositories",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 7,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
     },
     {
         "Children": null,
@@ -1777,17 +3609,17 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:11:00.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
     },
     {
         "Children": null,
-        "ClassName": "OAuthClientCredentialsServiceTest",
-        "Method": "testAuthException",
+        "ClassName": "GitHubServiceTest",
+        "Method": "testSetAccessToken",
         "Message": null,
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 28,
+            "duration": 4,
             "TESTING_LIMITS: Number of SOQL queries": {
                 "used": 0,
                 "allowed": 100
@@ -1829,324 +3661,12 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:11:43.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
     },
     {
         "Children": null,
-        "ClassName": "OAuthClientCredentialsServiceTest",
-        "Method": "testAuthException_Chained",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 7,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:11:43.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "OAuthClientCredentialsServiceTest",
-        "Method": "testGetAccessToken_AdditionalParams_WithTestOverride",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 6,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:11:43.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "OAuthClientCredentialsServiceTest",
-        "Method": "testGetAccessToken_BlankExternalCredential",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 7,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:11:43.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "OAuthClientCredentialsServiceTest",
-        "Method": "testGetAccessToken_BlankTokenUrl",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 7,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:11:43.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "OAuthClientCredentialsServiceTest",
-        "Method": "testGetAccessToken_CustomPrincipal_WithTestOverride",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 7,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:11:43.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "OAuthClientCredentialsServiceTest",
-        "Method": "testGetAccessToken_NoOverride_ConnectApiException",
-        "Message": null,
-        "Outcome": "Pass",
-        "StackTrace": null,
-        "Stats": {
-            "duration": 8,
-            "TESTING_LIMITS: Number of SOQL queries": {
-                "used": 0,
-                "allowed": 100
-            },
-            "TESTING_LIMITS: Number of Email Invocations": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of future calls": {
-                "used": 0,
-                "allowed": 50
-            },
-            "TESTING_LIMITS: Number of DML rows": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Maximum CPU time": {
-                "used": 0,
-                "allowed": 10000
-            },
-            "TESTING_LIMITS: Number of query rows": {
-                "used": 0,
-                "allowed": 50000
-            },
-            "TESTING_LIMITS: Number of DML statements": {
-                "used": 0,
-                "allowed": 150
-            },
-            "TESTING_LIMITS: Number of Mobile Apex push calls": {
-                "used": 0,
-                "allowed": 10
-            },
-            "TESTING_LIMITS: Number of SOSL queries": {
-                "used": 0,
-                "allowed": 20
-            },
-            "TESTING_LIMITS: Number of callouts": {
-                "used": 0,
-                "allowed": 100
-            }
-        },
-        "TestTimestamp": "2026-01-27T01:11:43.000+0000"
-    },
-    {
-        "Children": null,
-        "ClassName": "OAuthClientCredentialsServiceTest",
-        "Method": "testGetAccessToken_WithTestOverride",
+        "ClassName": "GitHubServiceTest",
+        "Method": "testSetAccessToken_Blank",
         "Message": null,
         "Outcome": "Pass",
         "StackTrace": null,
@@ -2193,7 +3713,579 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:11:43.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubServiceTest",
+        "Method": "testTestTokenDirectly",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 5,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubServiceTest",
+        "Method": "testTestTokenDirectly_BlankToken",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 5,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "GitHubServiceTest",
+        "Method": "testTestTokenDirectly_Error",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 5,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:41.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "OAuthClientCredentialsServiceTest",
+        "Method": "testAuthException",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 21,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "OAuthClientCredentialsServiceTest",
+        "Method": "testAuthException_Chained",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 5,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "OAuthClientCredentialsServiceTest",
+        "Method": "testGetAccessToken_AdditionalParams_WithTestOverride",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 4,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "OAuthClientCredentialsServiceTest",
+        "Method": "testGetAccessToken_BlankExternalCredential",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 5,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "OAuthClientCredentialsServiceTest",
+        "Method": "testGetAccessToken_BlankTokenUrl",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 5,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "OAuthClientCredentialsServiceTest",
+        "Method": "testGetAccessToken_CustomPrincipal_WithTestOverride",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 5,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "OAuthClientCredentialsServiceTest",
+        "Method": "testGetAccessToken_NoOverride_ConnectApiException",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 6,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
+    },
+    {
+        "Children": null,
+        "ClassName": "OAuthClientCredentialsServiceTest",
+        "Method": "testGetAccessToken_WithTestOverride",
+        "Message": null,
+        "Outcome": "Pass",
+        "StackTrace": null,
+        "Stats": {
+            "duration": 4,
+            "TESTING_LIMITS: Number of SOQL queries": {
+                "used": 0,
+                "allowed": 100
+            },
+            "TESTING_LIMITS: Number of Email Invocations": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of future calls": {
+                "used": 0,
+                "allowed": 50
+            },
+            "TESTING_LIMITS: Number of DML rows": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Maximum CPU time": {
+                "used": 0,
+                "allowed": 10000
+            },
+            "TESTING_LIMITS: Number of query rows": {
+                "used": 0,
+                "allowed": 50000
+            },
+            "TESTING_LIMITS: Number of DML statements": {
+                "used": 0,
+                "allowed": 150
+            },
+            "TESTING_LIMITS: Number of Mobile Apex push calls": {
+                "used": 0,
+                "allowed": 10
+            },
+            "TESTING_LIMITS: Number of SOSL queries": {
+                "used": 0,
+                "allowed": 20
+            },
+            "TESTING_LIMITS: Number of callouts": {
+                "used": 0,
+                "allowed": 100
+            }
+        },
+        "TestTimestamp": "2026-01-27T04:49:40.000+0000"
     },
     {
         "Children": null,
@@ -2203,9 +4295,9 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 50
+            "duration": 24
         },
-        "TestTimestamp": "2026-01-27T01:08:59.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:30.000+0000"
     },
     {
         "Children": null,
@@ -2215,9 +4307,9 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 127
+            "duration": 92
         },
-        "TestTimestamp": "2026-01-27T01:08:59.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:30.000+0000"
     },
     {
         "Children": null,
@@ -2229,7 +4321,7 @@
         "Stats": {
             "duration": 5
         },
-        "TestTimestamp": "2026-01-27T01:08:59.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:30.000+0000"
     },
     {
         "Children": null,
@@ -2239,9 +4331,9 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 10
+            "duration": 9
         },
-        "TestTimestamp": "2026-01-27T01:08:59.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:30.000+0000"
     },
     {
         "Children": null,
@@ -2251,9 +4343,9 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 696
+            "duration": 586
         },
-        "TestTimestamp": "2026-01-27T01:08:59.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:30.000+0000"
     },
     {
         "Children": null,
@@ -2263,9 +4355,9 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 45
+            "duration": 37
         },
-        "TestTimestamp": "2026-01-27T01:09:00.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:31.000+0000"
     },
     {
         "Children": null,
@@ -2275,9 +4367,9 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 8
+            "duration": 30
         },
-        "TestTimestamp": "2026-01-27T01:09:21.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:30.000+0000"
     },
     {
         "Children": null,
@@ -2287,7 +4379,7 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 118,
+            "duration": 173,
             "TESTING_LIMITS: Number of SOQL queries": {
                 "used": 1,
                 "allowed": 100
@@ -2305,7 +4397,7 @@
                 "allowed": 10000
             },
             "TESTING_LIMITS: Maximum CPU time": {
-                "used": 27,
+                "used": 35,
                 "allowed": 10000
             },
             "TESTING_LIMITS: Number of query rows": {
@@ -2329,7 +4421,7 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:09:21.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:30.000+0000"
     },
     {
         "Children": null,
@@ -2339,7 +4431,7 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 49,
+            "duration": 60,
             "TESTING_LIMITS: Number of SOQL queries": {
                 "used": 1,
                 "allowed": 100
@@ -2381,7 +4473,7 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:09:21.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:30.000+0000"
     },
     {
         "Children": null,
@@ -2391,7 +4483,7 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 52,
+            "duration": 54,
             "TESTING_LIMITS: Number of SOQL queries": {
                 "used": 1,
                 "allowed": 100
@@ -2433,7 +4525,7 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:09:21.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:30.000+0000"
     },
     {
         "Children": null,
@@ -2485,7 +4577,7 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:09:21.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:30.000+0000"
     },
     {
         "Children": null,
@@ -2537,7 +4629,7 @@
                 "allowed": 100
             }
         },
-        "TestTimestamp": "2026-01-27T01:09:21.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:30.000+0000"
     },
     {
         "Children": null,
@@ -2547,8 +4639,8 @@
         "Outcome": "Pass",
         "StackTrace": null,
         "Stats": {
-            "duration": 48
+            "duration": 52
         },
-        "TestTimestamp": "2026-01-27T01:09:21.000+0000"
+        "TestTimestamp": "2026-01-27T04:49:31.000+0000"
     }
 ]

@@ -280,45 +280,67 @@ public class GitHubService {
     }
     
     /**
-     * @description Gets branches with a specific credential
+     * @description Gets refs (main branch + tags) with a specific credential
      * @param externalCredentialName The external credential to use
      * @param owner The repository owner
      * @param repo The repository name
-     * @return List<Branch> List of branches
+     * @return List<Branch> List of refs (main + tags)
      */
     public static List<Branch> getBranchesWithCredential(String externalCredentialName, String owner, String repo) {
-        String endpoint = '/repos/' + EncodingUtil.urlEncode(owner, 'UTF-8') + '/' + 
-            EncodingUtil.urlEncode(repo, 'UTF-8') + '/branches?per_page=100';
+        List<Branch> refs = new List<Branch>();
         
-        HttpResponse res = makeRequestWithCredential(endpoint, 'GET', externalCredentialName);
-        return parseBranchResponse(res);
+        // Always add 'main' as the first option
+        Branch mainBranch = new Branch();
+        mainBranch.name = 'main';
+        mainBranch.sha = '';
+        refs.add(mainBranch);
+        
+        // Fetch tags
+        String tagsEndpoint = '/repos/' + EncodingUtil.urlEncode(owner, 'UTF-8') + '/' + 
+            EncodingUtil.urlEncode(repo, 'UTF-8') + '/tags?per_page=100';
+        
+        HttpResponse res = makeRequestWithCredential(tagsEndpoint, 'GET', externalCredentialName);
+        List<Branch> tags = parseTagResponse(res);
+        refs.addAll(tags);
+        
+        return refs;
     }
     
     /**
-     * @description Gets branches using a raw token (for browsing before credential is saved)
+     * @description Gets refs (main + tags) using a raw token (for browsing before credential is saved)
      * @param token The GitHub PAT
      * @param owner The repository owner
      * @param repo The repository name
-     * @return List<Branch> List of branches
+     * @return List<Branch> List of refs (main + tags)
      */
     public static List<Branch> getBranchesWithToken(String token, String owner, String repo) {
         if (String.isBlank(token)) {
             throw new GitHubException('Token cannot be blank');
         }
         
-        String endpoint = '/repos/' + EncodingUtil.urlEncode(owner, 'UTF-8') + '/' + 
-            EncodingUtil.urlEncode(repo, 'UTF-8') + '/branches?per_page=100';
+        List<Branch> refs = new List<Branch>();
+        
+        // Always add 'main' as the first option
+        Branch mainBranch = new Branch();
+        mainBranch.name = 'main';
+        mainBranch.sha = '';
+        refs.add(mainBranch);
+        
+        String tagsEndpoint = '/repos/' + EncodingUtil.urlEncode(owner, 'UTF-8') + '/' + 
+            EncodingUtil.urlEncode(repo, 'UTF-8') + '/tags?per_page=100';
         
         // Test mode with mock response
         if (Test.isRunningTest() && testHttpResponse != null) {
             HttpResponse mockRes = new HttpResponse();
             mockRes.setStatusCode(testHttpStatusCode != null ? testHttpStatusCode : 200);
             mockRes.setBody(testHttpResponse);
-            return parseBranchResponse(mockRes);
+            List<Branch> tags = parseTagResponse(mockRes);
+            refs.addAll(tags);
+            return refs;
         }
         
         HttpRequest req = new HttpRequest();
-        req.setEndpoint(GITHUB_API_BASE + endpoint);
+        req.setEndpoint(GITHUB_API_BASE + tagsEndpoint);
         req.setMethod('GET');
         req.setHeader('Authorization', 'Bearer ' + token);
         req.setHeader('Accept', 'application/vnd.github+json');
@@ -327,11 +349,43 @@ public class GitHubService {
         
         Http http = new Http();
         HttpResponse res = http.send(req);
-        return parseBranchResponse(res);
+        List<Branch> tags = parseTagResponse(res);
+        refs.addAll(tags);
+        
+        return refs;
     }
     
     /**
-     * @description Parses branch list response
+     * @description Parses tag list response (reusing Branch class for simplicity)
+     * @param res The HTTP response
+     * @return List<Branch> Parsed tags as Branch objects
+     */
+    private static List<Branch> parseTagResponse(HttpResponse res) {
+        if (res.getStatusCode() != 200) {
+            throw new GitHubException('Failed to get tags: ' + res.getStatusCode() + ' - ' + res.getBody());
+        }
+        
+        List<Branch> tags = new List<Branch>();
+        List<Object> tagList = (List<Object>) JSON.deserializeUntyped(res.getBody());
+        
+        for (Object tagObj : tagList) {
+            Map<String, Object> tagMap = (Map<String, Object>) tagObj;
+            Branch tag = new Branch();
+            tag.name = (String) tagMap.get('name');
+            
+            Map<String, Object> commitMap = (Map<String, Object>) tagMap.get('commit');
+            if (commitMap != null) {
+                tag.sha = (String) commitMap.get('sha');
+            }
+            
+            tags.add(tag);
+        }
+        
+        return tags;
+    }
+    
+    /**
+     * @description Parses branch list response (kept for compatibility)
      * @param res The HTTP response
      * @return List<Branch> Parsed branches
      */

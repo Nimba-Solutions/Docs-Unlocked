@@ -26,6 +26,35 @@ export const DocsApp: React.FC = () => {
   const displayHeader = (window as any).DOCS_DISPLAY_HEADER === true; // Default to false
   const headerLabel = (window as any).DOCS_HEADER_LABEL || 'Documentation';
   const displayFooter = (window as any).DOCS_DISPLAY_FOOTER !== false; // Default to true
+  
+  // Version selector state - updated when LWC sets the data
+  const [versionSelector, setVersionSelector] = useState<{
+    enabled: boolean;
+    options?: { label: string; value: string }[];
+    currentRef?: string;
+    onChange?: (ref: string) => void;
+  }>({ enabled: false });
+
+  // Listen for version selector updates from LWC
+  useEffect(() => {
+    // Check if already set
+    const existing = (window as any).DOCS_VERSION_SELECTOR;
+    console.log('[DocsUnlocked React] useEffect - checking DOCS_VERSION_SELECTOR:', existing);
+    if (existing?.enabled) {
+      console.log('[DocsUnlocked React] Found existing version selector, setting state');
+      setVersionSelector(existing);
+    }
+
+    // Register callback for LWC to update version selector
+    (window as any).DOCS_UPDATE_VERSION_SELECTOR = (selector: typeof versionSelector) => {
+      console.log('[DocsUnlocked React] DOCS_UPDATE_VERSION_SELECTOR called with:', selector);
+      setVersionSelector(selector);
+    };
+
+    return () => {
+      delete (window as any).DOCS_UPDATE_VERSION_SELECTOR;
+    };
+  }, []);
 
   // Force container height for scrolling to work in Lightning App Pages
   useEffect(() => {
@@ -514,15 +543,26 @@ export const DocsApp: React.FC = () => {
       
       {/* ROW2: Header - Only visible when enabled */}
       {displayHeader && (
-        <header className="h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />
-              <span className="text-xl font-bold text-gray-900">{headerLabel}</span>
-            </div>
+        <header className="h-14 bg-white border-b border-gray-200 px-4 flex items-center justify-between">
+          {/* Left side: Version selector */}
+          <div className="flex items-center">
+            {versionSelector.enabled && versionSelector.options ? (
+              <select
+                value={versionSelector.currentRef || 'main'}
+                onChange={(e) => versionSelector.onChange?.(e.target.value)}
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {versionSelector.options.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            ) : (
+              <span className="text-lg font-semibold text-gray-900">{headerLabel}</span>
+            )}
           </div>
-          <div className="flex items-center gap-3">
-            <button className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+          {/* Right side: GitHub button */}
+          <div className="flex items-center">
+            <button className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
               <Github className="w-4 h-4" />
               <span>GitHub</span>
             </button>
