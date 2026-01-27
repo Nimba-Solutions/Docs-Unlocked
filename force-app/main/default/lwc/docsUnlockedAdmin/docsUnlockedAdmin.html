@@ -10,28 +10,14 @@
                         <lightning-spinner alternative-text="Loading..." size="small"></lightning-spinner>
                     </template>
                     <template lwc:elseif={showForm}>
-                        <!-- Form -->
                         <div class="slds-box slds-theme_shade">
-                            <h4 class="slds-text-heading_small slds-m-bottom_medium">
-                                {formTitle}
-                            </h4>
+                            <h4 class="slds-text-heading_small slds-m-bottom_medium">{formTitle}</h4>
                             
                             <div class="slds-grid slds-gutters slds-wrap">
-                                <!-- Basic Info -->
-                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                                <!-- Row 1: Label, DeveloperName, Provider -->
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
                                     <lightning-input 
-                                        label="App Identifier" 
-                                        value={formData.appIdentifier}
-                                        data-field="appIdentifier"
-                                        onchange={handleFormChange}
-                                        required
-                                        placeholder="my_app"
-                                        field-level-help="Unique identifier used to link this config to a docsUnlockedGit component">
-                                    </lightning-input>
-                                </div>
-                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
-                                    <lightning-input 
-                                        label="Name" 
+                                        label="Label" 
                                         value={formData.name}
                                         data-field="name"
                                         onchange={handleFormChange}
@@ -39,9 +25,18 @@
                                         placeholder="My App Documentation">
                                     </lightning-input>
                                 </div>
-
-                                <!-- Provider Selection -->
-                                <div class="slds-col slds-size_1-of-1">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                                    <lightning-input 
+                                        label="Developer Name" 
+                                        value={formData.appIdentifier}
+                                        data-field="appIdentifier"
+                                        onchange={handleFormChange}
+                                        required
+                                        placeholder="my_app"
+                                        field-level-help="Unique identifier used to link this config to a component">
+                                    </lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
                                     <lightning-combobox
                                         label="Provider"
                                         value={formData.provider}
@@ -52,14 +47,11 @@
                                     </lightning-combobox>
                                 </div>
 
-                                <!-- GitHub-specific fields (shown when GitHub selected) -->
+                                <!-- GitHub Authentication (only when GitHub selected) -->
                                 <template lwc:if={isGitHubProvider}>
                                     <div class="slds-col slds-size_1-of-1">
                                         <div class="slds-box slds-theme_default slds-m-top_small">
-                                            <h5 class="slds-text-heading_small slds-m-bottom_small">
-                                                <lightning-icon icon-name="utility:socialshare" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                                                GitHub Authentication
-                                            </h5>
+                                            <h5 class="slds-text-heading_small slds-m-bottom_small">GitHub Authentication</h5>
                                             <div class="slds-grid slds-gutters slds-wrap">
                                                 <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
                                                     <lightning-input 
@@ -69,7 +61,7 @@
                                                         onchange={handleFormChange}
                                                         required
                                                         placeholder="my_github"
-                                                        field-level-help="A label for this credential. Different doc sources can share a credential or use separate ones.">
+                                                        field-level-help="A label for this credential. Different doc sources can share a credential.">
                                                     </lightning-input>
                                                 </div>
                                                 <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
@@ -81,7 +73,7 @@
                                                         onchange={handleFormChange}
                                                         required={isNewSource}
                                                         placeholder="ghp_xxxxxxxxxxxx"
-                                                        field-level-help="Create a PAT at GitHub > Settings > Developer settings > Personal access tokens. When editing, leave blank to keep existing token.">
+                                                        field-level-help="Create at GitHub > Settings > Developer settings > Personal access tokens">
                                                     </lightning-input>
                                                 </div>
                                                 <div class="slds-col slds-size_1-of-1">
@@ -93,9 +85,17 @@
                                                         class="slds-m-top_small">
                                                     </lightning-button>
                                                     <template lwc:if={isEditing}>
-                                                        <span class="slds-text-body_small slds-text-color_weak slds-m-left_small">(Token already saved - only enter to update)</span>
+                                                        <span class="slds-text-body_small slds-text-color_weak slds-m-left_small">(Leave blank to keep existing token)</span>
                                                     </template>
                                                 </div>
+                                                <template lwc:if={isTestingToken}>
+                                                    <div class="slds-col slds-size_1-of-1">
+                                                        <div class="slds-box slds-theme_info slds-m-top_small">
+                                                            <lightning-spinner alternative-text="Testing..." size="small" class="slds-m-right_small"></lightning-spinner>
+                                                            <span class="slds-m-left_small">{currentTestStep}</span>
+                                                        </div>
+                                                    </div>
+                                                </template>
                                                 <template lwc:if={tokenTestResult}>
                                                     <div class="slds-col slds-size_1-of-1">
                                                         <div class={tokenTestResultClass}>
@@ -106,19 +106,15 @@
                                             </div>
                                         </div>
                                     </div>
-                                </template>
 
-                                <!-- Repository Selection (shown after successful credential test or when editing) -->
-                                <template lwc:if={showRepositorySection}>
-                                    <div class="slds-col slds-size_1-of-1">
-                                        <div class="slds-box slds-theme_default slds-m-top_small">
-                                            <h5 class="slds-text-heading_small slds-m-bottom_small">
-                                                <lightning-icon icon-name="utility:open_folder" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                                                Repository
-                                            </h5>
-                                            <div class="slds-grid slds-gutters slds-wrap">
+                                    <!-- Repository fields (shown after credential verified or when editing) -->
+                                    <template lwc:if={showRepositorySection}>
+                                        <div class="slds-col slds-size_1-of-1">
+                                            <div class="slds-box slds-theme_default slds-m-top_small">
+                                                <h5 class="slds-text-heading_small slds-m-bottom_small">Repository</h5>
+                                                
                                                 <template lwc:if={canBrowseRepositories}>
-                                                    <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                                    <div class="slds-m-bottom_small">
                                                         <lightning-button 
                                                             variant="neutral" 
                                                             label="Browse Repositories" 
@@ -129,7 +125,6 @@
                                                         <template lwc:if={hasRepositories}>
                                                             <lightning-combobox
                                                                 class="slds-m-top_small"
-                                                                label="Select Repository"
                                                                 placeholder="Choose a repository..."
                                                                 options={repositoryOptions}
                                                                 onchange={handleRepoSelect}>
@@ -137,94 +132,92 @@
                                                         </template>
                                                     </div>
                                                 </template>
-                                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
-                                                    <lightning-input 
-                                                        label="Repository Owner" 
-                                                        value={formData.repositoryOwner}
-                                                        data-field="repositoryOwner"
-                                                        onchange={handleFormChange}
-                                                        required
-                                                        placeholder="owner">
-                                                    </lightning-input>
-                                                </div>
-                                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
-                                                    <lightning-input 
-                                                        label="Repository Name" 
-                                                        value={formData.repositoryName}
-                                                        data-field="repositoryName"
-                                                        onchange={handleFormChange}
-                                                        required
-                                                        placeholder="repo-name">
-                                                    </lightning-input>
-                                                </div>
-                                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
-                                                    <lightning-input 
-                                                        label="Content Path" 
-                                                        value={formData.contentPath}
-                                                        data-field="contentPath"
-                                                        onchange={handleFormChange}
-                                                        placeholder="docs/ or public/content/"
-                                                        field-level-help="Path within the repo where markdown content lives (leave blank for root)">
-                                                    </lightning-input>
-                                                </div>
-                                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
-                                                    <template lwc:if={hasBranches}>
-                                                        <lightning-combobox
-                                                            label="Default Branch/Tag"
-                                                            value={formData.defaultRef}
-                                                            options={branchOptions}
-                                                            onchange={handleBranchSelect}>
-                                                        </lightning-combobox>
-                                                    </template>
-                                                    <template lwc:else>
+                                                
+                                                <div class="slds-grid slds-gutters slds-wrap">
+                                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
                                                         <lightning-input 
-                                                            label="Default Branch/Tag" 
-                                                            value={formData.defaultRef}
-                                                            data-field="defaultRef"
+                                                            label="Repository Owner" 
+                                                            value={formData.repositoryOwner}
+                                                            data-field="repositoryOwner"
                                                             onchange={handleFormChange}
                                                             required
-                                                            placeholder="main">
+                                                            placeholder="owner">
                                                         </lightning-input>
-                                                    </template>
+                                                    </div>
+                                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                                                        <lightning-input 
+                                                            label="Repository Name" 
+                                                            value={formData.repositoryName}
+                                                            data-field="repositoryName"
+                                                            onchange={handleFormChange}
+                                                            required
+                                                            placeholder="repo-name">
+                                                        </lightning-input>
+                                                    </div>
+                                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                                                        <template lwc:if={hasBranches}>
+                                                            <lightning-combobox
+                                                                label="Default Branch/Tag"
+                                                                value={formData.defaultRef}
+                                                                options={branchOptions}
+                                                                onchange={handleBranchSelect}>
+                                                            </lightning-combobox>
+                                                        </template>
+                                                        <template lwc:else>
+                                                            <lightning-input 
+                                                                label="Default Branch/Tag" 
+                                                                value={formData.defaultRef}
+                                                                data-field="defaultRef"
+                                                                onchange={handleFormChange}
+                                                                required
+                                                                placeholder="main">
+                                                            </lightning-input>
+                                                        </template>
+                                                    </div>
+                                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                                                        <lightning-input 
+                                                            label="Content Path" 
+                                                            value={formData.contentPath}
+                                                            data-field="contentPath"
+                                                            onchange={handleFormChange}
+                                                            placeholder="docs/"
+                                                            field-level-help="Path within repo where markdown lives (blank for root)">
+                                                        </lightning-input>
+                                                    </div>
+                                                    <div class="slds-col slds-size_1-of-1">
+                                                        <lightning-textarea 
+                                                            label="Description" 
+                                                            value={formData.description}
+                                                            data-field="description"
+                                                            onchange={handleFormChange}
+                                                            placeholder="Optional description...">
+                                                        </lightning-textarea>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </template>
 
-                                <!-- Options -->
-                                <template lwc:if={showRepositorySection}>
-                                    <div class="slds-col slds-size_1-of-1">
-                                        <lightning-textarea 
-                                            label="Description" 
-                                            value={formData.description}
-                                            data-field="description"
-                                            onchange={handleFormChange}
-                                            placeholder="Optional description..."
-                                            class="slds-m-top_small">
-                                        </lightning-textarea>
-                                    </div>
-                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
-                                        <lightning-input 
-                                            type="checkbox" 
-                                            label="Active" 
-                                            checked={formData.isActive}
-                                            data-field="isActive"
-                                            onchange={handleFormChange}
-                                            class="slds-m-top_small">
-                                        </lightning-input>
-                                    </div>
-                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
-                                        <lightning-input 
-                                            type="checkbox" 
-                                            label="Allow Version Switching" 
-                                            checked={formData.allowVersionSwitching}
-                                            data-field="allowVersionSwitching"
-                                            onchange={handleFormChange}
-                                            field-level-help="Let users switch between branches/tags/releases"
-                                            class="slds-m-top_small">
-                                        </lightning-input>
-                                    </div>
+                                        <!-- Options -->
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-top_small">
+                                            <lightning-input 
+                                                type="checkbox" 
+                                                label="Active" 
+                                                checked={formData.isActive}
+                                                data-field="isActive"
+                                                onchange={handleFormChange}>
+                                            </lightning-input>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-m-top_small">
+                                            <lightning-input 
+                                                type="checkbox" 
+                                                label="Allow Version Switching" 
+                                                checked={formData.allowVersionSwitching}
+                                                data-field="allowVersionSwitching"
+                                                onchange={handleFormChange}
+                                                field-level-help="Let users switch between branches/tags/releases">
+                                            </lightning-input>
+                                        </div>
+                                    </template>
                                 </template>
                             </div>
 
@@ -272,11 +265,10 @@
                             <table class="slds-table slds-table_cell-buffer slds-table_bordered">
                                 <thead>
                                     <tr class="slds-line-height_reset">
-                                        <th scope="col"><div class="slds-truncate">Name</div></th>
-                                        <th scope="col"><div class="slds-truncate">App ID</div></th>
-                                        <th scope="col"><div class="slds-truncate">Credential</div></th>
+                                        <th scope="col"><div class="slds-truncate">Label</div></th>
+                                        <th scope="col"><div class="slds-truncate">Developer Name</div></th>
+                                        <th scope="col"><div class="slds-truncate">Provider</div></th>
                                         <th scope="col"><div class="slds-truncate">Repository</div></th>
-                                        <th scope="col"><div class="slds-truncate">Path</div></th>
                                         <th scope="col"><div class="slds-truncate">Active</div></th>
                                         <th scope="col"><div class="slds-truncate">Actions</div></th>
                                     </tr>
@@ -286,9 +278,8 @@
                                         <tr key={source.id}>
                                             <td><div class="slds-truncate">{source.name}</div></td>
                                             <td><div class="slds-truncate"><code>{source.appIdentifier}</code></div></td>
-                                            <td><div class="slds-truncate"><code>{source.credentialName}</code></div></td>
+                                            <td><div class="slds-truncate">{source.provider}</div></td>
                                             <td><div class="slds-truncate">{source.repositoryOwner}/{source.repositoryName}</div></td>
-                                            <td><div class="slds-truncate">{source.contentPath}</div></td>
                                             <td>
                                                 <template lwc:if={source.isActive}>
                                                     <lightning-icon icon-name="utility:success" variant="success" size="x-small"></lightning-icon>
@@ -319,9 +310,7 @@
                             </table>
                         </template>
                         <template lwc:else>
-                            <div class="slds-illustration slds-illustration_small">
-                                <p class="slds-text-body_regular slds-text-color_weak">No doc sources configured yet. Click "New Doc Source" to get started.</p>
-                            </div>
+                            <p class="slds-text-body_regular slds-text-color_weak">No doc sources configured yet. Click "New Doc Source" to get started.</p>
                         </template>
                     </template>
                 </div>

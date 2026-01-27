@@ -408,4 +408,103 @@ private class GitHubServiceTest {
         }
         Test.stopTest();
     }
+    
+    /**
+     * @description Test testTokenDirectly method - tests a token without saving
+     */
+    @isTest
+    static void testTestTokenDirectly() {
+        GitHubService.testHttpStatusCode = 200;
+        GitHubService.testHttpResponse = '[' +
+            '{' +
+                '"id": 123456,' +
+                '"name": "test-repo",' +
+                '"full_name": "testuser/test-repo",' +
+                '"description": "A test repository",' +
+                '"default_branch": "main",' +
+                '"private": false,' +
+                '"owner": { "login": "testuser" }' +
+            '}' +
+        ']';
+        
+        Test.startTest();
+        List<GitHubService.Repository> repos = GitHubService.testTokenDirectly('ghp_testtoken');
+        Test.stopTest();
+        
+        System.assertEquals(1, repos.size(), 'Should return 1 repository');
+        System.assertEquals('test-repo', repos[0].name, 'Repo name should match');
+    }
+    
+    /**
+     * @description Test testTokenDirectly with blank token
+     */
+    @isTest
+    static void testTestTokenDirectly_BlankToken() {
+        Test.startTest();
+        try {
+            GitHubService.testTokenDirectly('');
+            System.assert(false, 'Should have thrown GitHubException');
+        } catch (GitHubService.GitHubException e) {
+            System.assert(e.getMessage().contains('cannot be blank'), 'Should indicate blank token error');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test testTokenDirectly with API error
+     */
+    @isTest
+    static void testTestTokenDirectly_Error() {
+        GitHubService.testHttpStatusCode = 401;
+        GitHubService.testHttpResponse = '{"message": "Bad credentials"}';
+        
+        Test.startTest();
+        try {
+            GitHubService.testTokenDirectly('bad-token');
+            System.assert(false, 'Should have thrown GitHubException');
+        } catch (GitHubService.GitHubException e) {
+            System.assert(e.getMessage().contains('Failed to list repositories'), 'Error message should indicate failure');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test getBranchesWithToken - gets branches using a raw token
+     */
+    @isTest
+    static void testGetBranchesWithToken() {
+        GitHubService.testHttpStatusCode = 200;
+        GitHubService.testHttpResponse = '[' +
+            '{' +
+                '"name": "main",' +
+                '"commit": { "sha": "abc123" }' +
+            '},' +
+            '{' +
+                '"name": "develop",' +
+                '"commit": { "sha": "def456" }' +
+            '}' +
+        ']';
+        
+        Test.startTest();
+        List<GitHubService.Branch> branches = GitHubService.getBranchesWithToken('ghp_testtoken', 'testuser', 'test-repo');
+        Test.stopTest();
+        
+        System.assertEquals(2, branches.size(), 'Should return 2 branches');
+        System.assertEquals('main', branches[0].name, 'First branch name should match');
+    }
+    
+    /**
+     * @description Test getBranchesWithToken with blank token
+     */
+    @isTest
+    static void testGetBranchesWithToken_BlankToken() {
+        Test.startTest();
+        try {
+            GitHubService.getBranchesWithToken('', 'testuser', 'test-repo');
+            System.assert(false, 'Should have thrown GitHubException');
+        } catch (GitHubService.GitHubException e) {
+            System.assert(e.getMessage().contains('cannot be blank'), 'Should indicate blank token error');
+        }
+        Test.stopTest();
+    }
 }

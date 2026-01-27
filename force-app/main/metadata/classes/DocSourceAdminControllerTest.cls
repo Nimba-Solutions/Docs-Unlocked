@@ -23,16 +23,72 @@ private class DocSourceAdminControllerTest {
     }
     
     /**
-     * @description Test testCredential success
+     * @description Test ensureCredential success
+     */
+    @isTest
+    static void testEnsureCredential_Success() {
+        Test.startTest();
+        DocSourceAdminController.ConnectionTestResult result = DocSourceAdminController.ensureCredential('test_cred');
+        Test.stopTest();
+        
+        System.assertEquals(true, result.success, 'Should succeed');
+    }
+    
+    /**
+     * @description Test ensureCredential with blank credential name
+     */
+    @isTest
+    static void testEnsureCredential_BlankCredentialName() {
+        Test.startTest();
+        DocSourceAdminController.ConnectionTestResult result = DocSourceAdminController.ensureCredential('');
+        Test.stopTest();
+        
+        System.assertEquals(false, result.success, 'Should fail with blank credential name');
+    }
+    
+    /**
+     * @description Test saveCredentialToken success
+     */
+    @isTest
+    static void testSaveCredentialToken_Success() {
+        Test.startTest();
+        DocSourceAdminController.ConnectionTestResult result = DocSourceAdminController.saveCredentialToken('test_cred', 'ghp_testtoken');
+        Test.stopTest();
+        
+        System.assertEquals(true, result.success, 'Should succeed');
+        // Verify token was saved
+        String savedToken = ExternalCredentialService.getPAT('GitHub_test_cred', 'Principal');
+        System.assertEquals('ghp_testtoken', savedToken, 'Token should be saved');
+    }
+    
+    /**
+     * @description Test saveCredentialToken with blank values
+     */
+    @isTest
+    static void testSaveCredentialToken_BlankValues() {
+        Test.startTest();
+        DocSourceAdminController.ConnectionTestResult result1 = DocSourceAdminController.saveCredentialToken('', 'token');
+        DocSourceAdminController.ConnectionTestResult result2 = DocSourceAdminController.saveCredentialToken('cred', '');
+        Test.stopTest();
+        
+        System.assertEquals(false, result1.success, 'Should fail with blank credential name');
+        System.assertEquals(false, result2.success, 'Should fail with blank token');
+    }
+    
+    /**
+     * @description Test testCredential success (uses saved credential)
      */
     @isTest
     static void testTestCredential_Success() {
         GitHubService.testAccessToken = 'test-token';
         GitHubService.testHttpStatusCode = 200;
         GitHubService.testHttpResponse = '[{"id": 1, "name": "repo1", "full_name": "org/repo1", "default_branch": "main", "private": false, "owner": {"login": "org"}}]';
+        ExternalCredentialService.testCredentialValues = new Map<String, String>{
+            'GitHub_test_cred.Principal.token' => 'test-token'
+        };
         
         Test.startTest();
-        DocSourceAdminController.ConnectionTestResult result = DocSourceAdminController.testCredential('test_cred', 'ghp_testtoken');
+        DocSourceAdminController.ConnectionTestResult result = DocSourceAdminController.testCredential('test_cred');
         Test.stopTest();
         
         System.assertEquals(true, result.success, 'Should succeed');
@@ -40,17 +96,15 @@ private class DocSourceAdminControllerTest {
     }
     
     /**
-     * @description Test testCredential with blank values
+     * @description Test testCredential with blank credential name
      */
     @isTest
-    static void testTestCredential_BlankValues() {
+    static void testTestCredential_BlankCredentialName() {
         Test.startTest();
-        DocSourceAdminController.ConnectionTestResult result1 = DocSourceAdminController.testCredential('', 'token');
-        DocSourceAdminController.ConnectionTestResult result2 = DocSourceAdminController.testCredential('cred', '');
+        DocSourceAdminController.ConnectionTestResult result = DocSourceAdminController.testCredential('');
         Test.stopTest();
         
-        System.assertEquals(false, result1.success, 'Should fail with blank credential name');
-        System.assertEquals(false, result2.success, 'Should fail with blank token');
+        System.assertEquals(false, result.success, 'Should fail with blank credential name');
     }
     
     /**
@@ -310,5 +364,37 @@ private class DocSourceAdminControllerTest {
         System.assertEquals('cred', wrapper.credentialName);
         
         Test.stopTest();
+    }
+    
+    /**
+     * @description Test getRepositoriesWithToken - uses raw token directly
+     */
+    @isTest
+    static void testGetRepositoriesWithToken() {
+        GitHubService.testHttpStatusCode = 200;
+        GitHubService.testHttpResponse = '[{"id": 1, "name": "repo1", "full_name": "org/repo1", "default_branch": "main", "private": false, "owner": {"login": "org"}}]';
+        
+        Test.startTest();
+        List<GitHubService.Repository> repos = DocSourceAdminController.getRepositoriesWithToken('ghp_testtoken');
+        Test.stopTest();
+        
+        System.assertEquals(1, repos.size(), 'Should return 1 repo');
+        System.assertEquals('repo1', repos[0].name, 'Repo name should match');
+    }
+    
+    /**
+     * @description Test getBranchesWithToken - uses raw token directly
+     */
+    @isTest
+    static void testGetBranchesWithToken() {
+        GitHubService.testHttpStatusCode = 200;
+        GitHubService.testHttpResponse = '[{"name": "main", "commit": {"sha": "abc123"}}, {"name": "develop", "commit": {"sha": "def456"}}]';
+        
+        Test.startTest();
+        List<GitHubService.Branch> branches = DocSourceAdminController.getBranchesWithToken('ghp_testtoken', 'org', 'repo');
+        Test.stopTest();
+        
+        System.assertEquals(2, branches.size(), 'Should return 2 branches');
+        System.assertEquals('main', branches[0].name, 'First branch name should match');
     }
 }

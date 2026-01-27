@@ -9,13 +9,45 @@ public with sharing class DocSourceAdminController {
     // =========================================================================
     
     /**
-     * @description Tests a credential by trying to list repositories
-     * @param credentialName The credential name to test
-     * @param token The token to test (will be saved temporarily)
-     * @return ConnectionTestResult The result of the connection test
+     * @description Ensures the External Credential exists (creates if needed).
+     * This is step 1 of a three-step process required because ConnectApi operations
+     * cannot be combined in the same transaction.
+     * @param credentialName The credential name
+     * @return ConnectionTestResult Success/failure and whether it was created
      */
     @AuraEnabled
-    public static ConnectionTestResult testCredential(String credentialName, String token) {
+    public static ConnectionTestResult ensureCredential(String credentialName) {
+        ConnectionTestResult result = new ConnectionTestResult();
+        
+        try {
+            if (String.isBlank(credentialName)) {
+                result.success = false;
+                result.message = 'Credential name is required';
+                return result;
+            }
+            
+            String extCredName = 'GitHub_' + credentialName;
+            Boolean created = ExternalCredentialService.ensureExternalCredentialExists(extCredName, 'Principal');
+            
+            result.success = true;
+            result.message = created ? 'External credential created' : 'External credential exists';
+        } catch (Exception e) {
+            result.success = false;
+            result.message = 'Failed to ensure credential: ' + e.getMessage();
+        }
+        
+        return result;
+    }
+    
+    /**
+     * @description Saves a token to an existing External Credential.
+     * This is step 2 of a three-step process - call ensureCredential first.
+     * @param credentialName The credential name
+     * @param token The GitHub PAT to save
+     * @return ConnectionTestResult Success/failure of saving
+     */
+    @AuraEnabled
+    public static ConnectionTestResult saveCredentialToken(String credentialName, String token) {
         ConnectionTestResult result = new ConnectionTestResult();
         
         try {
@@ -30,12 +62,41 @@ public with sharing class DocSourceAdminController {
                 return result;
             }
             
-            // Save the token first
+            // Save the token (assumes External Credential already exists)
             String extCredName = 'GitHub_' + credentialName;
             ExternalCredentialService.setPAT(extCredName, 'Principal', token);
             
-            // Try to list repos - this validates the token works
+            result.success = true;
+            result.message = 'Token saved successfully';
+        } catch (Exception e) {
+            result.success = false;
+            result.message = 'Failed to save token: ' + e.getMessage();
+        }
+        
+        return result;
+    }
+    
+    /**
+     * @description Tests a saved credential by listing repositories.
+     * This is step 2 of a two-step process - call saveCredential first.
+     * @param credentialName The credential name to test
+     * @return ConnectionTestResult The result of the connection test
+     */
+    @AuraEnabled
+    public static ConnectionTestResult testCredential(String credentialName) {
+        ConnectionTestResult result = new ConnectionTestResult();
+        
+        try {
+            if (String.isBlank(credentialName)) {
+                result.success = false;
+                result.message = 'Credential name is required';
+                return result;
+            }
+            
+            // Test using the saved credential (callout only, no DML)
+            String extCredName = 'GitHub_' + credentialName;
             List<GitHubService.Repository> repos = GitHubService.listRepositoriesWithCredential(extCredName);
+            
             result.success = true;
             result.message = 'Connected! Found ' + repos.size() + ' repositories.';
             result.repoCount = repos.size();
@@ -48,7 +109,7 @@ public with sharing class DocSourceAdminController {
     }
     
     /**
-     * @description Gets repositories for a specific credential
+     * @description Gets repositories for a specific credential (uses saved credential)
      * @param credentialName The credential name
      * @return List of repositories
      */
@@ -63,7 +124,21 @@ public with sharing class DocSourceAdminController {
     }
     
     /**
-     * @description Gets branches for a specific credential and repo
+     * @description Gets repositories using a raw token (for browsing before credential is saved)
+     * @param token The GitHub PAT
+     * @return List of repositories
+     */
+    @AuraEnabled
+    public static List<GitHubService.Repository> getRepositoriesWithToken(String token) {
+        try {
+            return GitHubService.testTokenDirectly(token);
+        } catch (Exception e) {
+            throw new AuraHandledException('Failed to load repositories: ' + e.getMessage());
+        }
+    }
+    
+    /**
+     * @description Gets branches for a specific credential and repo (uses saved credential)
      * @param credentialName The credential name
      * @param owner The repo owner
      * @param repo The repo name
@@ -74,6 +149,22 @@ public with sharing class DocSourceAdminController {
         try {
             String extCredName = 'GitHub_' + credentialName;
             return GitHubService.getBranchesWithCredential(extCredName, owner, repo);
+        } catch (Exception e) {
+            throw new AuraHandledException('Failed to load branches: ' + e.getMessage());
+        }
+    }
+    
+    /**
+     * @description Gets branches using a raw token (for browsing before credential is saved)
+     * @param token The GitHub PAT
+     * @param owner The repo owner
+     * @param repo The repo name
+     * @return List of branches
+     */
+    @AuraEnabled
+    public static List<GitHubService.Branch> getBranchesWithToken(String token, String owner, String repo) {
+        try {
+            return GitHubService.getBranchesWithToken(token, owner, repo);
         } catch (Exception e) {
             throw new AuraHandledException('Failed to load branches: ' + e.getMessage());
         }

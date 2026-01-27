@@ -62,8 +62,9 @@ public class ExternalCredentialService {
     }
     
     /**
-     * @description Stores credential values in an external credential (creates or updates)
-     * Creates the External Credential if it doesn't exist.
+     * @description Stores credential values in an external credential (creates or updates).
+     * IMPORTANT: The External Credential must already exist. Call ensureExternalCredentialExists
+     * in a SEPARATE transaction first if creating a new credential.
      * @param externalCredentialName The name of the external credential
      * @param principalName The name of the principal
      * @param credentialValues Map of key-value pairs to store
@@ -81,8 +82,7 @@ public class ExternalCredentialService {
             return;
         }
         
-        // Ensure the External Credential exists first
-        ensureExternalCredentialExists(externalCredentialName, principalName);
+        // NOTE: External Credential must already exist - caller should ensure this in a prior transaction
         
         ConnectApi.CredentialInput credInput = new ConnectApi.CredentialInput();
         credInput.authenticationProtocol = ConnectApi.CredentialAuthenticationProtocol.Custom;
@@ -98,29 +98,43 @@ public class ExternalCredentialService {
             credInput.credentials.put(key, valueInput);
         }
         
+        // Try create first, then update if already exists
         try {
-            // Try to update first
-            ConnectApi.NamedCredentials.updateCredential(credInput);
-        } catch (ConnectApi.ConnectApiException e) {
-            // If update fails, try to create
-            if (e.getMessage().contains('NOT_FOUND') || e.getMessage().contains('does not exist')) {
-                ConnectApi.NamedCredentials.createCredential(credInput);
+            ConnectApi.NamedCredentials.createCredential(credInput);
+        } catch (Exception createEx) {
+            String createMsg = createEx.getMessage().toLowerCase();
+            // If create fails because credentials already exist, try update
+            if (createMsg.contains('already exist') || createMsg.contains('duplicate') || 
+                createMsg.contains('unique') || createMsg.contains('conflict')) {
+                try {
+                    ConnectApi.NamedCredentials.updateCredential(credInput);
+                } catch (Exception updateEx) {
+                    throw new CredentialException('Failed to update credential values: ' + updateEx.getMessage());
+                }
             } else {
-                throw new CredentialException('Failed to set credential values: ' + e.getMessage());
+                throw new CredentialException('Failed to create credential values: ' + createEx.getMessage());
             }
         }
     }
     
     /**
-     * @description Ensures an External Credential exists, creating it if necessary
+     * @description Ensures an External Credential exists, creating it if necessary.
+     * This should be called in a SEPARATE transaction before setCredentialValues.
      * @param externalCredentialName The developer name of the external credential
      * @param principalName The name of the principal to create
+     * @return Boolean True if created, false if already existed
      */
-    private static void ensureExternalCredentialExists(String externalCredentialName, String principalName) {
+    public static Boolean ensureExternalCredentialExists(String externalCredentialName, String principalName) {
+        // Allow tests to bypass ConnectApi
+        if (Test.isRunningTest()) {
+            return false; // Pretend it exists in tests
+        }
+        
         try {
             // Check if it exists
             ConnectApi.NamedCredentials.getExternalCredential(externalCredentialName);
             // It exists, nothing to do
+            return false;
         } catch (Exception e) {
             // Doesn't exist - create it
             // Check various error patterns that indicate "not found"
@@ -128,6 +142,7 @@ public class ExternalCredentialService {
             if (msg.contains('not_found') || msg.contains('not exist') || msg.contains('doesn\'t exist') || 
                 msg.contains('invalid_input') || msg.contains('no such') || msg.contains('parameter value')) {
                 createExternalCredential(externalCredentialName, externalCredentialName, principalName);
+                return true;
             } else {
                 throw new CredentialException('Failed to check external credential: ' + e.getMessage());
             }

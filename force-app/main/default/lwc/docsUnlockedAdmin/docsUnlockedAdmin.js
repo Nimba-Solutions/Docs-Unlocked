@@ -5,22 +5,22 @@ import getDocSources from '@salesforce/apex/DocSourceAdminController.getDocSourc
 import saveDocSourceWithToken from '@salesforce/apex/DocSourceAdminController.saveDocSourceWithToken';
 import deleteDocSource from '@salesforce/apex/DocSourceAdminController.deleteDocSource';
 import validateDocSource from '@salesforce/apex/DocSourceAdminController.validateDocSource';
+import ensureCredential from '@salesforce/apex/DocSourceAdminController.ensureCredential';
+import saveCredentialToken from '@salesforce/apex/DocSourceAdminController.saveCredentialToken';
 import testCredential from '@salesforce/apex/DocSourceAdminController.testCredential';
 import getRepositoriesForCredential from '@salesforce/apex/DocSourceAdminController.getRepositoriesForCredential';
 import getBranchesForCredential from '@salesforce/apex/DocSourceAdminController.getBranchesForCredential';
 
 export default class DocsUnlockedAdmin extends LightningElement {
-    // Token test state
     @track isTestingToken = false;
     @track tokenTestResult = null;
     @track credentialVerified = false;
+    @track currentTestStep = ''; // Shows which step is running
 
-    // Doc sources state
     @track docSources = [];
     @track isLoadingSources = true;
     @track wiredSourcesResult;
 
-    // Form state
     @track showForm = false;
     @track isEditing = false;
     @track isSaving = false;
@@ -28,7 +28,6 @@ export default class DocsUnlockedAdmin extends LightningElement {
     @track validationResult = null;
     @track formData = this.getEmptyFormData();
 
-    // Repository browser
     @track repositories = [];
     @track branches = [];
     @track isLoadingRepos = false;
@@ -36,9 +35,7 @@ export default class DocsUnlockedAdmin extends LightningElement {
 
     providerOptions = [
         { label: 'GitHub', value: 'GitHub' },
-        { label: 'GitLab (coming soon)', value: 'GitLab', disabled: true },
-        { label: 'Bitbucket (coming soon)', value: 'Bitbucket', disabled: true },
-        { label: 'Azure DevOps (coming soon)', value: 'Azure DevOps', disabled: true }
+        { label: 'Static Resource (coming soon)', value: 'StaticResource', disabled: true }
     ];
 
     @wire(getDocSources)
@@ -66,24 +63,72 @@ export default class DocsUnlockedAdmin extends LightningElement {
         this.isTestingToken = true;
         this.tokenTestResult = null;
         this.credentialVerified = false;
+        this.currentTestStep = '';
         
         try {
-            const result = await testCredential({ 
-                credentialName: this.formData.credentialName, 
-                token: this.formData.token 
-            });
-            this.tokenTestResult = result;
-            if (result.success) {
+            // Step 1: Ensure External Credential exists (may create it)
+            this.currentTestStep = 'Step 1/3: Creating external credential...';
+            let ensureResult;
+            try {
+                ensureResult = await ensureCredential({ 
+                    credentialName: this.formData.credentialName
+                });
+            } catch (e) {
+                throw new Error('Step 1 failed: ' + (e.body?.message || e.message));
+            }
+            
+            if (!ensureResult.success) {
+                this.tokenTestResult = ensureResult;
+                this.showToast('Error', ensureResult.message, 'error');
+                this.isTestingToken = false;
+                this.currentTestStep = '';
+                return;
+            }
+            
+            // Step 2: Save the token value (separate transaction)
+            this.currentTestStep = 'Step 2/3: Saving token...';
+            let saveResult;
+            try {
+                saveResult = await saveCredentialToken({ 
+                    credentialName: this.formData.credentialName, 
+                    token: this.formData.token 
+                });
+            } catch (e) {
+                throw new Error('Step 2 failed: ' + (e.body?.message || e.message));
+            }
+            
+            if (!saveResult.success) {
+                this.tokenTestResult = saveResult;
+                this.showToast('Error', saveResult.message, 'error');
+                this.isTestingToken = false;
+                this.currentTestStep = '';
+                return;
+            }
+            
+            // Step 3: Test the connection (separate callout transaction)
+            this.currentTestStep = 'Step 3/3: Testing connection to GitHub...';
+            let testResult;
+            try {
+                testResult = await testCredential({ 
+                    credentialName: this.formData.credentialName
+                });
+            } catch (e) {
+                throw new Error('Step 3 failed: ' + (e.body?.message || e.message));
+            }
+            
+            this.tokenTestResult = testResult;
+            if (testResult.success) {
                 this.credentialVerified = true;
-                this.showToast('Success', result.message, 'success');
+                this.showToast('Success', testResult.message, 'success');
             } else {
-                this.showToast('Error', result.message, 'error');
+                this.showToast('Error', testResult.message, 'error');
             }
         } catch (error) {
-            this.tokenTestResult = { success: false, message: error.body?.message || error.message };
-            this.showToast('Error', 'Test failed: ' + (error.body?.message || error.message), 'error');
+            this.tokenTestResult = { success: false, message: error.body?.message || error.message || String(error) };
+            this.showToast('Error', 'Test failed: ' + (error.body?.message || error.message || String(error)), 'error');
         }
         this.isTestingToken = false;
+        this.currentTestStep = '';
     }
 
     handleNewSource() {
@@ -101,16 +146,15 @@ export default class DocsUnlockedAdmin extends LightningElement {
         const sourceId = event.target.dataset.id;
         const source = this.docSources.find(s => s.id === sourceId);
         if (source) {
-            this.formData = { ...source, token: '' }; // Don't prefill token
+            this.formData = { ...source, token: '' };
             this.isEditing = true;
             this.validationResult = null;
             this.tokenTestResult = null;
-            this.credentialVerified = true; // Already has credential saved
+            this.credentialVerified = true;
             this.repositories = [];
             this.branches = [];
             this.showForm = true;
             
-            // Try to load branches for the existing repo
             if (this.formData.repositoryOwner && this.formData.repositoryName) {
                 this.loadBranches();
             }
@@ -148,18 +192,17 @@ export default class DocsUnlockedAdmin extends LightningElement {
     handleFormChange(event) {
         const field = event.target.dataset.field;
         const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
-        this.formData = { ...this.formData, [field]: value };
-        this.validationResult = null;
-
-        // Auto-populate name and credentialName from app identifier
-        if (field === 'appIdentifier' && !this.isEditing) {
-            this.formData.name = value.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            if (!this.formData.credentialName) {
-                this.formData.credentialName = value;
-            }
+        
+        let updates = { [field]: value };
+        
+        // Auto-populate Developer Name from Label (spaces -> underscores, lowercase)
+        if (field === 'name' && !this.isEditing) {
+            updates.appIdentifier = value.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
         }
         
-        // Reset credential verification if credential name or token changes
+        this.formData = { ...this.formData, ...updates };
+        this.validationResult = null;
+        
         if (field === 'credentialName' || field === 'token') {
             this.tokenTestResult = null;
             if (!this.isEditing) {
@@ -169,16 +212,20 @@ export default class DocsUnlockedAdmin extends LightningElement {
     }
 
     async handleLoadRepositories() {
-        if (!this.formData.credentialName) return;
+        if (!this.formData.credentialName) {
+            this.showToast('Error', 'Credential name is required', 'error');
+            return;
+        }
         
         this.isLoadingRepos = true;
         try {
+            // Credential should already be saved after Test Connection
             this.repositories = await getRepositoriesForCredential({ credentialName: this.formData.credentialName });
+            
             if (this.repositories.length === 0) {
                 this.showToast('Info', 'No repositories found. Check your token permissions.', 'info');
             }
         } catch (error) {
-            console.warn('Failed to load repositories:', error);
             this.showToast('Error', 'Failed to load repositories: ' + (error.body?.message || error.message), 'error');
             this.repositories = [];
         }
@@ -189,7 +236,6 @@ export default class DocsUnlockedAdmin extends LightningElement {
         const repoFullName = event.target.value;
         const repo = this.repositories.find(r => r.fullName === repoFullName);
         if (repo) {
-            // repo.owner is a string (the login), not an object
             this.formData = {
                 ...this.formData,
                 repositoryOwner: repo.owner,
@@ -209,13 +255,13 @@ export default class DocsUnlockedAdmin extends LightningElement {
         
         this.isLoadingBranches = true;
         try {
+            // Credential should already be saved after Test Connection
             this.branches = await getBranchesForCredential({ 
                 credentialName: this.formData.credentialName,
                 owner: this.formData.repositoryOwner, 
                 repo: this.formData.repositoryName 
             });
         } catch (error) {
-            console.warn('Failed to load branches:', error);
             this.branches = [];
         }
         this.isLoadingBranches = false;
@@ -240,7 +286,6 @@ export default class DocsUnlockedAdmin extends LightningElement {
     }
 
     async handleSaveSource() {
-        // Validate required fields
         const required = ['name', 'appIdentifier', 'credentialName', 'provider', 'repositoryOwner', 'repositoryName', 'defaultRef'];
         for (const field of required) {
             if (!this.formData[field]) {
@@ -249,7 +294,6 @@ export default class DocsUnlockedAdmin extends LightningElement {
             }
         }
 
-        // For new sources, token is required
         if (!this.isEditing && !this.formData.token) {
             this.showToast('Error', 'Token is required for new doc sources', 'error');
             return;
@@ -321,16 +365,10 @@ export default class DocsUnlockedAdmin extends LightningElement {
     }
 
     get showRepositorySection() {
-        // Show repository section when:
-        // - Editing an existing source (credential already saved)
-        // - Or credential has been verified for a new source
         return this.isGitHubProvider && (this.isEditing || this.credentialVerified);
     }
 
     get canBrowseRepositories() {
-        // Can browse repos if we have a credential name and either:
-        // - It's been verified with a token
-        // - We're editing (credential already exists)
         return this.formData.credentialName && (this.credentialVerified || this.isEditing);
     }
 

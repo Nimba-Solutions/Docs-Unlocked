@@ -147,6 +147,71 @@ public class GitHubService {
     }
     
     /**
+     * @description Tests a token directly by making an API call (no credential storage)
+     * This is used to validate a token BEFORE saving it to avoid DML/callout order issues.
+     * @param token The GitHub PAT to test
+     * @return List<Repository> List of repositories (proves token works)
+     */
+    public static List<Repository> testTokenDirectly(String token) {
+        if (String.isBlank(token)) {
+            throw new GitHubException('Token cannot be blank');
+        }
+        
+        // Test mode with mock response
+        if (Test.isRunningTest() && testHttpResponse != null) {
+            HttpResponse mockRes = new HttpResponse();
+            mockRes.setStatusCode(testHttpStatusCode != null ? testHttpStatusCode : 200);
+            mockRes.setBody(testHttpResponse);
+            return parseRepositoryResponse(mockRes);
+        }
+        
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint(GITHUB_API_BASE + '/user/repos?per_page=100&sort=updated');
+        req.setMethod('GET');
+        req.setHeader('Authorization', 'Bearer ' + token);
+        req.setHeader('Accept', 'application/vnd.github+json');
+        req.setHeader('X-GitHub-Api-Version', '2022-11-28');
+        req.setTimeout(30000);
+        
+        Http http = new Http();
+        HttpResponse res = http.send(req);
+        
+        return parseRepositoryResponse(res);
+    }
+    
+    /**
+     * @description Parses repository list response
+     * @param res The HTTP response
+     * @return List<Repository> Parsed repositories
+     */
+    private static List<Repository> parseRepositoryResponse(HttpResponse res) {
+        if (res.getStatusCode() != 200) {
+            throw new GitHubException('Failed to list repositories: ' + res.getStatusCode() + ' - ' + res.getBody());
+        }
+        
+        List<Repository> repos = new List<Repository>();
+        List<Object> repoList = (List<Object>) JSON.deserializeUntyped(res.getBody());
+        
+        for (Object repoObj : repoList) {
+            Map<String, Object> repoMap = (Map<String, Object>) repoObj;
+            Repository repo = new Repository();
+            repo.id = String.valueOf(repoMap.get('id'));
+            repo.name = (String) repoMap.get('name');
+            repo.fullName = (String) repoMap.get('full_name');
+            repo.description = (String) repoMap.get('description');
+            repo.defaultBranch = (String) repoMap.get('default_branch');
+            repo.isPrivate = (Boolean) repoMap.get('private');
+            
+            Map<String, Object> ownerMap = (Map<String, Object>) repoMap.get('owner');
+            repo.owner = (String) ownerMap.get('login');
+            
+            repos.add(repo);
+        }
+        
+        return repos;
+    }
+    
+    /**
      * @description Makes an authenticated HTTP request to the GitHub API
      * @param endpoint The API endpoint (relative to base URL)
      * @param method The HTTP method (GET, POST, etc.)
@@ -201,31 +266,7 @@ public class GitHubService {
      */
     public static List<Repository> listRepositoriesWithCredential(String externalCredentialName) {
         HttpResponse res = makeRequestWithCredential('/user/repos?per_page=100&sort=updated', 'GET', externalCredentialName);
-        
-        if (res.getStatusCode() != 200) {
-            throw new GitHubException('Failed to list repositories: ' + res.getStatusCode() + ' - ' + res.getBody());
-        }
-        
-        List<Repository> repos = new List<Repository>();
-        List<Object> repoList = (List<Object>) JSON.deserializeUntyped(res.getBody());
-        
-        for (Object repoObj : repoList) {
-            Map<String, Object> repoMap = (Map<String, Object>) repoObj;
-            Repository repo = new Repository();
-            repo.id = String.valueOf(repoMap.get('id'));
-            repo.name = (String) repoMap.get('name');
-            repo.fullName = (String) repoMap.get('full_name');
-            repo.description = (String) repoMap.get('description');
-            repo.defaultBranch = (String) repoMap.get('default_branch');
-            repo.isPrivate = (Boolean) repoMap.get('private');
-            
-            Map<String, Object> ownerMap = (Map<String, Object>) repoMap.get('owner');
-            repo.owner = (String) ownerMap.get('login');
-            
-            repos.add(repo);
-        }
-        
-        return repos;
+        return parseRepositoryResponse(res);
     }
     
     /**
@@ -250,7 +291,51 @@ public class GitHubService {
             EncodingUtil.urlEncode(repo, 'UTF-8') + '/branches?per_page=100';
         
         HttpResponse res = makeRequestWithCredential(endpoint, 'GET', externalCredentialName);
+        return parseBranchResponse(res);
+    }
+    
+    /**
+     * @description Gets branches using a raw token (for browsing before credential is saved)
+     * @param token The GitHub PAT
+     * @param owner The repository owner
+     * @param repo The repository name
+     * @return List<Branch> List of branches
+     */
+    public static List<Branch> getBranchesWithToken(String token, String owner, String repo) {
+        if (String.isBlank(token)) {
+            throw new GitHubException('Token cannot be blank');
+        }
         
+        String endpoint = '/repos/' + EncodingUtil.urlEncode(owner, 'UTF-8') + '/' + 
+            EncodingUtil.urlEncode(repo, 'UTF-8') + '/branches?per_page=100';
+        
+        // Test mode with mock response
+        if (Test.isRunningTest() && testHttpResponse != null) {
+            HttpResponse mockRes = new HttpResponse();
+            mockRes.setStatusCode(testHttpStatusCode != null ? testHttpStatusCode : 200);
+            mockRes.setBody(testHttpResponse);
+            return parseBranchResponse(mockRes);
+        }
+        
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint(GITHUB_API_BASE + endpoint);
+        req.setMethod('GET');
+        req.setHeader('Authorization', 'Bearer ' + token);
+        req.setHeader('Accept', 'application/vnd.github+json');
+        req.setHeader('X-GitHub-Api-Version', '2022-11-28');
+        req.setTimeout(30000);
+        
+        Http http = new Http();
+        HttpResponse res = http.send(req);
+        return parseBranchResponse(res);
+    }
+    
+    /**
+     * @description Parses branch list response
+     * @param res The HTTP response
+     * @return List<Branch> Parsed branches
+     */
+    private static List<Branch> parseBranchResponse(HttpResponse res) {
         if (res.getStatusCode() != 200) {
             throw new GitHubException('Failed to get branches: ' + res.getStatusCode() + ' - ' + res.getBody());
         }
