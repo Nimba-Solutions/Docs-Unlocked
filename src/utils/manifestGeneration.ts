@@ -72,7 +72,9 @@ export const generateManifestFromTree = async (
       // Try to extract title from markdown content
       let title = '';
       try {
-        const contentUrl = `/resource/${resourceName}/${filePath}`;
+        // Use the base URL from LWC if available (handles Experience Cloud), otherwise fallback to /resource/
+        const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${resourceName}`;
+        const contentUrl = `${contentResourceBaseUrl}/${filePath}`;
         const contentResponse = await fetch(contentUrl);
         if (contentResponse.ok) {
           const contentText = await contentResponse.text();

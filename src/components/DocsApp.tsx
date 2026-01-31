@@ -114,7 +114,9 @@ export const DocsApp: React.FC = () => {
     const loadNavigation = async () => {
       try {
         const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
-        const manifestUrl = `/resource/${contentResourceName}/content/manifest.yaml`;
+        // Use the base URL from LWC if available (handles Experience Cloud), otherwise fallback to /resource/
+        const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${contentResourceName}`;
+        const manifestUrl = `${contentResourceBaseUrl}/content/manifest.yaml`;
         
         let manifest: any;
         
@@ -310,7 +312,9 @@ export const DocsApp: React.FC = () => {
         
         // Use the path from manifest (should have prefixes like "02.core-concepts/01.basic-usage")
         const contentPath = existingFile.path.startsWith('/') ? `${existingFile.path}.md` : `/${existingFile.path}.md`;
-        const url = `/resource/${contentResourceName}/content${contentPath}`;
+        // Use the base URL from LWC if available (handles Experience Cloud), otherwise fallback to /resource/
+        const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${contentResourceName}`;
+        const url = `${contentResourceBaseUrl}/content${contentPath}`;
         console.log(`[DocsUnlocked] Loading content from manifest:`);
         console.log(`[DocsUnlocked]   Display path: ${currentPath}`);
         console.log(`[DocsUnlocked]   StaticResource path: ${existingFile.path}`);

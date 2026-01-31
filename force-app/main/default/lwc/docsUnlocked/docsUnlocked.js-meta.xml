@@ -11,7 +11,7 @@
         <target>lightningCommunity__Default</target>
     </targets>
     <targetConfigs>
-        <targetConfig targets="lightning__AppPage,lightning__RecordPage,lightning__HomePage">
+        <targetConfig targets="lightning__AppPage,lightning__RecordPage,lightning__HomePage,lightningCommunity__Default">
             <property name="docSourceName" type="String" label="Doc Source Name" description="DeveloperName from Docs_Source__mdt record. If set, loads from Git provider. Leave blank to use static resource." default="" />
             <property name="contentResourceName" type="String" label="Static Resource Name" description="Name of the ZIP StaticResource (used when Doc Source Name is blank)" default="docsContent" />
             <property name="displayHeader" type="Boolean" label="Display Header" description="Show or hide the header" default="false" />

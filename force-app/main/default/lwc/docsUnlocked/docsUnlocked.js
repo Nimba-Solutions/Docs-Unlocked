@@ -248,6 +248,30 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
             window.DOCS_DISPLAY_HEADER = this.displayHeader === true;
             window.DOCS_HEADER_LABEL = this.headerLabel || 'Documentation';
             window.DOCS_DISPLAY_FOOTER = this.displayFooter === true;
+            
+            // Derive the content resource base URL from DOCS_UNLOCKED URL
+            // This handles both internal SF (/resource/name) and Experience Cloud URLs
+            // Experience Cloud URLs look like: /s/sfsites/c/resource/1234567890/docsUnlocked
+            const docsUnlockedUrl = DOCS_UNLOCKED;
+            let contentResourceBaseUrl;
+            
+            // Extract the base pattern by replacing 'docsUnlocked' with the content resource name
+            // Handle both direct name and name with cache-busting timestamp
+            if (docsUnlockedUrl.includes('/docsUnlocked')) {
+                contentResourceBaseUrl = docsUnlockedUrl.replace('/docsUnlocked', '/' + this.contentResourceName);
+            } else {
+                // Fallback: construct based on detected pattern
+                const match = docsUnlockedUrl.match(/(.*\/resource\/\d*)\/?/);
+                if (match) {
+                    contentResourceBaseUrl = match[1] + '/' + this.contentResourceName;
+                } else {
+                    // Final fallback to simple /resource/ path
+                    contentResourceBaseUrl = '/resource/' + this.contentResourceName;
+                }
+            }
+            
+            window.DOCS_CONTENT_RESOURCE_BASE_URL = contentResourceBaseUrl;
+            console.log('[DocsUnlocked LWC] Resource URLs - docsUnlocked:', docsUnlockedUrl, ', content base:', contentResourceBaseUrl);
 
             // Only set up static resource tree method if NOT using Git provider
             if (!this.docSourceName || !this.docsContent) {
