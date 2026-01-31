@@ -307,41 +307,64 @@ export const DocsApp: React.FC = () => {
             return;
           }
           
-          console.log(`[DocsUnlocked] Preloaded content not found for ${currentPath}, falling back to fetch`);
+          console.log(`[DocsUnlocked] Preloaded content not found for ${currentPath}, falling back to Apex/fetch`);
         }
         
         // Use the path from manifest (should have prefixes like "02.core-concepts/01.basic-usage")
-        const contentPath = existingFile.path.startsWith('/') ? `${existingFile.path}.md` : `/${existingFile.path}.md`;
-        // Use the base URL from LWC if available (handles Experience Cloud), otherwise fallback to /resource/
-        const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${contentResourceName}`;
-        const url = `${contentResourceBaseUrl}/content${contentPath}`;
+        // The file path in the ZIP is like "content/01.getting-started/01.introduction.md"
+        const zipFilePath = `content/${existingFile.path}.md`;
         console.log(`[DocsUnlocked] Loading content from manifest:`);
         console.log(`[DocsUnlocked]   Display path: ${currentPath}`);
         console.log(`[DocsUnlocked]   StaticResource path: ${existingFile.path}`);
-        console.log(`[DocsUnlocked]   Full URL: ${url}`);
+        console.log(`[DocsUnlocked]   ZIP file path: ${zipFilePath}`);
         
-        // Add cache-busting query parameter to force fresh fetch
-        const cacheBustUrl = `${url}?t=${Date.now()}`;
-        const response = await fetch(cacheBustUrl, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache'
+        // Try Apex method first (works reliably in Experience Cloud and internal pages)
+        const getFileContent = (window as any).DOCS_GET_FILE_CONTENT;
+        if (getFileContent && typeof getFileContent === 'function') {
+          try {
+            console.log(`[DocsUnlocked] Fetching content via Apex...`);
+            text = await getFileContent(contentResourceName, zipFilePath);
+            if (text && text.length > 0) {
+              console.log(`[DocsUnlocked] Successfully loaded ${text.length} chars via Apex`);
+            } else {
+              throw new Error('Apex returned empty content');
+            }
+          } catch (apexError) {
+            console.warn(`[DocsUnlocked] Apex fetch failed, falling back to URL fetch:`, apexError);
+            text = ''; // Reset to trigger URL fallback
           }
-        });
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`[DocsUnlocked] HTTP ${response.status} error from ${url}:`, errorText.substring(0, 200));
-          throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
         }
         
-        text = await response.text();
-        console.log(`[DocsUnlocked] Raw response length: ${text.length} chars`);
-        console.log(`[DocsUnlocked] Response preview (first 200 chars):`, text.substring(0, 200));
+        // Fallback to URL fetch if Apex didn't work
+        if (!text) {
+          const contentPath = existingFile.path.startsWith('/') ? `${existingFile.path}.md` : `/${existingFile.path}.md`;
+          // Use the base URL from LWC if available (handles Experience Cloud), otherwise fallback to /resource/
+          const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${contentResourceName}`;
+          const url = `${contentResourceBaseUrl}/content${contentPath}`;
+          console.log(`[DocsUnlocked] Fetching via URL: ${url}`);
+          
+          // Add cache-busting query parameter to force fresh fetch
+          const cacheBustUrl = `${url}?t=${Date.now()}`;
+          const response = await fetch(cacheBustUrl, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache'
+            }
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`[DocsUnlocked] HTTP ${response.status} error from ${url}:`, errorText.substring(0, 200));
+            throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+          }
+          
+          text = await response.text();
+          console.log(`[DocsUnlocked] Raw response length: ${text.length} chars`);
+        }
         
         if (text.length < 100) {
-          console.error(`[DocsUnlocked] Content too short (${text.length} chars) from ${url}. Full response:`, text);
-          throw new Error(`Content too short from ${url} (${text.length} chars)`);
+          console.error(`[DocsUnlocked] Content too short (${text.length} chars). Full response:`, text);
+          throw new Error(`Content too short (${text.length} chars)`);
         }
         foundPath = existingFile.path;
         

@@ -2,6 +2,7 @@ import { LightningElement, api, track } from 'lwc';
 import { loadScript } from 'lightning/platformResourceLoader';
 import { NavigationMixin } from 'lightning/navigation';
 import getTreeAsJson from '@salesforce/apex/StaticResourceTree.getTreeAsJson';
+import getFileContent from '@salesforce/apex/StaticResourceTree.getFileContent';
 import hasPermission from '@salesforce/apex/PermissionChecker.hasPermission';
 import hasCustomPermission from '@salesforce/apex/PermissionChecker.hasCustomPermission';
 import hasPermissionSet from '@salesforce/apex/PermissionChecker.hasPermissionSet';
@@ -281,6 +282,17 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
                         return result;
                     } catch (error) {
                         console.error('[DocsUnlocked LWC] Error calling getTreeAsJson: ' + (error?.message || String(error)));
+                        throw error;
+                    }
+                };
+                
+                // Expose file content fetching via Apex (works in Experience Cloud)
+                window.DOCS_GET_FILE_CONTENT = async (resourceName, filePath) => {
+                    try {
+                        const result = await getFileContent({ resourceName: resourceName, filePath: filePath });
+                        return result;
+                    } catch (error) {
+                        console.error('[DocsUnlocked LWC] Error calling getFileContent: ' + (error?.message || String(error)));
                         throw error;
                     }
                 };

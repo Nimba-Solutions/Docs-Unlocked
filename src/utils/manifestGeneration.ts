@@ -72,12 +72,29 @@ export const generateManifestFromTree = async (
       // Try to extract title from markdown content
       let title = '';
       try {
-        // Use the base URL from LWC if available (handles Experience Cloud), otherwise fallback to /resource/
-        const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${resourceName}`;
-        const contentUrl = `${contentResourceBaseUrl}/${filePath}`;
-        const contentResponse = await fetch(contentUrl);
-        if (contentResponse.ok) {
-          const contentText = await contentResponse.text();
+        let contentText = '';
+        
+        // Try Apex method first (works reliably in Experience Cloud)
+        const getFileContent = (window as any).DOCS_GET_FILE_CONTENT;
+        if (getFileContent && typeof getFileContent === 'function') {
+          try {
+            contentText = await getFileContent(resourceName, filePath);
+          } catch {
+            // Apex failed, will try URL fetch
+          }
+        }
+        
+        // Fallback to URL fetch if Apex didn't work
+        if (!contentText) {
+          const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${resourceName}`;
+          const contentUrl = `${contentResourceBaseUrl}/${filePath}`;
+          const contentResponse = await fetch(contentUrl);
+          if (contentResponse.ok) {
+            contentText = await contentResponse.text();
+          }
+        }
+        
+        if (contentText) {
           const h1Match = contentText.match(/^#\s+(.+)$/m);
           title = h1Match ? h1Match[1].trim() : generateTitleFromFilename(cleanFileName);
         } else {

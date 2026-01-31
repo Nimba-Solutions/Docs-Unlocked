@@ -96,16 +96,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }
           }
           
-          // Fall back to fetch if not preloaded
+          // Fall back to Apex/fetch if not preloaded
           if (!content) {
-            const contentPath = file.path.startsWith('/') ? `${file.path}.md` : `/${file.path}.md`;
-            // Use the base URL from LWC if available (handles Experience Cloud), otherwise fallback to /resource/
-            const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${contentResourceName}`;
-            const url = `${contentResourceBaseUrl}/content${contentPath}?t=${Date.now()}`;
-            const response = await fetch(url, { cache: 'no-store' });
+            const zipFilePath = `content/${file.path}.md`;
             
-            if (response.ok) {
-              content = await response.text();
+            // Try Apex method first (works reliably in Experience Cloud)
+            const getFileContent = (window as any).DOCS_GET_FILE_CONTENT;
+            if (getFileContent && typeof getFileContent === 'function') {
+              try {
+                content = await getFileContent(contentResourceName, zipFilePath);
+              } catch {
+                // Apex failed, will try URL fetch
+              }
+            }
+            
+            // Fallback to URL fetch if Apex didn't work
+            if (!content) {
+              const contentPath = file.path.startsWith('/') ? `${file.path}.md` : `/${file.path}.md`;
+              const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${contentResourceName}`;
+              const url = `${contentResourceBaseUrl}/content${contentPath}?t=${Date.now()}`;
+              const response = await fetch(url, { cache: 'no-store' });
+              
+              if (response.ok) {
+                content = await response.text();
+              }
             }
           }
           
