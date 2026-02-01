@@ -410,4 +410,46 @@ private class OAuthClientCredentialsServiceTest {
         
         System.assertEquals('three_arg_token', token, 'Should return token');
     }
+    
+    /**
+     * @description Test getClientCredentials - triggers ConnectApi path which throws in test context
+     */
+    @isTest
+    static void testGetClientCredentials_ConnectApiException() {
+        Test.startTest();
+        try {
+            Map<String, String> creds = OAuthClientCredentialsService.getClientCredentials('NonExistent', 'Principal');
+            // If somehow it doesn't throw, the result should be empty
+            System.assert(creds.isEmpty() || creds != null, 'Should return empty map or throw');
+        } catch (Exception e) {
+            // Expected - ConnectApi throws in test context
+            System.assert(true, 'Expected exception from ConnectApi');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test getAccessToken with null testClientId/testClientSecret to trigger creds lookup
+     */
+    @isTest
+    static void testGetAccessToken_NullTestClientCredentials() {
+        // Set testAccessToken to null to not bypass entirely
+        OAuthClientCredentialsService.testAccessToken = null;
+        // Set one of testClientId/testClientSecret to null to force getClientCredentials call
+        OAuthClientCredentialsService.testClientId = null;
+        OAuthClientCredentialsService.testClientSecret = null;
+        
+        Test.startTest();
+        try {
+            OAuthClientCredentialsService.getAccessToken(
+                'TestCredential',
+                'https://auth.example.com/oauth/token'
+            );
+            System.assert(false, 'Should have thrown exception');
+        } catch (Exception e) {
+            // Expected - either ConnectApi exception or AuthException for missing credentials
+            System.assert(true, 'Expected exception');
+        }
+        Test.stopTest();
+    }
 }

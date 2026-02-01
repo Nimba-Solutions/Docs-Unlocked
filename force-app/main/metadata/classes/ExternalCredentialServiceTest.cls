@@ -295,4 +295,40 @@ private class ExternalCredentialServiceTest {
         
         System.assertEquals(false, result, 'Should return false in test context');
     }
+    
+    /**
+     * @description Test getCredentialValue without test override - triggers ConnectApi path
+     */
+    @isTest
+    static void testGetCredentialValue_NoOverride() {
+        // Don't set testCredentialValues - this forces the real ConnectApi path
+        ExternalCredentialService.testCredentialValues = null;
+        
+        Test.startTest();
+        try {
+            ExternalCredentialService.getCredentialValue('NonExistent', 'Principal', 'token');
+            System.assert(false, 'Should have thrown exception');
+        } catch (ExternalCredentialService.CredentialException e) {
+            System.assert(e.getMessage().contains('Failed to retrieve'), 'Should have credential error');
+        } catch (Exception e) {
+            // ConnectApi throws various exceptions in test context
+            System.assert(true, 'Expected exception from ConnectApi');
+        }
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Test hasCredentials without test override - triggers ConnectApi path
+     */
+    @isTest
+    static void testHasCredentials_NoOverride() {
+        ExternalCredentialService.testCredentialValues = null;
+        
+        Test.startTest();
+        // This should return false when ConnectApi throws
+        Boolean result = ExternalCredentialService.hasCredentials('NonExistent', 'Principal');
+        Test.stopTest();
+        
+        System.assertEquals(false, result, 'Should return false when credentials cannot be accessed');
+    }
 }
