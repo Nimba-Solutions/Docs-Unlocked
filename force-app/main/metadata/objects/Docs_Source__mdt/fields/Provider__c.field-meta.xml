@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Provider__c</fullName>
+    <description>The documentation provider/platform where the content is hosted.</description>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <inlineHelpText>Select the platform where your documentation is hosted</inlineHelpText>
+    <label>Provider</label>
+    <required>true</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>GitHub</fullName>
+                <default>true</default>
+                <label>GitHub</label>
+            </value>
+            <value>
+                <fullName>StaticResource</fullName>
+                <default>false</default>
+                <label>Static Resource</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

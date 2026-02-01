@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Repository_Name__c</fullName>
+    <description>The name of the repository containing the documentation.</description>
+    <externalId>false</externalId>
+    <inlineHelpText>Repository name (e.g., "documentation" or "company-wiki")</inlineHelpText>
+    <label>Repository Name</label>
+    <length>100</length>
+    <required>true</required>
+    <trackHistory>true</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>
