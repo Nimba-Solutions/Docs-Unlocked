@@ -183,13 +183,7 @@ public with sharing class DocSourceAdminController {
     @AuraEnabled(cacheable=true)
     public static List<DocSourceWrapper> getDocSources() {
         try {
-            List<Docs_Source__mdt> sources = [
-                SELECT DeveloperName, MasterLabel, Credential_Name__c, Provider__c, 
-                       Repository_Owner__c, Repository_Name__c, Content_Path__c, Default_Ref__c, 
-                       Is_Active__c, Allow_Version_Switching__c, Description__c
-                FROM Docs_Source__mdt
-                ORDER BY MasterLabel ASC
-            ];
+            List<Docs_Source__mdt> sources = DocsSourceSelector.getAll();
             
             List<DocSourceWrapper> wrappers = new List<DocSourceWrapper>();
             for (Docs_Source__mdt source : sources) {
@@ -326,21 +320,19 @@ public with sharing class DocSourceAdminController {
             // Instead, we'll set Is_Active__c to false
             Map<String, Object> sourceData = new Map<String, Object>();
             
-            // Get current record data
-            List<Docs_Source__mdt> sources = [
-                SELECT DeveloperName, MasterLabel, Credential_Name__c, Provider__c, 
-                       Repository_Owner__c, Repository_Name__c, Content_Path__c, Default_Ref__c, 
-                       Allow_Version_Switching__c, Description__c
-                FROM Docs_Source__mdt
-                WHERE DeveloperName = :developerName
-                LIMIT 1
-            ];
-            
-            if (sources.isEmpty()) {
-                throw new AuraHandledException('Doc Source not found: ' + developerName);
+            // Get current record data using selector
+            List<Docs_Source__mdt> allSources = DocsSourceSelector.getAll();
+            Docs_Source__mdt source = null;
+            for (Docs_Source__mdt s : allSources) {
+                if (s.DeveloperName == developerName) {
+                    source = s;
+                    break;
+                }
             }
             
-            Docs_Source__mdt source = sources[0];
+            if (source == null) {
+                throw new AuraHandledException('Doc Source not found: ' + developerName);
+            }
             
             // Build update with Is_Active = false
             sourceData.put('developerName', source.DeveloperName);

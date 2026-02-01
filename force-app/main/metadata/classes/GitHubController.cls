@@ -129,21 +129,13 @@ public with sharing class GitHubController {
                 throw new AuraHandledException('App identifier is required');
             }
             
-            List<Docs_Source__mdt> sources = [
-                SELECT DeveloperName, MasterLabel, Credential_Name__c, Repository_Owner__c, Repository_Name__c,
-                       Content_Path__c, Default_Ref__c, Is_Active__c, Description__c,
-                       Allow_Version_Switching__c, Provider__c
-                FROM Docs_Source__mdt
-                WHERE DeveloperName = :appIdentifier
-                AND Is_Active__c = true
-                LIMIT 1
-            ];
+            Docs_Source__mdt source = DocsSourceSelector.getByDeveloperName(appIdentifier);
             
-            if (sources.isEmpty()) {
+            if (source == null) {
                 return null;
             }
             
-            return mapSourceToConfig(sources[0]);
+            return mapSourceToConfig(source);
         } catch (AuraHandledException e) {
             throw e;
         } catch (Exception e) {
@@ -158,14 +150,7 @@ public with sharing class GitHubController {
     @AuraEnabled(cacheable=true)
     public static List<GitHubConfig> getAllConfigurations() {
         try {
-            List<Docs_Source__mdt> sources = [
-                SELECT DeveloperName, MasterLabel, Credential_Name__c, Repository_Owner__c, Repository_Name__c,
-                       Content_Path__c, Default_Ref__c, Is_Active__c, Description__c,
-                       Allow_Version_Switching__c, Provider__c
-                FROM Docs_Source__mdt
-                WHERE Is_Active__c = true
-                ORDER BY MasterLabel ASC
-            ];
+            List<Docs_Source__mdt> sources = DocsSourceSelector.getAllActive();
             
             List<GitHubConfig> configs = new List<GitHubConfig>();
             for (Docs_Source__mdt source : sources) {
