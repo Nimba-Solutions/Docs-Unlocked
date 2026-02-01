@@ -26,6 +26,35 @@ export const DocsApp: React.FC = () => {
   const displayHeader = (window as any).DOCS_DISPLAY_HEADER === true; // Default to false
   const headerLabel = (window as any).DOCS_HEADER_LABEL || 'Documentation';
   const displayFooter = (window as any).DOCS_DISPLAY_FOOTER !== false; // Default to true
+  
+  // Version selector state - updated when LWC sets the data
+  const [versionSelector, setVersionSelector] = useState<{
+    enabled: boolean;
+    options?: { label: string; value: string }[];
+    currentRef?: string;
+    onChange?: (ref: string) => void;
+  }>({ enabled: false });
+
+  // Listen for version selector updates from LWC
+  useEffect(() => {
+    // Check if already set
+    const existing = (window as any).DOCS_VERSION_SELECTOR;
+    console.log('[DocsUnlocked React] useEffect - checking DOCS_VERSION_SELECTOR:', existing);
+    if (existing?.enabled) {
+      console.log('[DocsUnlocked React] Found existing version selector, setting state');
+      setVersionSelector(existing);
+    }
+
+    // Register callback for LWC to update version selector
+    (window as any).DOCS_UPDATE_VERSION_SELECTOR = (selector: typeof versionSelector) => {
+      console.log('[DocsUnlocked React] DOCS_UPDATE_VERSION_SELECTOR called with:', selector);
+      setVersionSelector(selector);
+    };
+
+    return () => {
+      delete (window as any).DOCS_UPDATE_VERSION_SELECTOR;
+    };
+  }, []);
 
   // Force container height for scrolling to work in Lightning App Pages
   useEffect(() => {
@@ -85,7 +114,9 @@ export const DocsApp: React.FC = () => {
     const loadNavigation = async () => {
       try {
         const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
-        const manifestUrl = `/resource/${contentResourceName}/content/manifest.yaml`;
+        // Use the base URL from LWC if available (handles Experience Cloud), otherwise fallback to /resource/
+        const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${contentResourceName}`;
+        const manifestUrl = `${contentResourceBaseUrl}/content/manifest.yaml`;
         
         let manifest: any;
         
@@ -226,7 +257,6 @@ export const DocsApp: React.FC = () => {
         
         // Use the actual path from discovered files - we already know it!
         const existingFile = discoveredFiles.get(currentPath);
-        let response: Response;
         let text = '';
         let foundPath = '';
         
@@ -236,36 +266,105 @@ export const DocsApp: React.FC = () => {
           throw new Error(`File not found in manifest: ${currentPath}`);
         }
         
+        // Check for preloaded content (from Git source via docsUnlockedGit wrapper)
+        const preloadedContent = (window as any).DOCS_PRELOADED_CONTENT;
+        if (preloadedContent?.files) {
+          // Try multiple path variations to find the preloaded content
+          const pathVariations = [
+            currentPath,                                    // /getting-started/introduction
+            currentPath.replace(/^\//, ''),                 // getting-started/introduction
+            existingFile.path,                              // 01.getting-started/01.introduction
+            existingFile.path + '.md',                      // 01.getting-started/01.introduction.md
+            existingFile.displayPath,                       // /getting-started/introduction
+          ].filter(Boolean);
+          
+          for (const pathVariant of pathVariations) {
+            if (preloadedContent.files[pathVariant]) {
+              text = preloadedContent.files[pathVariant];
+              foundPath = pathVariant;
+              console.log(`[DocsUnlocked] Loaded preloaded content for: ${pathVariant} (${text.length} chars)`);
+              break;
+            }
+          }
+          
+          if (text) {
+            // Successfully loaded from preloaded content - skip fetch
+            setContent(text);
+            setContentLoading(false);
+            
+            // Update title if needed
+            if (!existingFile.title) {
+              const title = extractTitle(text) || currentPath.split('/').pop()?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || currentPath;
+              setDiscoveredFiles(prev => {
+                const newMap = new Map(prev);
+                const file = newMap.get(currentPath);
+                if (file) {
+                  newMap.set(currentPath, { ...file, title });
+                }
+                return newMap;
+              });
+            }
+            return;
+          }
+          
+          console.log(`[DocsUnlocked] Preloaded content not found for ${currentPath}, falling back to Apex/fetch`);
+        }
+        
         // Use the path from manifest (should have prefixes like "02.core-concepts/01.basic-usage")
-        const contentPath = existingFile.path.startsWith('/') ? `${existingFile.path}.md` : `/${existingFile.path}.md`;
-        const url = `/resource/${contentResourceName}/content${contentPath}`;
+        // The file path in the ZIP is like "content/01.getting-started/01.introduction.md"
+        const zipFilePath = `content/${existingFile.path}.md`;
         console.log(`[DocsUnlocked] Loading content from manifest:`);
         console.log(`[DocsUnlocked]   Display path: ${currentPath}`);
         console.log(`[DocsUnlocked]   StaticResource path: ${existingFile.path}`);
-        console.log(`[DocsUnlocked]   Full URL: ${url}`);
+        console.log(`[DocsUnlocked]   ZIP file path: ${zipFilePath}`);
         
-        // Add cache-busting query parameter to force fresh fetch
-        const cacheBustUrl = `${url}?t=${Date.now()}`;
-        response = await fetch(cacheBustUrl, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache'
+        // Try Apex method first (works reliably in Experience Cloud and internal pages)
+        const getFileContent = (window as any).DOCS_GET_FILE_CONTENT;
+        if (getFileContent && typeof getFileContent === 'function') {
+          try {
+            console.log(`[DocsUnlocked] Fetching content via Apex...`);
+            text = await getFileContent(contentResourceName, zipFilePath);
+            if (text && text.length > 0) {
+              console.log(`[DocsUnlocked] Successfully loaded ${text.length} chars via Apex`);
+            } else {
+              throw new Error('Apex returned empty content');
+            }
+          } catch (apexError) {
+            console.warn(`[DocsUnlocked] Apex fetch failed, falling back to URL fetch:`, apexError);
+            text = ''; // Reset to trigger URL fallback
           }
-        });
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`[DocsUnlocked] HTTP ${response.status} error from ${url}:`, errorText.substring(0, 200));
-          throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
         }
         
-        text = await response.text();
-        console.log(`[DocsUnlocked] Raw response length: ${text.length} chars`);
-        console.log(`[DocsUnlocked] Response preview (first 200 chars):`, text.substring(0, 200));
+        // Fallback to URL fetch if Apex didn't work
+        if (!text) {
+          const contentPath = existingFile.path.startsWith('/') ? `${existingFile.path}.md` : `/${existingFile.path}.md`;
+          // Use the base URL from LWC if available (handles Experience Cloud), otherwise fallback to /resource/
+          const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${contentResourceName}`;
+          const url = `${contentResourceBaseUrl}/content${contentPath}`;
+          console.log(`[DocsUnlocked] Fetching via URL: ${url}`);
+          
+          // Add cache-busting query parameter to force fresh fetch
+          const cacheBustUrl = `${url}?t=${Date.now()}`;
+          const response = await fetch(cacheBustUrl, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache'
+            }
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`[DocsUnlocked] HTTP ${response.status} error from ${url}:`, errorText.substring(0, 200));
+            throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+          }
+          
+          text = await response.text();
+          console.log(`[DocsUnlocked] Raw response length: ${text.length} chars`);
+        }
         
         if (text.length < 100) {
-          console.error(`[DocsUnlocked] Content too short (${text.length} chars) from ${url}. Full response:`, text);
-          throw new Error(`Content too short from ${url} (${text.length} chars)`);
+          console.error(`[DocsUnlocked] Content too short (${text.length} chars). Full response:`, text);
+          throw new Error(`Content too short (${text.length} chars)`);
         }
         foundPath = existingFile.path;
         
@@ -471,15 +570,26 @@ export const DocsApp: React.FC = () => {
       
       {/* ROW2: Header - Only visible when enabled */}
       {displayHeader && (
-        <header className="h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg" />
-              <span className="text-xl font-bold text-gray-900">{headerLabel}</span>
-            </div>
+        <header className="h-14 bg-white border-b border-gray-200 px-4 flex items-center justify-between">
+          {/* Left side: Version selector */}
+          <div className="flex items-center">
+            {versionSelector.enabled && versionSelector.options ? (
+              <select
+                value={versionSelector.currentRef || 'main'}
+                onChange={(e) => versionSelector.onChange?.(e.target.value)}
+                className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {versionSelector.options.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            ) : (
+              <span className="text-lg font-semibold text-gray-900">{headerLabel}</span>
+            )}
           </div>
-          <div className="flex items-center gap-3">
-            <button className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+          {/* Right side: GitHub button */}
+          <div className="flex items-center">
+            <button className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
               <Github className="w-4 h-4" />
               <span>GitHub</span>
             </button>
