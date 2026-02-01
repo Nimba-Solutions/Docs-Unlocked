@@ -1,3 +1,23 @@
 <template>
-    <div class="docs-container" lwc:dom="manual"></div>
+    <!-- Loading state for Git-sourced content -->
+    <template lwc:if={isLoadingGitContent}>
+        <div class="loading-container">
+            <lightning-spinner alternative-text="Loading documentation..." size="medium"></lightning-spinner>
+            <p class="loading-text">Loading documentation...</p>
+        </div>
+    </template>
+
+    <!-- Error state -->
+    <template lwc:elseif={hasGitError}>
+        <div class="error-container">
+            <lightning-icon icon-name="utility:error" variant="error" size="large"></lightning-icon>
+            <h2>Error Loading Documentation</h2>
+            <p>{gitErrorMessage}</p>
+        </div>
+    </template>
+
+    <!-- Main content -->
+    <template lwc:else>
+        <div class="docs-container" lwc:dom="manual"></div>
+    </template>
 </template>

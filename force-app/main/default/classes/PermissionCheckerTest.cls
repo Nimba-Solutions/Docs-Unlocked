@@ -49,9 +49,33 @@ private class PermissionCheckerTest {
         Boolean result2 = PermissionChecker.hasObjectAccess('Account', 'create');
         System.assertEquals(true, result2, 'Should return true for Account create access');
         
+        // Test edit access type
+        Boolean result3 = PermissionChecker.hasObjectAccess('Account', 'edit');
+        System.assertNotEquals(null, result3, 'Should return boolean for edit access');
+        
+        // Test update access type
+        Boolean result4 = PermissionChecker.hasObjectAccess('Account', 'update');
+        System.assertNotEquals(null, result4, 'Should return boolean for update access');
+        
+        // Test delete access type
+        Boolean result5 = PermissionChecker.hasObjectAccess('Account', 'delete');
+        System.assertNotEquals(null, result5, 'Should return boolean for delete access');
+        
+        // Test viewall access type
+        Boolean result6 = PermissionChecker.hasObjectAccess('Account', 'viewall');
+        System.assertNotEquals(null, result6, 'Should return boolean for viewall access');
+        
+        // Test modifyall access type
+        Boolean result7 = PermissionChecker.hasObjectAccess('Account', 'modifyall');
+        System.assertNotEquals(null, result7, 'Should return boolean for modifyall access');
+        
+        // Test unknown access type (defaults to read)
+        Boolean result8 = PermissionChecker.hasObjectAccess('Account', 'unknowntype');
+        System.assertNotEquals(null, result8, 'Should return boolean for unknown access type');
+        
         // Test with invalid object
-        Boolean result3 = PermissionChecker.hasObjectAccess('NonExistentObject__c', 'read');
-        System.assertEquals(false, result3, 'Should return false for non-existent object');
+        Boolean result9 = PermissionChecker.hasObjectAccess('NonExistentObject__c', 'read');
+        System.assertEquals(false, result9, 'Should return false for non-existent object');
     }
     
     @isTest
@@ -67,6 +91,10 @@ private class PermissionCheckerTest {
         // Test with invalid format
         Boolean result3 = PermissionChecker.hasFieldAccess('InvalidFormat');
         System.assertEquals(false, result3, 'Should return false for invalid field format');
+        
+        // Test with non-existent object
+        Boolean result4 = PermissionChecker.hasFieldAccess('NonExistentObject__c.SomeField__c');
+        System.assertEquals(false, result4, 'Should return false for non-existent object');
     }
     
     @isTest
@@ -85,5 +113,31 @@ private class PermissionCheckerTest {
         Boolean result = PermissionChecker.hasCustomPermission('TestCustomPermission');
         // Result depends on whether permission exists, so we just verify it doesn't throw
         System.assertNotEquals(null, result, 'Should return a boolean value');
+    }
+    
+    /**
+     * @description Test hasPermission with a permission that doesn't exist
+     * This tests the exception handling path
+     */
+    @isTest
+    static void testHasPermission_NonExistent() {
+        Test.startTest();
+        Boolean result = PermissionChecker.hasPermission('NonExistentPermission123456');
+        Test.stopTest();
+        
+        // Should return false for non-existent permission
+        System.assertNotEquals(null, result, 'Should return a boolean');
+    }
+    
+    /**
+     * @description Test hasCustomPermission with a permission that doesn't exist
+     */
+    @isTest
+    static void testHasCustomPermission_NonExistent() {
+        Test.startTest();
+        Boolean result = PermissionChecker.hasCustomPermission('NonExistentCustomPerm123456');
+        Test.stopTest();
+        
+        System.assertNotEquals(null, result, 'Should return a boolean');
     }
 }

@@ -67,6 +67,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       
       // Get content resource name
       const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
+      const preloadedContent = (window as any).DOCS_PRELOADED_CONTENT;
       
       // Get all files from discoveredFiles (which has the actual StaticResource paths)
       const allFiles = Array.from(discoveredFiles.values());
@@ -76,15 +77,53 @@ export const Sidebar: React.FC<SidebarProps> = ({
         if (cancelled) break;
         
         try {
-          // Use the actual StaticResource path (with prefixes)
-          const contentPath = file.path.startsWith('/') ? `${file.path}.md` : `/${file.path}.md`;
-          const url = `/resource/${contentResourceName}/content${contentPath}?t=${Date.now()}`;
-          const response = await fetch(url, { cache: 'no-store' });
+          let content: string | null = null;
           
-          if (response.ok) {
-            const content = await response.text();
-            if (content.length < 100) continue; // Skip invalid responses
+          // Check preloaded content first (from Git source)
+          if (preloadedContent?.files) {
+            const pathVariations = [
+              file.displayPath,
+              file.displayPath.replace(/^\//, ''),
+              file.path,
+              file.path + '.md',
+            ].filter(Boolean);
             
+            for (const pathVariant of pathVariations) {
+              if (preloadedContent.files[pathVariant]) {
+                content = preloadedContent.files[pathVariant];
+                break;
+              }
+            }
+          }
+          
+          // Fall back to Apex/fetch if not preloaded
+          if (!content) {
+            const zipFilePath = `content/${file.path}.md`;
+            
+            // Try Apex method first (works reliably in Experience Cloud)
+            const getFileContent = (window as any).DOCS_GET_FILE_CONTENT;
+            if (getFileContent && typeof getFileContent === 'function') {
+              try {
+                content = await getFileContent(contentResourceName, zipFilePath);
+              } catch {
+                // Apex failed, will try URL fetch
+              }
+            }
+            
+            // Fallback to URL fetch if Apex didn't work
+            if (!content) {
+              const contentPath = file.path.startsWith('/') ? `${file.path}.md` : `/${file.path}.md`;
+              const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${contentResourceName}`;
+              const url = `${contentResourceBaseUrl}/content${contentPath}?t=${Date.now()}`;
+              const response = await fetch(url, { cache: 'no-store' });
+              
+              if (response.ok) {
+                content = await response.text();
+              }
+            }
+          }
+          
+          if (content && content.length >= 100) {
             const lowerContent = content.toLowerCase();
             
             // Check if content matches
