@@ -18,7 +18,7 @@ export default class DocsUnlocked extends NavigationMixin(LightningElement) {
     // Static resource mode
     @api contentResourceName = 'docsContent';
     
-    // Git provider mode - if set, loads from Doc_Source__c with this name
+    // Git provider mode - if set, loads from Docs_Source__mdt with this name
     @api docSourceName = '';
     
     // Display options
