@@ -1,0 +1,16 @@
+.slds-section__title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #16325c;
+}
+
+code {
+    font-family: Consolas, Monaco, 'Andale Mono', monospace;
+    background-color: #f4f6f9;
+    padding: 0.125rem 0.25rem;
+    border-radius: 3px;
+}
+
+.slds-table td {
+    vertical-align: middle;
+}
