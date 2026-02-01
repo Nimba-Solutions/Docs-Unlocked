@@ -3,6 +3,8 @@
  */
 export const processImages = (html: string): string => {
   const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
+  // Use the base URL from LWC if available (handles Experience Cloud), otherwise fallback to /resource/
+  const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${contentResourceName}`;
   
   return html.replace(/<img([^>]*)\ssrc=["']([^"']+)["']([^>]*)>/gi, (match, before, src, after) => {
     // Skip if already absolute URL (http/https) or data URI
@@ -21,9 +23,9 @@ export const processImages = (html: string): string => {
     if (normalizedPath.startsWith('/media/')) {
       // Strip /media/ prefix since we're already in the media folder
       const mediaPath = normalizedPath.replace(/^\/media\//, '');
-      staticResourceUrl = `/resource/${contentResourceName}/media/${mediaPath}`;
+      staticResourceUrl = `${contentResourceBaseUrl}/media/${mediaPath}`;
     } else {
-      staticResourceUrl = `/resource/${contentResourceName}/content${normalizedPath}`;
+      staticResourceUrl = `${contentResourceBaseUrl}/content${normalizedPath}`;
     }
     return `<img${before} src="${staticResourceUrl}"${after}>`;
   });
@@ -36,6 +38,8 @@ export const processImages = (html: string): string => {
 export const processVideos = (html: string): string => {
   const videoExtensions = /\.(mp4|webm|ogg|mov|avi|wmv|flv|mkv)$/i;
   const contentResourceName = (window as any).DOCS_CONTENT_RESOURCE_NAME || 'docsContent';
+  // Use the base URL from LWC if available (handles Experience Cloud), otherwise fallback to /resource/
+  const contentResourceBaseUrl = (window as any).DOCS_CONTENT_RESOURCE_BASE_URL || `/resource/${contentResourceName}`;
   
   // Convert image tags with video extensions to video tags
   // Note: Videos must be hosted externally (Salesforce Files or public URLs) due to 5MB StaticResource limit
@@ -105,9 +109,9 @@ export const processVideos = (html: string): string => {
     if (normalizedPath.startsWith('/media/')) {
       // Strip /media/ prefix since we're already in the media folder
       const mediaPath = normalizedPath.replace(/^\/media\//, '');
-      staticResourceUrl = `/resource/${contentResourceName}/media/${mediaPath}`;
+      staticResourceUrl = `${contentResourceBaseUrl}/media/${mediaPath}`;
     } else {
-      staticResourceUrl = `/resource/${contentResourceName}/content${normalizedPath}`;
+      staticResourceUrl = `${contentResourceBaseUrl}/content${normalizedPath}`;
     }
     return `<video${before} src="${staticResourceUrl}"${after}>`;
   });
